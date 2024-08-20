@@ -1,0 +1,136 @@
+name: Test and build server
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '**'
+    paths-ignore:
+      - 'releases/**'
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  DOCKER_IMAGE_NAME: hiro-microdatacenters-bv/ds-catalog
+
+jobs:
+  test_server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./server
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: |
+          poetry config virtualenvs.in-project true
+          poetry install --no-root --with dev,test
+
+      - name: Run style checks
+        run: |
+          poetry run mypy .
+          poetry run isort . --check --diff
+          poetry run flake8 .
+          poetry run black . --check --diff
+
+      - name: Run tests
+        run: poetry run pytest
+
+      - name: Verify OpenAPI spec has been updated
+        run: |
+          cd "${{ github.workspace }}"
+          poetry run --directory server python ./tools/extract_openapi.py app.main:app --app-dir ./server --out ./api/openapi_generated.yaml --app_version_file ./VERSION
+          git diff --exit-code ./api/openapi.yaml ./api/openapi_generated.yaml
+
+      - name: Verify client has been updated
+        run: |
+          cd "${{ github.workspace }}"
+          poetry --directory server run python ./tools/client_generator/generate.py --file ./api/openapi.yaml
+          git diff --exit-code -- ./client
+
+  build_server:
+    needs: [test_server]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./server
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Make versions
+        run: |
+          cd "${{ github.workspace }}"
+          chmod +x ./tools/version.sh
+          ./tools/version.sh "${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE_NAME }}"
+          echo "VERSION_APP=$(cat "./VERSION_APP")" >> $GITHUB_ENV
+          echo "DOCKER_IMAGES=$(cat "./DOCKER_IMAGES")" >> $GITHUB_ENV
+          echo "DOCKER_TAGS=$(cat "./VERSION_DOCKER")" >> $GITHUB_ENV
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE_NAME }}
+          tags: ${{ env.DOCKER_TAGS }}
+
+      - name: Build and push docker image
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: ${{ env.DOCKER_IMAGES }}
+          labels: ${{ steps.meta.outputs.labels }}
+          context: "${{ github.workspace }}/server"
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Create a github release
+        run: gh release create "${{ env.VERSION_APP }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Publish Helm charts
+        uses: stefanprodan/helm-gh-pages@master
+        with:
+          token: ${{ github.token }}
+          charts_dir: "./server/charts/"
+          target_dir: "./helm-charts/"

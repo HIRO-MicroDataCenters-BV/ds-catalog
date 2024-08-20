@@ -1,0 +1,50 @@
+name: Test and build client
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  test_and_build_client:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: |
+          poetry config virtualenvs.in-project true
+          poetry install --no-root
+
+      - name: Check code
+        run: |
+          poetry run mypy .
+          poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Run tests
+        run: poetry run pytest
+
+      # The version in PyPI must follow the PEP 440 standard.
+      # Semantic versioning is not supported by PyPI.
+      # Therefore, only the release version is published.
+      - name: Build and publish to pypi
+        run: |
+          if [[ ${{ github.ref }} =~ ^refs/tags/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "This is a version tag. Build and publish a package."
+            poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+            poetry build
+            poetry publish
+          else
+            echo "This is not a version tag."
+          fi

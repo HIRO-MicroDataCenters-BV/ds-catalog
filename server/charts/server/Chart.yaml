@@ -1,0 +1,6 @@
+apiVersion: v2
+name: ds-catalog
+description: Data Space Catalog
+type: application
+version: ""
+appVersion: ""

@@ -1,0 +1,77 @@
+default_language_version:
+  python: python3.12
+
+default_stages: [commit, push]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.4.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: client/.*|.*\.md
+      - id: end-of-file-fixer
+        exclude: client/.*|.*\.md
+      - id: check-yaml
+        exclude: charts/
+      - id: check-added-large-files
+
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.9.0
+    hooks:
+    -   id: shellcheck
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        files: ^server/
+        entry: poetry --directory server run mypy
+        language: system
+        types: [python]
+
+  - repo: local
+    hooks:
+      - id: isort
+        name: isort
+        files: ^server/
+        entry: poetry --directory server run isort
+        language: system
+        types: [python]
+
+  - repo: local
+    hooks:
+      - id: flake8
+        name: flake8
+        files: ^server/
+        entry: poetry --directory server run flake8 --config ./server/.flake8
+        language: system
+        types: [python]
+
+  - repo: local
+    hooks:
+      - id: black
+        name: black
+        files: ^server/
+        entry: poetry --directory server run black
+        language: system
+        types: [python]
+
+  - repo: local
+    hooks:
+      - id: openapi
+        name: openapi
+        entry: poetry --directory server run python ./tools/extract_openapi.py app.main:app --app-dir ./server --out ./api/openapi.yaml --app_version_file ./VERSION
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true
+
+  - repo: local
+    hooks:
+      - id: generate_client
+        name: generate client
+        entry: poetry --directory server run python ./tools/client_generator/generate.py --file ./api/openapi.yaml
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true

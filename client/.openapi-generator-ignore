@@ -1,0 +1,11 @@
+.github/**
+.openapi-generator-ignore
+.gitlab-ci.yml
+.travis.yml
+.gitignore
+git_push.sh
+requirements.txt
+setup.py
+test-requirements.txt
+LICENSE
+generator
