@@ -1,6 +1,6 @@
 # Data Space Catalog
 
-The service provides a REST API for managing catalog data. Interacts with connector services to obtain information about data products.
+The service provides a REST API for managing and sharing catalog data. Interacts with connector services to obtain information about data products.
 
 ## Requirements
 Python 3.10+
