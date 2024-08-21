@@ -5,11 +5,11 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "{{{packageName}}}"
 version = "{{{appVersion}}}"
-description = "Client for Data Space Catalog"
+description = "Client for {{{appName}}}"
 authors = ["{{infoName}}{{^infoName}}OpenAPI Generator Community{{/infoName}} <{{infoEmail}}{{^infoEmail}}team@openapitools.org{{/infoEmail}}>"]
 license = "{{{licenseInfo}}}{{^licenseInfo}}NoLicense{{/licenseInfo}}"
 readme = "README.md"
-keywords = ["OpenAPI", "OpenAPI-Generator", "Data Space Catalog"]
+keywords = ["OpenAPI", "OpenAPI-Generator", "{{{appName}}}"]
 include = ["{{packageName}}/py.typed"]
 
 [tool.poetry.dependencies]

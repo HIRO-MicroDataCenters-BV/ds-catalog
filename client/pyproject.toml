@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "ds_catalog"
-version = "0.1.0"
+version = "0.1.1"
 description = "Client for Data Space Catalog"
 authors = ["HIRO-MicroDataCenters <all-hiro@hiro-microdatacenters.nl>"]
 license = "MIT"

@@ -1,5 +1,5 @@
 # Python client
-API version: 0.1.0
+API version: 0.1.1
 
 ## Requirements
 
