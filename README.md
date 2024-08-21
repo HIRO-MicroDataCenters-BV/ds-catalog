@@ -11,6 +11,8 @@ pip install pre-commit
 pre-commit install
 ```
 
+Work on the server and client is conducted in their respective directories: server and client, as the server-side and client-side parts have different dependencies, configurations, etc.
+
 ## Working on a server
 Go to the `/server` folder to install dependencies and work on the server application.  
 Documentation on setting up the virtual environment, installing dependencies, and working with the server can be found [here](./server/README.md).
@@ -32,8 +34,6 @@ Upon pushing the commit to GitHub, workflows are initiated, which:
 - Execute server and client tests;
 - Create a Docker image of the server, Helm chart, and deploy the application to a Kubernetes cluster.
 - Build the client package and push it to [pypi.org](https://pypi.org/)
-
-Work on the server and client is conducted in their respective directories: server and client, as the server-side and client-side parts have different dependencies, configurations, etc.
 
 ## GitHub Actions
 GitHub Actions triggers testing, builds, and application publishing for each release.  
