@@ -105,15 +105,16 @@ configuration = ds_catalog.Configuration(
 # Enter a context with an instance of the API client
 with ds_catalog.ApiClient(configuration) as api_client:
     # Create an instance of the API class
-    api_instance = ds_catalog.DefaultApi(api_client)
+    api_instance = ds_catalog.CatalogItemsApi(api_client)
+    catalog_item_form = ds_catalog.CatalogItemForm() # CatalogItemForm | 
 
     try:
-        # Example endpoint
-        api_response = api_instance.example_get()
-        print("The response of DefaultApi->example_get:\n")
+        # Create a catalog item
+        api_response = api_instance.create_catalog_item(catalog_item_form)
+        print("The response of CatalogItemsApi->create_catalog_item:\n")
         pprint(api_response)
     except ApiException as e:
-        print("Exception when calling DefaultApi->example_get: %s\n" % e)
+        print("Exception when calling CatalogItemsApi->create_catalog_item: %s\n" % e)
 
 ```
 
@@ -123,13 +124,35 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*DefaultApi* | [**example_get**](docs/DefaultApi.md#example_get) | **GET** / | Example endpoint
+*CatalogItemsApi* | [**create_catalog_item**](docs/CatalogItemsApi.md#create_catalog_item) | **POST** /catalog-items/ | Create a catalog item
+*CatalogItemsApi* | [**delete_catalog_item**](docs/CatalogItemsApi.md#delete_catalog_item) | **DELETE** /catalog-items/{id}/ | Delete the catalog item
+*CatalogItemsApi* | [**get_catalog_item**](docs/CatalogItemsApi.md#get_catalog_item) | **GET** /catalog-items/{id}/ | Get the catalog item
+*CatalogItemsApi* | [**get_catalog_items**](docs/CatalogItemsApi.md#get_catalog_items) | **GET** /catalog-items/ | Get the list of catalog items
+*CatalogItemsApi* | [**update_catalog_item**](docs/CatalogItemsApi.md#update_catalog_item) | **PATCH** /catalog-items/{id}/ | Update the catalog item
+*DefaultApi* | [**health_check**](docs/DefaultApi.md#health_check) | **GET** /health-check/ | Health check
 *DefaultApi* | [**metrics_metrics_get**](docs/DefaultApi.md#metrics_metrics_get) | **GET** /metrics | Metrics
 
 
 ## Documentation For Models
 
- - [ExampleResponse](docs/ExampleResponse.md)
+ - [CatalogItem](docs/CatalogItem.md)
+ - [CatalogItemForm](docs/CatalogItemForm.md)
+ - [Connector](docs/Connector.md)
+ - [DataProduct](docs/DataProduct.md)
+ - [DataProductForm](docs/DataProductForm.md)
+ - [HTTPValidationError](docs/HTTPValidationError.md)
+ - [HealthCheck](docs/HealthCheck.md)
+ - [Interface](docs/Interface.md)
+ - [Node](docs/Node.md)
+ - [Ontology](docs/Ontology.md)
+ - [PaginatedResultCatalogItem](docs/PaginatedResultCatalogItem.md)
+ - [Size](docs/Size.md)
+ - [Source](docs/Source.md)
+ - [SourceInterface](docs/SourceInterface.md)
+ - [SourceNode](docs/SourceNode.md)
+ - [User](docs/User.md)
+ - [ValidationError](docs/ValidationError.md)
+ - [ValidationErrorLocInner](docs/ValidationErrorLocInner.md)
 
 
 <a id="documentation-for-authorization"></a>

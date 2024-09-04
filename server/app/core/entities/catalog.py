@@ -5,10 +5,10 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from .users import User
+from .user import User
 
 
-class Ontology(Enum):
+class Ontology(str, Enum):
     DCAT_3 = "DCAT-3"
     DCAT_AP = "DCAT-AP"
 
@@ -41,7 +41,7 @@ class Source:
 class DataProductBase:
     id: str
     name: str
-    size: int
+    size: int | None
     mimetype: str
     digest: str
     source: Source
@@ -53,8 +53,8 @@ class DataProduct(DataProductBase):
 
 
 @dataclass
-class DataProductForm(DataProductBase):
-    accessPointUrl: str
+class DataProductInput(DataProductBase):
+    access_point_url: str
 
 
 @dataclass
@@ -62,7 +62,6 @@ class CatalogItemBase:
     ontology: Ontology
     title: str
     summary: str
-    data_products: list[DataProductForm]
 
 
 @dataclass
@@ -72,16 +71,17 @@ class CatalogItem(CatalogItemBase):
     is_shared: bool
     created: datetime
     creator: User
+    data_products: list[DataProduct]
     _links: dict[str, str]
 
 
 @dataclass
-class CatalogItemForm(CatalogItemBase):
-    ...
+class CatalogItemInput(CatalogItemBase):
+    data_products: list[DataProductInput]
 
 
 @dataclass
-class CatalogItemImport(CatalogItemBase):
+class CatalogItemImport(CatalogItemInput):
     id: UUID
 
 

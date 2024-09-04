@@ -10,12 +10,16 @@ from ..entities.catalog import (
     Ontology,
     Source,
 )
-from ..entities.users import User
+from ..entities.user import User
 
 
-def create_dummy_data_product():
-    return DataProduct(
-        id="dataproduct1",
+def create_dummy_data_product(**kwargs) -> DataProduct:
+    id = kwargs.pop("id", None)
+    if id is None:
+        id = str(uuid4())
+
+    attributes = dict(
+        id=id,
         name="cancer_data_2024",
         size=1024,
         mimetype="text/plain",
@@ -23,44 +27,50 @@ def create_dummy_data_product():
         source=Source(
             node=None,
             connector=Connector(id="connector1"),
-            interface=Interface(id="interface2"),
+            interface=Interface(id="interfaceA"),
         ),
         _links={
-            "accessPoint": "/connector1/interface2/dataproduct1/",
+            "accessPoint": f"/connector1/interfaceA/{id}/",
         },
     )
+    attributes.update(kwargs)
+    return DataProduct(**attributes)
 
 
-def create_dummy_catalog_item(**kwargs) -> CatalogItem:
-    id = kwargs.pop("id", None)
-    if id is None:
-        id = uuid4()
-
-    attributes = dict(
-        id=id,
+DUMMY_USER = User(
+    id=uuid4(),
+    full_name="John Smith",
+)
+DUMMY_CATALOG_ITEMS = [
+    CatalogItem(
+        id=uuid4(),
         ontology=Ontology.DCAT_3,
         title="Cancer 2024",
-        summary="Some description",
+        summary="Description of Cancer 2024",
         is_local=True,
         is_shared=False,
-        created=datetime.datetime.now(),
-        creator=User(
-            id=uuid4(),
-            full_name="John Smith",
-        ),
+        created=datetime.datetime(2024, 1, 1),
+        creator=DUMMY_USER,
         data_products=[
-            create_dummy_data_product(),
+            create_dummy_data_product(name="cancer_dataset_2024_1"),
+            create_dummy_data_product(name="cancer_dataset_2024_2"),
         ],
-        _links={"data": f"/catalog-items/{id}/data"},
-    )
-    attributes.update(kwargs)
-    return CatalogItem(**attributes)
-
-
-DUMMY_CATALOG_ITEMS = [
-    create_dummy_catalog_item(title="Cancer 2022"),
-    create_dummy_catalog_item(title="Cancer 2023"),
-    create_dummy_catalog_item(title="Cancer 2024"),
+        _links={"data": "/catalog-items/1/data"},
+    ),
+    CatalogItem(
+        id=uuid4(),
+        ontology=Ontology.DCAT_AP,
+        title="Cancer 2023",
+        summary="Description of Cancer 2023",
+        is_local=True,
+        is_shared=True,
+        created=datetime.datetime(2023, 1, 1),
+        creator=DUMMY_USER,
+        data_products=[
+            create_dummy_data_product(name="cancer_dataset_2023"),
+        ],
+        _links={"data": "/catalog-items/2/data"},
+    ),
 ]
 DUMMY_CATALOG_ITEM_DATA = CatalogItemData(
     {

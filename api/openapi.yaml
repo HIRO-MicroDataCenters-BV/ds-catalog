@@ -22,29 +22,492 @@ paths:
           content:
             application/json:
               schema: {}
-  /:
+  /health-check/:
     get:
-      summary: Example endpoint
-      description: Example endpoint that returns test data
-      operationId: example__get
+      summary: Health check
+      description: Returns a 200 status code if the service is up and running
+      operationId: health_check
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ExampleResponse'
+                $ref: '#/components/schemas/HealthCheck'
+  /catalog-items/:
+    get:
+      tags:
+      - Catalog Items
+      summary: Get the list of catalog items
+      description: 'Returns the list of catalog items with the ability to search,
+        filter and
+
+        paginate.'
+      operationId: get_catalog_items
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 1
+          title: Page
+      - name: pageSize
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 100
+          title: Pagesize
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResult_CatalogItem_'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Catalog Items
+      summary: Create a catalog item
+      description: Create a catalog item
+      operationId: create_catalog_item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogItemForm'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItem'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /catalog-items/{id}/:
+    get:
+      tags:
+      - Catalog Items
+      summary: Get the catalog item
+      description: Get the catalog item
+      operationId: get_catalog_item
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItem'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - Catalog Items
+      summary: Update the catalog item
+      description: Update the catalog item
+      operationId: update_catalog_item
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogItemForm'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItem'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Catalog Items
+      summary: Delete the catalog item
+      description: Delete the catalog item
+      operationId: delete_catalog_item
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
-    ExampleResponse:
+    CatalogItem:
       properties:
-        value:
+        ontology:
+          $ref: '#/components/schemas/Ontology'
+        title:
           type: string
-          title: Value
+          title: Title
+        summary:
+          type: string
+          title: Summary
+        id:
+          type: string
+          format: uuid
+          title: Id
+        isLocal:
+          type: boolean
+          title: Islocal
+        isShared:
+          type: boolean
+          title: Isshared
+        created:
+          type: string
+          format: date-time
+          title: Created
+        creator:
+          $ref: '#/components/schemas/User'
+        dataProducts:
+          items:
+            $ref: '#/components/schemas/DataProduct'
+          type: array
+          title: Dataproducts
+        _links:
+          additionalProperties:
+            type: string
+          type: object
+          title: ' Links'
       type: object
       required:
-      - value
-      title: ExampleResponse
-      description: Example data
+      - ontology
+      - title
+      - summary
+      - id
+      - isLocal
+      - isShared
+      - created
+      - creator
+      - dataProducts
+      - _links
+      title: CatalogItem
       examples:
-      - value: test value
+      - _links:
+          data: /catalog-items/c6b59f81-e7b5-46d6-84b9-c0dee695c7ec/data
+        created: '2023-08-27T14:00:00Z'
+        creator:
+          fullName: John Smith
+          id: c6b59f81-e7b5-46d6-84b9-c0dee695c7ec
+        dataProducts:
+        - _links:
+            accessPoint: /connector1/interface2/8D8AC610-566D-4EF0-9C22-186B2A5ED793/
+          digest: 1df50e8ad219e34f0b911e097b7b588e31f9b435
+          id: 8D8AC610-566D-4EF0-9C22-186B2A5ED793
+          mimetype: text/plain
+          name: cancer_data_2024
+          size: 1024
+          source:
+            connector:
+              id: connector1
+            interface:
+              id: interface2
+            node:
+              host: localhost
+              port: 8000
+              protocol: https
+        id: c6b59f81-e7b5-46d6-84b9-c0dee695c7ec
+        isLocal: true
+        isShared: false
+        ontology: DCAT-3
+        summary: Some description
+        title: Cancer 2024
+    CatalogItemForm:
+      properties:
+        ontology:
+          $ref: '#/components/schemas/Ontology'
+        title:
+          type: string
+          title: Title
+        summary:
+          type: string
+          title: Summary
+        dataProducts:
+          items:
+            $ref: '#/components/schemas/DataProductForm'
+          type: array
+          title: Dataproducts
+      type: object
+      required:
+      - ontology
+      - title
+      - summary
+      - dataProducts
+      title: CatalogItemForm
+      examples:
+      - dataProducts:
+        - accessPointUrl: /connector1/interface2/dataproduct1/
+          digest: 1df50e8ad219e34f0b911e097b7b588e31f9b435
+          id: dataproduct1
+          mimetype: text/plain
+          name: cancer_data_2024
+          size: 1024
+          source:
+            connector:
+              id: connector1
+            interface:
+              id: interface2
+            node:
+              host: localhost
+              port: 8000
+              protocol: https
+        ontology: DCAT-3
+        summary: Some description
+        title: Cancer 2024
+    Connector:
+      properties:
+        id:
+          type: string
+          title: Id
+      type: object
+      required:
+      - id
+      title: Connector
+    DataProduct:
+      properties:
+        id:
+          type: string
+          title: Id
+        name:
+          type: string
+          title: Name
+        size:
+          anyOf:
+          - type: integer
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Size
+        mimetype:
+          type: string
+          title: Mimetype
+        digest:
+          type: string
+          title: Digest
+        source:
+          $ref: '#/components/schemas/Source'
+        _links:
+          additionalProperties:
+            type: string
+          type: object
+          title: ' Links'
+      type: object
+      required:
+      - id
+      - name
+      - size
+      - mimetype
+      - digest
+      - source
+      - _links
+      title: DataProduct
+    DataProductForm:
+      properties:
+        id:
+          type: string
+          title: Id
+        name:
+          type: string
+          title: Name
+        size:
+          anyOf:
+          - type: integer
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Size
+        mimetype:
+          type: string
+          title: Mimetype
+        digest:
+          type: string
+          title: Digest
+        source:
+          $ref: '#/components/schemas/Source'
+        accessPointUrl:
+          type: string
+          title: Accesspointurl
+      type: object
+      required:
+      - id
+      - name
+      - size
+      - mimetype
+      - digest
+      - source
+      - accessPointUrl
+      title: DataProductForm
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    HealthCheck:
+      properties:
+        status:
+          type: string
+          title: Status
+          examples:
+          - OK
+      type: object
+      required:
+      - status
+      title: HealthCheck
+    Interface:
+      properties:
+        id:
+          type: string
+          title: Id
+      type: object
+      required:
+      - id
+      title: Interface
+    Node:
+      properties:
+        protocol:
+          type: string
+          title: Protocol
+        host:
+          type: string
+          title: Host
+        port:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Port
+      type: object
+      required:
+      - protocol
+      - host
+      - port
+      title: Node
+    Ontology:
+      type: string
+      enum:
+      - DCAT-3
+      - DCAT-AP
+      title: Ontology
+    PaginatedResult_CatalogItem_:
+      properties:
+        page:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Page
+          examples:
+          - 1
+        size:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Size
+          examples:
+          - 100
+        items:
+          items:
+            $ref: '#/components/schemas/CatalogItem'
+          type: array
+          title: Items
+      type: object
+      required:
+      - page
+      - size
+      - items
+      title: PaginatedResult[CatalogItem]
+    Source:
+      properties:
+        connector:
+          $ref: '#/components/schemas/Connector'
+        node:
+          anyOf:
+          - $ref: '#/components/schemas/Node'
+          - type: 'null'
+        interface:
+          anyOf:
+          - $ref: '#/components/schemas/Interface'
+          - type: 'null'
+      type: object
+      required:
+      - connector
+      title: Source
+    User:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        fullName:
+          type: string
+          title: Fullname
+      type: object
+      required:
+      - id
+      - fullName
+      title: User
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

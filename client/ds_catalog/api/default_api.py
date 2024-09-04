@@ -17,7 +17,7 @@ from pydantic import validate_call, Field, StrictFloat, StrictStr, StrictInt
 from typing import Any, Dict, List, Optional, Tuple, Union
 from typing_extensions import Annotated
 
-from ds_catalog.models.example_response import ExampleResponse
+from ds_catalog.models.health_check import HealthCheck
 
 from ds_catalog.api_client import ApiClient, RequestSerialized
 from ds_catalog.api_response import ApiResponse
@@ -38,7 +38,7 @@ class DefaultApi:
 
 
     @validate_call
-    def example_get(
+    def health_check(
         self,
         _request_timeout: Union[
             None,
@@ -52,10 +52,10 @@ class DefaultApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ExampleResponse:
-        """Example endpoint
+    ) -> HealthCheck:
+        """Health check
 
-        Example endpoint that returns test data
+        Returns a 200 status code if the service is up and running
 
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -79,7 +79,7 @@ class DefaultApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._example_get_serialize(
+        _param = self._health_check_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -87,7 +87,7 @@ class DefaultApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ExampleResponse",
+            '200': "HealthCheck",
         }
         response_data = self.api_client.call_api(
             *_param,
@@ -101,7 +101,7 @@ class DefaultApi:
 
 
     @validate_call
-    def example_get_with_http_info(
+    def health_check_with_http_info(
         self,
         _request_timeout: Union[
             None,
@@ -115,10 +115,10 @@ class DefaultApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[ExampleResponse]:
-        """Example endpoint
+    ) -> ApiResponse[HealthCheck]:
+        """Health check
 
-        Example endpoint that returns test data
+        Returns a 200 status code if the service is up and running
 
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -142,7 +142,7 @@ class DefaultApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._example_get_serialize(
+        _param = self._health_check_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -150,7 +150,7 @@ class DefaultApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ExampleResponse",
+            '200': "HealthCheck",
         }
         response_data = self.api_client.call_api(
             *_param,
@@ -164,7 +164,7 @@ class DefaultApi:
 
 
     @validate_call
-    def example_get_without_preload_content(
+    def health_check_without_preload_content(
         self,
         _request_timeout: Union[
             None,
@@ -179,9 +179,9 @@ class DefaultApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Example endpoint
+        """Health check
 
-        Example endpoint that returns test data
+        Returns a 200 status code if the service is up and running
 
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
@@ -205,7 +205,7 @@ class DefaultApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._example_get_serialize(
+        _param = self._health_check_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -213,7 +213,7 @@ class DefaultApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ExampleResponse",
+            '200': "HealthCheck",
         }
         response_data = self.api_client.call_api(
             *_param,
@@ -222,7 +222,7 @@ class DefaultApi:
         return response_data.response
 
 
-    def _example_get_serialize(
+    def _health_check_serialize(
         self,
         _request_auth,
         _content_type,
@@ -263,7 +263,7 @@ class DefaultApi:
 
         return self.api_client.param_serialize(
             method='GET',
-            resource_path='/',
+            resource_path='/health-check/',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
