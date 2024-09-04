@@ -19,7 +19,6 @@ __version__ = "1.0.0"
 
 # import apis into sdk package
 from ds_catalog.api.default_api import DefaultApi
-from ds_catalog.api.items_api import ItemsApi
 
 # import ApiClient
 from ds_catalog.api_response import ApiResponse
@@ -34,7 +33,3 @@ from ds_catalog.exceptions import ApiException
 
 # import models into sdk package
 from ds_catalog.models.example_response import ExampleResponse
-from ds_catalog.models.http_validation_error import HTTPValidationError
-from ds_catalog.models.item import Item
-from ds_catalog.models.validation_error import ValidationError
-from ds_catalog.models.validation_error_loc_inner import ValidationErrorLocInner

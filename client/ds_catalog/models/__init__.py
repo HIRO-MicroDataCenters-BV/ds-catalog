@@ -16,7 +16,3 @@
 
 # import models into model package
 from ds_catalog.models.example_response import ExampleResponse
-from ds_catalog.models.http_validation_error import HTTPValidationError
-from ds_catalog.models.item import Item
-from ds_catalog.models.validation_error import ValidationError
-from ds_catalog.models.validation_error_loc_inner import ValidationErrorLocInner
