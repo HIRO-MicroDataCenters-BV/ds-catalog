@@ -13,7 +13,7 @@ from ..entities.catalog import (
 from ..entities.user import User
 
 
-def create_dummy_data_product(**kwargs) -> DataProduct:
+def create_dummy_data_product(**kwargs) -> DataProduct:  # type: ignore
     id = kwargs.pop("id", None)
     if id is None:
         id = str(uuid4())
