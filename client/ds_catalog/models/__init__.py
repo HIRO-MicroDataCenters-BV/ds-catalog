@@ -17,6 +17,7 @@
 # import models into model package
 from ds_catalog.models.catalog_item import CatalogItem
 from ds_catalog.models.catalog_item_form import CatalogItemForm
+from ds_catalog.models.catalog_item_share_form import CatalogItemShareForm
 from ds_catalog.models.connector import Connector
 from ds_catalog.models.data_product import DataProduct
 from ds_catalog.models.data_product_form import DataProductForm

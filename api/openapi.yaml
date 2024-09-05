@@ -325,6 +325,47 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /catalog-items/{id}/share/:
+    post:
+      tags:
+      - Catalog Items Sharing
+      summary: Share a catalog item
+      description: Share a catalog item to the marketplace
+      operationId: share_catalog_item
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogItemShareForm'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItem'
+          headers:
+            Location:
+              description: The URL of the newly created resource
+              schema:
+                type: string
+                format: uri
+        '404':
+          description: Catalog Item not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
     CatalogItem:
@@ -498,6 +539,16 @@ components:
         ontology: DCAT-3
         summary: Some description
         title: Cancer 2024
+    CatalogItemShareForm:
+      properties:
+        marketplaceId:
+          type: string
+          format: uuid
+          title: Marketplaceid
+      type: object
+      required:
+      - marketplaceId
+      title: CatalogItemShareForm
     Connector:
       properties:
         id:

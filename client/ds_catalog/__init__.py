@@ -20,6 +20,7 @@ __version__ = "1.0.0"
 # import apis into sdk package
 from ds_catalog.api.catalog_items_api import CatalogItemsApi
 from ds_catalog.api.catalog_items_data_api import CatalogItemsDataApi
+from ds_catalog.api.catalog_items_sharing_api import CatalogItemsSharingApi
 from ds_catalog.api.default_api import DefaultApi
 
 # import ApiClient
@@ -36,6 +37,7 @@ from ds_catalog.exceptions import ApiException
 # import models into sdk package
 from ds_catalog.models.catalog_item import CatalogItem
 from ds_catalog.models.catalog_item_form import CatalogItemForm
+from ds_catalog.models.catalog_item_share_form import CatalogItemShareForm
 from ds_catalog.models.connector import Connector
 from ds_catalog.models.data_product import DataProduct
 from ds_catalog.models.data_product_form import DataProductForm
