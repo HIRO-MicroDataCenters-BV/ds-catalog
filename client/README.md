@@ -129,6 +129,10 @@ Class | Method | HTTP request | Description
 *CatalogItemsApi* | [**get_catalog_item**](docs/CatalogItemsApi.md#get_catalog_item) | **GET** /catalog-items/{id}/ | Get the catalog item
 *CatalogItemsApi* | [**get_catalog_items**](docs/CatalogItemsApi.md#get_catalog_items) | **GET** /catalog-items/ | Get the list of catalog items
 *CatalogItemsApi* | [**update_catalog_item**](docs/CatalogItemsApi.md#update_catalog_item) | **PATCH** /catalog-items/{id}/ | Update the catalog item
+*CatalogItemsDataApi* | [**change_catalog_item_data**](docs/CatalogItemsDataApi.md#change_catalog_item_data) | **PUT** /catalog-items/{id}/data/ | Change the data for the catalog item
+*CatalogItemsDataApi* | [**create_catalog_item_data**](docs/CatalogItemsDataApi.md#create_catalog_item_data) | **POST** /catalog-items/{id}/data/ | Create the data for the catalog item
+*CatalogItemsDataApi* | [**delete_catalog_item_data**](docs/CatalogItemsDataApi.md#delete_catalog_item_data) | **DELETE** /catalog-items/{id}/data/ | Delete the data for the catalog item
+*CatalogItemsDataApi* | [**get_catalog_item_data**](docs/CatalogItemsDataApi.md#get_catalog_item_data) | **GET** /catalog-items/{id}/data/ | Get the data for the catalog item
 *DefaultApi* | [**health_check**](docs/DefaultApi.md#health_check) | **GET** /health-check/ | Health check
 *DefaultApi* | [**metrics_metrics_get**](docs/DefaultApi.md#metrics_metrics_get) | **GET** /metrics | Metrics
 

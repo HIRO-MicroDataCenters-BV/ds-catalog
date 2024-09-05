@@ -178,6 +178,141 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /catalog-items/{id}/data/:
+    get:
+      tags:
+      - Catalog Items Data
+      summary: Get the data for the catalog item
+      description: Returns the data for the catalog item
+      operationId: get_catalog_item_data
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: Catalog Item ID
+          title: Id
+        description: Catalog Item ID
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItemData'
+        '404':
+          description: Catalog Item or Catalog Item Data not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Catalog Items Data
+      summary: Create the data for the catalog item
+      description: Create the data for the catalog item
+      operationId: create_catalog_item_data
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: Catalog Item ID
+          title: Id
+        description: Catalog Item ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogItemData'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItemData'
+          headers:
+            Location:
+              description: The URL of the newly created resource
+              schema:
+                type: string
+                format: uri
+        '404':
+          description: Catalog item not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      tags:
+      - Catalog Items Data
+      summary: Change the data for the catalog item
+      description: Change the data for the catalog item
+      operationId: change_catalog_item_data
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: Catalog Item ID
+          title: Id
+        description: Catalog Item ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogItemData'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItemData'
+        '404':
+          description: Catalog Item or Catalog Item Data not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Catalog Items Data
+      summary: Delete the data for the catalog item
+      description: Delete the data for the catalog item
+      operationId: delete_catalog_item_data
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          description: Catalog Item ID
+          title: Id
+        description: Catalog Item ID
+      responses:
+        '204':
+          description: Successful Response
+        '404':
+          description: Catalog Item or Catalog Item Data not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
     CatalogItem:
@@ -259,6 +394,56 @@ components:
         ontology: DCAT-3
         summary: Some description
         title: Cancer 2024
+    CatalogItemData:
+      type: object
+      title: CatalogItemData
+      description: Catalog Item Data in Json-ld format
+      examples:
+      - '@context':
+          dcat: http://www.w3.org/ns/dcat#
+          dcterms: http://purl.org/dc/terms/
+          ex: http://example.org/
+          rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+          rdfs: http://www.w3.org/2000/01/rdf-schema#
+          spdx: http://spdx.org/rdf/terms#
+          xsd: http://www.w3.org/2001/XMLSchema#
+        ex:catalog:
+          '@type': dcat:Catalog
+          dcat:dataset:
+            '@id': ex:dataset-001
+          dcat:service:
+            '@id': ex:data-service-001
+          dcat:version: 1.0.0
+          dcterms:identifier: c6b59f81-e7b5-46d6-84b9-c0dee695c7ec
+          dcterms:title:
+            '@language': en
+            '@value': Cancer 2024
+        ex:data-service-001:
+          '@type': dcat:DataService
+          dcat:endpointURL:
+            '@id': /connector1/interface2/dataproduct1/
+          dcat:servesDataset:
+            '@id': ex:dataset-001
+        ex:dataset-001:
+          '@type': dcat:Dataset
+          dcat:distribution:
+            '@id': ex:distribution-001
+          dcterms:identifier: dataproduct1
+          dcterms:title:
+            '@language': en
+            '@value': cancer_data_2024
+        ex:distribution-001:
+          '@type': dcat:Distribution
+          dcat:accessService:
+            '@id': ex:data-service-001
+          dcat:byteSize:
+            '@type': xsd:nonNegativeInteger
+            '@value': '1024'
+          dcat:mediaType: text/plain
+          spdx:checksum:
+            '@type': spdx:Checksum
+            spdx:algorithm: spdx:checksumAlgorithm_sha256
+            spdx:checksumValue: 3e23e8160039594a33894f6564e1b1348bb8e482aa04f83e4d19b84
     CatalogItemForm:
       properties:
         ontology:

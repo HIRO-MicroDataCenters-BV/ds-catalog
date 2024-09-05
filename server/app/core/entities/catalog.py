@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, TypeAlias
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -85,6 +85,4 @@ class CatalogItemImport(CatalogItemInput):
     id: UUID
 
 
-@dataclass
-class CatalogItemData:
-    data: dict[str, Any]
+CatalogItemData: TypeAlias = dict[str, Any]

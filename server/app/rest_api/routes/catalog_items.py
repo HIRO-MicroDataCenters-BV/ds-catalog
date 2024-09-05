@@ -154,7 +154,6 @@ class CatalogItemsRoutes(Routable):
             await self._usecases.delete(id)
         except CatalogItemDoesNotExist:
             raise HTTPException(status_code=404, detail="Catalog item is not found")
-        return
 
 
 routes = CatalogItemsRoutes(usecases=CatalogItemsUsecases())

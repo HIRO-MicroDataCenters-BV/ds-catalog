@@ -2,6 +2,7 @@ README.md
 docs/CatalogItem.md
 docs/CatalogItemForm.md
 docs/CatalogItemsApi.md
+docs/CatalogItemsDataApi.md
 docs/Connector.md
 docs/DataProduct.md
 docs/DataProductForm.md
@@ -22,6 +23,7 @@ docs/ValidationErrorLocInner.md
 ds_catalog/__init__.py
 ds_catalog/api/__init__.py
 ds_catalog/api/catalog_items_api.py
+ds_catalog/api/catalog_items_data_api.py
 ds_catalog/api/default_api.py
 ds_catalog/api_client.py
 ds_catalog/api_response.py

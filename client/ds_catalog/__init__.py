@@ -19,6 +19,7 @@ __version__ = "1.0.0"
 
 # import apis into sdk package
 from ds_catalog.api.catalog_items_api import CatalogItemsApi
+from ds_catalog.api.catalog_items_data_api import CatalogItemsDataApi
 from ds_catalog.api.default_api import DefaultApi
 
 # import ApiClient
