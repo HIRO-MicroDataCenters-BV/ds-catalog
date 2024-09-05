@@ -91,6 +91,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CatalogItem'
+          headers:
+            Location:
+              description: The URL of the newly created resource
+              schema:
+                type: string
+                format: uri
         '422':
           description: Validation Error
           content:
@@ -118,6 +124,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CatalogItem'
+        '404':
+          description: Catalog Item not found
         '422':
           description: Validation Error
           content:
@@ -150,6 +158,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CatalogItem'
+        '404':
+          description: Catalog Item not found
         '422':
           description: Validation Error
           content:
@@ -172,6 +182,8 @@ paths:
       responses:
         '204':
           description: Successful Response
+        '404':
+          description: Catalog Item not found
         '422':
           description: Validation Error
           content:

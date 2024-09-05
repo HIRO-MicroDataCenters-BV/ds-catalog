@@ -90,9 +90,9 @@ class CatalogItemsDataRoutes(Routable):
         "/catalog-items/{id}/data/",
         operation_id="create_catalog_item_data",
         summary="Create the data for the catalog item",
-        response_model=CatalogItemData,
-        status_code=status.HTTP_201_CREATED,
         tags=[Tags.CatalogItemsData],
+        status_code=status.HTTP_201_CREATED,
+        response_model=CatalogItemData,
         responses={
             status.HTTP_201_CREATED: {
                 "description": "Successful Response",
@@ -157,8 +157,8 @@ class CatalogItemsDataRoutes(Routable):
         "/catalog-items/{id}/data/",
         operation_id="delete_catalog_item_data",
         summary="Delete the data for the catalog item",
-        status_code=status.HTTP_204_NO_CONTENT,
         tags=[Tags.CatalogItemsData],
+        status_code=status.HTTP_204_NO_CONTENT,
         response_model=None,
         responses={
             status.HTTP_404_NOT_FOUND: {

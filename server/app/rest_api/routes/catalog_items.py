@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from classy_fastapi import Routable, delete, get, patch, post
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Request, Response, status
 
 from app.core.entities import catalog as catalog_entities
 from app.core.exceptions import CatalogItemDoesNotExist
@@ -74,8 +74,8 @@ class CatalogItemsRoutes(Routable):
         "/catalog-items/",
         operation_id="get_catalog_items",
         summary="Get the list of catalog items",
-        response_model=PaginatedResult[CatalogItem],
         tags=[Tags.CatalogItems],
+        response_model=PaginatedResult[CatalogItem],
     )
     async def get_catalog_items(
         self,
@@ -96,8 +96,11 @@ class CatalogItemsRoutes(Routable):
         "/catalog-items/{id}/",
         operation_id="get_catalog_item",
         summary="Get the catalog item",
-        response_model=CatalogItem,
         tags=[Tags.CatalogItems],
+        response_model=CatalogItem,
+        responses={
+            status.HTTP_404_NOT_FOUND: {"description": "Catalog Item not found"},
+        },
     )
     async def get_catalog_item(self, id: str) -> CatalogItem:
         """Get the catalog item"""
@@ -111,25 +114,48 @@ class CatalogItemsRoutes(Routable):
         "/catalog-items/",
         operation_id="create_catalog_item",
         summary="Create a catalog item",
-        response_model=CatalogItem,
-        status_code=status.HTTP_201_CREATED,
         tags=[Tags.CatalogItems],
+        status_code=status.HTTP_201_CREATED,
+        response_model=CatalogItem,
+        responses={
+            status.HTTP_201_CREATED: {
+                "description": "Successful Response",
+                "headers": {
+                    "Location": {
+                        "description": "The URL of the newly created resource",
+                        "schema": {
+                            "type": "string",
+                            "format": "uri",
+                        },
+                    },
+                },
+            },
+        },
     )
     async def create_catalog_item(
         self,
         body: CatalogItemForm,
+        request: Request,
+        response: Response,
     ) -> CatalogItem:
         """Create a catalog item"""
         input_entity = body.to_entity()
         catalog_item_entity = await self._usecases.create(input_entity)
-        return CatalogItem.from_entity(catalog_item_entity)
+        result = CatalogItem.from_entity(catalog_item_entity)
+        response.headers["Location"] = str(
+            request.url_for("get_catalog_item", id=catalog_item_entity.id)
+        )
+        return result
 
     @patch(
         "/catalog-items/{id}/",
         operation_id="update_catalog_item",
         summary="Update the catalog item",
-        response_model=CatalogItem,
         tags=[Tags.CatalogItems],
+        response_model=CatalogItem,
+        responses={
+            status.HTTP_404_NOT_FOUND: {"description": "Catalog Item not found"},
+        },
     )
     async def update_catalog_item(self, id: str, body: CatalogItemForm) -> CatalogItem:
         """Update the catalog item"""
@@ -144,9 +170,12 @@ class CatalogItemsRoutes(Routable):
         "/catalog-items/{id}/",
         operation_id="delete_catalog_item",
         summary="Delete the catalog item",
+        tags=[Tags.CatalogItems],
         status_code=status.HTTP_204_NO_CONTENT,
         response_model=None,
-        tags=[Tags.CatalogItems],
+        responses={
+            status.HTTP_404_NOT_FOUND: {"description": "Catalog Item not found"},
+        },
     )
     async def delete_catalog_item(self, id: str) -> None:
         """Delete the catalog item"""
