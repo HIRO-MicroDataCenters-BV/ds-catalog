@@ -1,9 +1,11 @@
 README.md
 docs/CatalogItem.md
 docs/CatalogItemForm.md
+docs/CatalogItemImportForm.md
 docs/CatalogItemShareForm.md
 docs/CatalogItemsApi.md
 docs/CatalogItemsDataApi.md
+docs/CatalogItemsImportingApi.md
 docs/CatalogItemsSharingApi.md
 docs/Connector.md
 docs/DataProduct.md
@@ -26,6 +28,7 @@ ds_catalog/__init__.py
 ds_catalog/api/__init__.py
 ds_catalog/api/catalog_items_api.py
 ds_catalog/api/catalog_items_data_api.py
+ds_catalog/api/catalog_items_importing_api.py
 ds_catalog/api/catalog_items_sharing_api.py
 ds_catalog/api/default_api.py
 ds_catalog/api_client.py
@@ -35,6 +38,7 @@ ds_catalog/exceptions.py
 ds_catalog/models/__init__.py
 ds_catalog/models/catalog_item.py
 ds_catalog/models/catalog_item_form.py
+ds_catalog/models/catalog_item_import_form.py
 ds_catalog/models/catalog_item_share_form.py
 ds_catalog/models/connector.py
 ds_catalog/models/data_product.py

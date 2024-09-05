@@ -366,6 +366,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /catalog-items/import/:
+    post:
+      tags:
+      - Catalog Items Importing
+      summary: Import a catalog item
+      description: Import a catalog item from the local catalog
+      operationId: import_catalog_item
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogItemImportForm'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          headers:
+            Location:
+              description: The URL of the newly created resource
+              schema:
+                type: string
+                format: uri
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItem'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
     CatalogItem:
@@ -536,6 +568,54 @@ components:
               host: localhost
               port: 8000
               protocol: https
+        ontology: DCAT-3
+        summary: Some description
+        title: Cancer 2024
+    CatalogItemImportForm:
+      properties:
+        ontology:
+          $ref: '#/components/schemas/Ontology'
+        title:
+          type: string
+          title: Title
+        summary:
+          type: string
+          title: Summary
+        dataProducts:
+          items:
+            $ref: '#/components/schemas/DataProductForm'
+          type: array
+          title: Dataproducts
+        id:
+          type: string
+          format: uuid
+          title: Id
+      type: object
+      required:
+      - ontology
+      - title
+      - summary
+      - dataProducts
+      - id
+      title: CatalogItemImportForm
+      examples:
+      - dataProducts:
+        - accessPointUrl: /connector1/interface2/dataproduct1/
+          digest: 1df50e8ad219e34f0b911e097b7b588e31f9b435
+          id: dataproduct1
+          mimetype: text/plain
+          name: cancer_data_2024
+          size: 1024
+          source:
+            connector:
+              id: connector1
+            interface:
+              id: interface2
+            node:
+              host: localhost
+              port: 8000
+              protocol: https
+        id: c6b59f81-e7b5-46d6-84b9-c0dee695c7ec
         ontology: DCAT-3
         summary: Some description
         title: Cancer 2024

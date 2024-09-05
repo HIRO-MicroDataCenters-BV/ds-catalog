@@ -7,6 +7,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from .rest_api.routes import (
     catalog_items,
     catalog_items_data,
+    catalog_items_importing,
     catalog_items_sharing,
     health_check,
 )
@@ -47,3 +48,4 @@ app.include_router(health_check.routes.router)
 app.include_router(catalog_items.routes.router)
 app.include_router(catalog_items_data.routes.router)
 app.include_router(catalog_items_sharing.routes.router)
+app.include_router(catalog_items_importing.routes.router)

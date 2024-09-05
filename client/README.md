@@ -133,6 +133,7 @@ Class | Method | HTTP request | Description
 *CatalogItemsDataApi* | [**create_catalog_item_data**](docs/CatalogItemsDataApi.md#create_catalog_item_data) | **POST** /catalog-items/{id}/data/ | Create the data for the catalog item
 *CatalogItemsDataApi* | [**delete_catalog_item_data**](docs/CatalogItemsDataApi.md#delete_catalog_item_data) | **DELETE** /catalog-items/{id}/data/ | Delete the data for the catalog item
 *CatalogItemsDataApi* | [**get_catalog_item_data**](docs/CatalogItemsDataApi.md#get_catalog_item_data) | **GET** /catalog-items/{id}/data/ | Get the data for the catalog item
+*CatalogItemsImportingApi* | [**import_catalog_item**](docs/CatalogItemsImportingApi.md#import_catalog_item) | **POST** /catalog-items/import/ | Import a catalog item
 *CatalogItemsSharingApi* | [**share_catalog_item**](docs/CatalogItemsSharingApi.md#share_catalog_item) | **POST** /catalog-items/{id}/share/ | Share a catalog item
 *DefaultApi* | [**health_check**](docs/DefaultApi.md#health_check) | **GET** /health-check/ | Health check
 *DefaultApi* | [**metrics_metrics_get**](docs/DefaultApi.md#metrics_metrics_get) | **GET** /metrics | Metrics
@@ -142,6 +143,7 @@ Class | Method | HTTP request | Description
 
  - [CatalogItem](docs/CatalogItem.md)
  - [CatalogItemForm](docs/CatalogItemForm.md)
+ - [CatalogItemImportForm](docs/CatalogItemImportForm.md)
  - [CatalogItemShareForm](docs/CatalogItemShareForm.md)
  - [Connector](docs/Connector.md)
  - [DataProduct](docs/DataProduct.md)

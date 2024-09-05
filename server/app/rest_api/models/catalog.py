@@ -153,10 +153,6 @@ class CatalogItemForm(CatalogItemBase):
         return catalog_entities.CatalogItemInput(**self.model_dump())
 
 
-class CatalogItemImport(CatalogItemBase):
-    id: UUID
-
-
 class CatalogItemData(RootModel[dict[str, Any]]):
     """Catalog Item Data in Json-ld format"""
 
