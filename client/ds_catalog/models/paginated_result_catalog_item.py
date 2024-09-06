@@ -18,8 +18,9 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, StrictInt
+from pydantic import BaseModel, Field
 from typing import Any, ClassVar, Dict, List
+from typing_extensions import Annotated
 from ds_catalog.models.catalog_item import CatalogItem
 from typing import Optional, Set
 from typing_extensions import Self
@@ -28,8 +29,8 @@ class PaginatedResultCatalogItem(BaseModel):
     """
     PaginatedResultCatalogItem
     """ # noqa: E501
-    page: StrictInt
-    size: StrictInt
+    page: Annotated[int, Field(strict=True, ge=1)]
+    size: Annotated[int, Field(le=100, strict=True, ge=1)]
     items: List[CatalogItem]
     __properties: ClassVar[List[str]] = ["page", "size", "items"]
 

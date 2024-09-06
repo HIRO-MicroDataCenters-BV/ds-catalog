@@ -20,10 +20,10 @@ async def catalog_items_filters(
     created_lte: Annotated[datetime | None, Query(alias="created__lte")] = None,
     data_product_id: Annotated[str, Query(alias="dataProduct__id")] = "",
     data_product_size_gte: Annotated[
-        int | None, Query(alias="dataProduct__size__gte")
+        int | None, Query(ge=0, alias="dataProduct__size__gte")
     ] = None,
     data_product_size_lte: Annotated[
-        int | None, Query(alias="dataProduct__size__lte")
+        int | None, Query(ge=0, alias="dataProduct__size__lte")
     ] = None,
     data_product_mimetype: Annotated[str, Query(alias="dataProduct__mimetype")] = "",
 ) -> CatalogItemsFiltersDTO:

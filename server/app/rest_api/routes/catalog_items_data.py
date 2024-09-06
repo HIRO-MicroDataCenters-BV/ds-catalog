@@ -10,6 +10,7 @@ from app.core.exceptions import CatalogItemDataDoesNotExist, CatalogItemDoesNotE
 from app.core.usecases import catalog as catalog_usecases
 
 from ..models.catalog import CatalogItemData
+from ..strings import CATALOG_ITEM_NOT_FOUND
 from ..tags import Tags
 
 
@@ -79,12 +80,17 @@ class CatalogItemsDataRoutes(Routable):
     ) -> CatalogItemData:
         """Returns the data for the catalog item"""
         try:
-            catalog_item_data = await self._usecases.get(id)
+            output_entity = await self._usecases.get(id)
         except CatalogItemDoesNotExist:
-            raise HTTPException(status_code=404, detail="Catalog item not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail=CATALOG_ITEM_NOT_FOUND
+            )
         except CatalogItemDataDoesNotExist:
-            raise HTTPException(status_code=404, detail="Catalog item data not found")
-        return CatalogItemData(catalog_item_data)
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Catalog item data not found",
+            )
+        return CatalogItemData(output_entity)
 
     @post(
         "/catalog-items/{id}/data/",
@@ -106,7 +112,7 @@ class CatalogItemsDataRoutes(Routable):
                     },
                 },
             },
-            status.HTTP_404_NOT_FOUND: {"description": "Catalog item not found"},
+            status.HTTP_404_NOT_FOUND: {"description": CATALOG_ITEM_NOT_FOUND},
         },
     )
     async def create_catalog_item_data(
@@ -118,14 +124,16 @@ class CatalogItemsDataRoutes(Routable):
     ) -> CatalogItemData:
         """Create the data for the catalog item"""
         try:
-            catalog_item_data = await self._usecases.create(id, data)
+            output_entity = await self._usecases.create(id, data)
         except CatalogItemDoesNotExist:
-            raise HTTPException(status_code=404, detail="Catalog Item not found")
-        result = CatalogItemData(catalog_item_data)
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail=CATALOG_ITEM_NOT_FOUND
+            )
+        output_item = CatalogItemData(output_entity)
         response.headers["Location"] = str(
             request.url_for("get_catalog_item_data", id=id)
         )
-        return result
+        return output_item
 
     @put(
         "/catalog-items/{id}/data/",
@@ -146,12 +154,17 @@ class CatalogItemsDataRoutes(Routable):
     ) -> CatalogItemData:
         """Change the data for the catalog item"""
         try:
-            catalog_item_data = await self._usecases.change(id, data)
+            output_entity = await self._usecases.change(id, data)
         except CatalogItemDoesNotExist:
-            raise HTTPException(status_code=404, detail="Catalog Item not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail=CATALOG_ITEM_NOT_FOUND
+            )
         except CatalogItemDataDoesNotExist:
-            raise HTTPException(status_code=404, detail="Catalog Item Data not found")
-        return CatalogItemData(catalog_item_data)
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Catalog Item Data not found",
+            )
+        return CatalogItemData(output_entity)
 
     @delete(
         "/catalog-items/{id}/data/",
@@ -174,9 +187,14 @@ class CatalogItemsDataRoutes(Routable):
         try:
             await self._usecases.delete(id)
         except CatalogItemDoesNotExist:
-            raise HTTPException(status_code=404, detail="Catalog Item not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail=CATALOG_ITEM_NOT_FOUND
+            )
         except CatalogItemDataDoesNotExist:
-            raise HTTPException(status_code=404, detail="Catalog Item Data not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Catalog Item Data not found",
+            )
 
 
 routes = CatalogItemsDataRoutes(usecases=CatalogItemsDataUsecases())

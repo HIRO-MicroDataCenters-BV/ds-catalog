@@ -51,6 +51,7 @@ paths:
         schema:
           anyOf:
           - type: integer
+            minimum: 1
           - type: 'null'
           title: Page
       - name: pageSize
@@ -59,6 +60,8 @@ paths:
         schema:
           anyOf:
           - type: integer
+            maximum: 100
+            minimum: 1
           - type: 'null'
           title: Pagesize
       - name: orderBy
@@ -156,6 +159,7 @@ paths:
         schema:
           anyOf:
           - type: integer
+            minimum: 0
           - type: 'null'
           title: Dataproduct  Size  Gte
       - name: dataProduct__size__lte
@@ -164,6 +168,7 @@ paths:
         schema:
           anyOf:
           - type: integer
+            minimum: 0
           - type: 'null'
           title: Dataproduct  Size  Lte
       - name: dataProduct__mimetype
@@ -887,13 +892,14 @@ components:
       properties:
         page:
           type: integer
-          exclusiveMinimum: 0.0
+          minimum: 1.0
           title: Page
           examples:
           - 1
         size:
           type: integer
-          exclusiveMinimum: 0.0
+          maximum: 100.0
+          minimum: 1.0
           title: Size
           examples:
           - 100

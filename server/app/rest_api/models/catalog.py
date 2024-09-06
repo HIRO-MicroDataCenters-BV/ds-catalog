@@ -149,6 +149,12 @@ class CatalogItemForm(CatalogItemBase):
         }
     }
 
+    @classmethod
+    def from_entity(
+        cls, entity: catalog_entities.CatalogItemInput
+    ) -> "CatalogItemForm":
+        return cls(**dataclasses.asdict(entity))
+
     def to_entity(self) -> catalog_entities.CatalogItemInput:
         return catalog_entities.CatalogItemInput(**self.model_dump())
 

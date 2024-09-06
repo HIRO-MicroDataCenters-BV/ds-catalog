@@ -8,6 +8,6 @@ T = TypeVar("T")
 
 
 class PaginatedResult(BaseModel, Generic[T]):
-    page: int = Field(gt=0, examples=[1])
-    size: int = Field(gt=0, examples=[100])
+    page: int = Field(ge=1, examples=[1])
+    size: int = Field(ge=1, le=100, examples=[100])
     items: list[T]

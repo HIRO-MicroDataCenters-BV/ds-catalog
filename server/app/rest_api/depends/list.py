@@ -6,8 +6,8 @@ from app.core.queries.list import OrderDirection, OrderQueryDTO, PaginatorQueryD
 
 
 async def paginator_parameters(
-    page: int | None = None,
-    page_size: Annotated[int | None, Query(alias="pageSize")] = None,
+    page: Annotated[int | None, Query(ge=1)] = None,
+    page_size: Annotated[int | None, Query(alias="pageSize", ge=1, le=100)] = None,
 ) -> PaginatorQueryDTO:
     return {"page": page or 1, "page_size": page_size or 100}
 

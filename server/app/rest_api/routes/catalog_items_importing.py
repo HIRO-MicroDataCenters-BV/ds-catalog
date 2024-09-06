@@ -61,12 +61,12 @@ class CatalogItemsImportingRoutes(Routable):
     ) -> CatalogItem:
         """Import a catalog item from the local catalog"""
         input_entity = data.to_entity()
-        catalog_item_entity = await self._usecases.import_data(input_entity)
-        result = CatalogItem.from_entity(catalog_item_entity)
+        output_entity = await self._usecases.import_data(input_entity)
+        output_item = CatalogItem.from_entity(output_entity)
         response.headers["Location"] = str(
-            request.url_for("get_catalog_item", id=catalog_item_entity.id)
+            request.url_for("get_catalog_item", id=output_entity.id)
         )
-        return result
+        return output_item
 
 
 routes = CatalogItemsImportingRoutes(usecases=CatalogItemsImportingUsecases())

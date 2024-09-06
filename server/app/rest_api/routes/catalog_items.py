@@ -8,7 +8,8 @@ from fastapi import Depends, HTTPException, Request, Response, status
 from app.core.entities import catalog as catalog_entities
 from app.core.exceptions import CatalogItemDoesNotExist
 from app.core.queries.catalog import CatalogItemsFilterQuery, CatalogItemsFiltersDTO
-from app.core.queries.common import CompositeQuery, IQuery
+from app.core.queries.common import CompositeQuery
+from app.core.queries.interface import IQuery
 from app.core.queries.list import (
     OrderQuery,
     OrderQueryDTO,
@@ -21,6 +22,7 @@ from ..depends.catalog import catalog_items_filters
 from ..depends.list import order_parameters, paginator_parameters
 from ..models.catalog import CatalogItem, CatalogItemForm
 from ..models.common import PaginatedResult
+from ..strings import CATALOG_ITEM_NOT_FOUND
 from ..tags import Tags
 
 
@@ -113,8 +115,8 @@ class CatalogItemsRoutes(Routable):
             catalog_items_filters_query,
         )
 
-        catalog_items = await self._usecases.list(query)
-        items = [CatalogItem.from_entity(item) for item in catalog_items]
+        output_entities = await self._usecases.list(query)
+        items = [CatalogItem.from_entity(entity) for entity in output_entities]
 
         return PaginatedResult(
             page=paginator_parameters["page"],
@@ -135,10 +137,12 @@ class CatalogItemsRoutes(Routable):
     async def get_catalog_item(self, id: str) -> CatalogItem:
         """Get the catalog item"""
         try:
-            catalog_item_entity = await self._usecases.get(id)
+            output_entity = await self._usecases.get(id)
         except CatalogItemDoesNotExist:
-            raise HTTPException(status_code=404, detail="Catalog item is not found")
-        return CatalogItem.from_entity(catalog_item_entity)
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail=CATALOG_ITEM_NOT_FOUND
+            )
+        return CatalogItem.from_entity(output_entity)
 
     @post(
         "/catalog-items/",
@@ -164,18 +168,18 @@ class CatalogItemsRoutes(Routable):
     )
     async def create_catalog_item(
         self,
-        body: CatalogItemForm,
+        item: CatalogItemForm,
         request: Request,
         response: Response,
     ) -> CatalogItem:
         """Create a catalog item"""
-        input_entity = body.to_entity()
-        catalog_item_entity = await self._usecases.create(input_entity)
-        result = CatalogItem.from_entity(catalog_item_entity)
+        input_entity = item.to_entity()
+        output_entity = await self._usecases.create(input_entity)
+        output_item = CatalogItem.from_entity(output_entity)
         response.headers["Location"] = str(
-            request.url_for("get_catalog_item", id=catalog_item_entity.id)
+            request.url_for("get_catalog_item", id=output_entity.id)
         )
-        return result
+        return output_item
 
     @patch(
         "/catalog-items/{id}/",
@@ -187,14 +191,16 @@ class CatalogItemsRoutes(Routable):
             status.HTTP_404_NOT_FOUND: {"description": "Catalog Item not found"},
         },
     )
-    async def update_catalog_item(self, id: str, body: CatalogItemForm) -> CatalogItem:
+    async def update_catalog_item(self, id: str, item: CatalogItemForm) -> CatalogItem:
         """Update the catalog item"""
-        input_entity = body.to_entity()
+        input_entity = item.to_entity()
         try:
-            catalog_item_entity = await self._usecases.update(id, input_entity)
+            output_entity = await self._usecases.update(id, input_entity)
         except CatalogItemDoesNotExist:
-            raise HTTPException(status_code=404, detail="Catalog item is not found")
-        return CatalogItem.from_entity(catalog_item_entity)
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail=CATALOG_ITEM_NOT_FOUND
+            )
+        return CatalogItem.from_entity(output_entity)
 
     @delete(
         "/catalog-items/{id}/",
@@ -212,7 +218,9 @@ class CatalogItemsRoutes(Routable):
         try:
             await self._usecases.delete(id)
         except CatalogItemDoesNotExist:
-            raise HTTPException(status_code=404, detail="Catalog item is not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail=CATALOG_ITEM_NOT_FOUND
+            )
 
 
 routes = CatalogItemsRoutes(usecases=CatalogItemsUsecases())

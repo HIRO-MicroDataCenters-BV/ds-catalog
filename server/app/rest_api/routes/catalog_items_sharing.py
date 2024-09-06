@@ -9,6 +9,7 @@ from app.core.usecases import marketplace as marketplace_usecases
 
 from ..models.catalog import CatalogItem
 from ..models.marketplace import CatalogItemShareForm
+from ..strings import CATALOG_ITEM_NOT_FOUND
 from ..tags import Tags
 
 
@@ -67,12 +68,15 @@ class CatalogItemsSharingRoutes(Routable):
         """Share a catalog item to the marketplace"""
         marketplace_id = str(data.marketplace_id)
         try:
-            catalog_item_entity = await self._usecases.share(id, marketplace_id)
+            output_entity = await self._usecases.share(id, marketplace_id)
         except CatalogItemDoesNotExist:
-            raise HTTPException(status_code=404, detail="Catalog item is not found")
-        result = CatalogItem.from_entity(catalog_item_entity)
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=CATALOG_ITEM_NOT_FOUND,
+            )
+        result = CatalogItem.from_entity(output_entity)
         response.headers["Location"] = str(
-            request.url_for("get_catalog_item", id=catalog_item_entity.id)
+            request.url_for("get_catalog_item", id=output_entity.id)
         )
         return result
 

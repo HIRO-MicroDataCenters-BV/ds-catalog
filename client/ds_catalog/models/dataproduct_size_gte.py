@@ -18,8 +18,9 @@ from inspect import getfullargspec
 import json
 import pprint
 import re  # noqa: F401
-from pydantic import BaseModel, Field, StrictInt, StrictStr, ValidationError, field_validator
+from pydantic import BaseModel, Field, StrictStr, ValidationError, field_validator
 from typing import Any, Optional
+from typing_extensions import Annotated
 from typing import Union, Any, List, TYPE_CHECKING, Optional, Dict
 from typing_extensions import Literal, Self
 from pydantic import Field
@@ -32,7 +33,7 @@ class DataproductSizeGte(BaseModel):
     """
 
     # data type: int
-    anyof_schema_1_validator: Optional[StrictInt] = None
+    anyof_schema_1_validator: Optional[Annotated[int, Field(strict=True, ge=0)]] = None
     # data type: object
     anyof_schema_2_validator: Optional[Any] = None
     if TYPE_CHECKING:
