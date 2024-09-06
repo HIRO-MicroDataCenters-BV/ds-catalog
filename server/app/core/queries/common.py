@@ -1,13 +1,12 @@
-from .interface import IQuery
+from .interface import IQuery, QueryResult
 
 
-class GetPaginated(IQuery):
-    _page: int
-    _size: int
+class CompositeQuery(IQuery):
+    def __init__(self, *queries: IQuery) -> None:
+        self._queries = queries
 
-    def __init__(self, page: int, size: int) -> None:
-        self._page = page
-        self._size = size
-
-    def build(self) -> dict[str, int]:
-        return {"page": self._page, "size": self._size}
+    def build(self) -> QueryResult:
+        result = QueryResult()
+        for query in self._queries:
+            result += query.build()
+        return result

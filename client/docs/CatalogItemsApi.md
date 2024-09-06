@@ -219,7 +219,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **get_catalog_items**
-> PaginatedResultCatalogItem get_catalog_items(page=page, page_size=page_size)
+> PaginatedResultCatalogItem get_catalog_items(page=page, page_size=page_size, order_by=order_by, order_direction=order_direction, search=search, ontology=ontology, is_local=is_local, is_shared=is_shared, creator__id=creator__id, created=created, created__gte=created__gte, created__lte=created__lte, data_product__id=data_product__id, data_product__size__gte=data_product__size__gte, data_product__size__lte=data_product__size__lte, data_product__mimetype=data_product__mimetype)
 
 Get the list of catalog items
 
@@ -245,12 +245,26 @@ configuration = ds_catalog.Configuration(
 with ds_catalog.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = ds_catalog.CatalogItemsApi(api_client)
-    page = 1 # int |  (optional) (default to 1)
-    page_size = 100 # int |  (optional) (default to 100)
+    page = ds_catalog.Page() # Page |  (optional)
+    page_size = ds_catalog.Pagesize() # Pagesize |  (optional)
+    order_by = '' # str |  (optional) (default to '')
+    order_direction = ds_catalog.Orderdirection() # Orderdirection |  (optional)
+    search = '' # str |  (optional) (default to '')
+    ontology = ds_catalog.Ontology1() # Ontology1 |  (optional)
+    is_local = ds_catalog.Islocal() # Islocal |  (optional)
+    is_shared = ds_catalog.Isshared() # Isshared |  (optional)
+    creator__id = ds_catalog.CreatorId() # CreatorId |  (optional)
+    created = ds_catalog.Created() # Created |  (optional)
+    created__gte = ds_catalog.CreatedGte() # CreatedGte |  (optional)
+    created__lte = ds_catalog.CreatedLte() # CreatedLte |  (optional)
+    data_product__id = '' # str |  (optional) (default to '')
+    data_product__size__gte = ds_catalog.DataproductSizeGte() # DataproductSizeGte |  (optional)
+    data_product__size__lte = ds_catalog.DataproductSizeLte() # DataproductSizeLte |  (optional)
+    data_product__mimetype = '' # str |  (optional) (default to '')
 
     try:
         # Get the list of catalog items
-        api_response = api_instance.get_catalog_items(page=page, page_size=page_size)
+        api_response = api_instance.get_catalog_items(page=page, page_size=page_size, order_by=order_by, order_direction=order_direction, search=search, ontology=ontology, is_local=is_local, is_shared=is_shared, creator__id=creator__id, created=created, created__gte=created__gte, created__lte=created__lte, data_product__id=data_product__id, data_product__size__gte=data_product__size__gte, data_product__size__lte=data_product__size__lte, data_product__mimetype=data_product__mimetype)
         print("The response of CatalogItemsApi->get_catalog_items:\n")
         pprint(api_response)
     except Exception as e:
@@ -264,8 +278,22 @@ with ds_catalog.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **page** | **int**|  | [optional] [default to 1]
- **page_size** | **int**|  | [optional] [default to 100]
+ **page** | [**Page**](.md)|  | [optional] 
+ **page_size** | [**Pagesize**](.md)|  | [optional] 
+ **order_by** | **str**|  | [optional] [default to &#39;&#39;]
+ **order_direction** | [**Orderdirection**](.md)|  | [optional] 
+ **search** | **str**|  | [optional] [default to &#39;&#39;]
+ **ontology** | [**Ontology1**](.md)|  | [optional] 
+ **is_local** | [**Islocal**](.md)|  | [optional] 
+ **is_shared** | [**Isshared**](.md)|  | [optional] 
+ **creator__id** | [**CreatorId**](.md)|  | [optional] 
+ **created** | [**Created**](.md)|  | [optional] 
+ **created__gte** | [**CreatedGte**](.md)|  | [optional] 
+ **created__lte** | [**CreatedLte**](.md)|  | [optional] 
+ **data_product__id** | **str**|  | [optional] [default to &#39;&#39;]
+ **data_product__size__gte** | [**DataproductSizeGte**](.md)|  | [optional] 
+ **data_product__size__lte** | [**DataproductSizeLte**](.md)|  | [optional] 
+ **data_product__mimetype** | **str**|  | [optional] [default to &#39;&#39;]
 
 ### Return type
 

@@ -49,16 +49,130 @@ paths:
         in: query
         required: false
         schema:
-          type: integer
-          default: 1
+          anyOf:
+          - type: integer
+          - type: 'null'
           title: Page
       - name: pageSize
         in: query
         required: false
         schema:
-          type: integer
-          default: 100
+          anyOf:
+          - type: integer
+          - type: 'null'
           title: Pagesize
+      - name: orderBy
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Orderby
+      - name: orderDirection
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/OrderDirection'
+          - type: 'null'
+          title: Orderdirection
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: ontology
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/Ontology'
+          - type: 'null'
+          title: Ontology
+      - name: isLocal
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Islocal
+      - name: isShared
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Isshared
+      - name: creator__id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Creator  Id
+      - name: created
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created
+      - name: created__gte
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created  Gte
+      - name: created__lte
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created  Lte
+      - name: dataProduct__id
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Dataproduct  Id
+      - name: dataProduct__size__gte
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Dataproduct  Size  Gte
+      - name: dataProduct__size__lte
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Dataproduct  Size  Lte
+      - name: dataProduct__mimetype
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Dataproduct  Mimetype
       responses:
         '200':
           description: Successful Response
@@ -763,6 +877,12 @@ components:
       - DCAT-3
       - DCAT-AP
       title: Ontology
+    OrderDirection:
+      type: string
+      enum:
+      - asc
+      - desc
+      title: OrderDirection
     PaginatedResult_CatalogItem_:
       properties:
         page:

@@ -3,11 +3,21 @@ from typing import Any
 from abc import ABC, abstractmethod
 
 
+class QueryResult:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        # TODO: Implement
+        ...
+
+    def __add__(self, other: "QueryResult") -> "QueryResult":
+        # TODO: Implement
+        return QueryResult()
+
+
 class IQuery(ABC):
     """Interface for implementing repository queries"""
 
     @abstractmethod
-    def build(self) -> dict[str, Any]:
+    def build(self) -> QueryResult:
         ...
 
     def __str__(self) -> str:

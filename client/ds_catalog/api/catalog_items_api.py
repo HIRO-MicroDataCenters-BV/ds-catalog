@@ -17,8 +17,8 @@ from pydantic import validate_call, Field, StrictFloat, StrictStr, StrictInt
 from typing import Any, Dict, List, Optional, Tuple, Union
 from typing_extensions import Annotated
 
-from pydantic import StrictInt, StrictStr
-from typing import Optional
+from pydantic import StrictStr
+from typing import Any, Optional
 from ds_catalog.models.catalog_item import CatalogItem
 from ds_catalog.models.catalog_item_form import CatalogItemForm
 from ds_catalog.models.paginated_result_catalog_item import PaginatedResultCatalogItem
@@ -843,8 +843,22 @@ class CatalogItemsApi:
     @validate_call
     def get_catalog_items(
         self,
-        page: Optional[StrictInt] = None,
-        page_size: Optional[StrictInt] = None,
+        page: Optional[Any] = None,
+        page_size: Optional[Any] = None,
+        order_by: Optional[StrictStr] = None,
+        order_direction: Optional[Any] = None,
+        search: Optional[StrictStr] = None,
+        ontology: Optional[Any] = None,
+        is_local: Optional[Any] = None,
+        is_shared: Optional[Any] = None,
+        creator__id: Optional[Any] = None,
+        created: Optional[Any] = None,
+        created__gte: Optional[Any] = None,
+        created__lte: Optional[Any] = None,
+        data_product__id: Optional[StrictStr] = None,
+        data_product__size__gte: Optional[Any] = None,
+        data_product__size__lte: Optional[Any] = None,
+        data_product__mimetype: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -863,9 +877,37 @@ class CatalogItemsApi:
         Returns the list of catalog items with the ability to search, filter and paginate.
 
         :param page:
-        :type page: int
+        :type page: Page
         :param page_size:
-        :type page_size: int
+        :type page_size: Pagesize
+        :param order_by:
+        :type order_by: str
+        :param order_direction:
+        :type order_direction: Orderdirection
+        :param search:
+        :type search: str
+        :param ontology:
+        :type ontology: Ontology1
+        :param is_local:
+        :type is_local: Islocal
+        :param is_shared:
+        :type is_shared: Isshared
+        :param creator__id:
+        :type creator__id: CreatorId
+        :param created:
+        :type created: Created
+        :param created__gte:
+        :type created__gte: CreatedGte
+        :param created__lte:
+        :type created__lte: CreatedLte
+        :param data_product__id:
+        :type data_product__id: str
+        :param data_product__size__gte:
+        :type data_product__size__gte: DataproductSizeGte
+        :param data_product__size__lte:
+        :type data_product__size__lte: DataproductSizeLte
+        :param data_product__mimetype:
+        :type data_product__mimetype: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -891,6 +933,20 @@ class CatalogItemsApi:
         _param = self._get_catalog_items_serialize(
             page=page,
             page_size=page_size,
+            order_by=order_by,
+            order_direction=order_direction,
+            search=search,
+            ontology=ontology,
+            is_local=is_local,
+            is_shared=is_shared,
+            creator__id=creator__id,
+            created=created,
+            created__gte=created__gte,
+            created__lte=created__lte,
+            data_product__id=data_product__id,
+            data_product__size__gte=data_product__size__gte,
+            data_product__size__lte=data_product__size__lte,
+            data_product__mimetype=data_product__mimetype,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -915,8 +971,22 @@ class CatalogItemsApi:
     @validate_call
     def get_catalog_items_with_http_info(
         self,
-        page: Optional[StrictInt] = None,
-        page_size: Optional[StrictInt] = None,
+        page: Optional[Any] = None,
+        page_size: Optional[Any] = None,
+        order_by: Optional[StrictStr] = None,
+        order_direction: Optional[Any] = None,
+        search: Optional[StrictStr] = None,
+        ontology: Optional[Any] = None,
+        is_local: Optional[Any] = None,
+        is_shared: Optional[Any] = None,
+        creator__id: Optional[Any] = None,
+        created: Optional[Any] = None,
+        created__gte: Optional[Any] = None,
+        created__lte: Optional[Any] = None,
+        data_product__id: Optional[StrictStr] = None,
+        data_product__size__gte: Optional[Any] = None,
+        data_product__size__lte: Optional[Any] = None,
+        data_product__mimetype: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -935,9 +1005,37 @@ class CatalogItemsApi:
         Returns the list of catalog items with the ability to search, filter and paginate.
 
         :param page:
-        :type page: int
+        :type page: Page
         :param page_size:
-        :type page_size: int
+        :type page_size: Pagesize
+        :param order_by:
+        :type order_by: str
+        :param order_direction:
+        :type order_direction: Orderdirection
+        :param search:
+        :type search: str
+        :param ontology:
+        :type ontology: Ontology1
+        :param is_local:
+        :type is_local: Islocal
+        :param is_shared:
+        :type is_shared: Isshared
+        :param creator__id:
+        :type creator__id: CreatorId
+        :param created:
+        :type created: Created
+        :param created__gte:
+        :type created__gte: CreatedGte
+        :param created__lte:
+        :type created__lte: CreatedLte
+        :param data_product__id:
+        :type data_product__id: str
+        :param data_product__size__gte:
+        :type data_product__size__gte: DataproductSizeGte
+        :param data_product__size__lte:
+        :type data_product__size__lte: DataproductSizeLte
+        :param data_product__mimetype:
+        :type data_product__mimetype: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -963,6 +1061,20 @@ class CatalogItemsApi:
         _param = self._get_catalog_items_serialize(
             page=page,
             page_size=page_size,
+            order_by=order_by,
+            order_direction=order_direction,
+            search=search,
+            ontology=ontology,
+            is_local=is_local,
+            is_shared=is_shared,
+            creator__id=creator__id,
+            created=created,
+            created__gte=created__gte,
+            created__lte=created__lte,
+            data_product__id=data_product__id,
+            data_product__size__gte=data_product__size__gte,
+            data_product__size__lte=data_product__size__lte,
+            data_product__mimetype=data_product__mimetype,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -987,8 +1099,22 @@ class CatalogItemsApi:
     @validate_call
     def get_catalog_items_without_preload_content(
         self,
-        page: Optional[StrictInt] = None,
-        page_size: Optional[StrictInt] = None,
+        page: Optional[Any] = None,
+        page_size: Optional[Any] = None,
+        order_by: Optional[StrictStr] = None,
+        order_direction: Optional[Any] = None,
+        search: Optional[StrictStr] = None,
+        ontology: Optional[Any] = None,
+        is_local: Optional[Any] = None,
+        is_shared: Optional[Any] = None,
+        creator__id: Optional[Any] = None,
+        created: Optional[Any] = None,
+        created__gte: Optional[Any] = None,
+        created__lte: Optional[Any] = None,
+        data_product__id: Optional[StrictStr] = None,
+        data_product__size__gte: Optional[Any] = None,
+        data_product__size__lte: Optional[Any] = None,
+        data_product__mimetype: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1007,9 +1133,37 @@ class CatalogItemsApi:
         Returns the list of catalog items with the ability to search, filter and paginate.
 
         :param page:
-        :type page: int
+        :type page: Page
         :param page_size:
-        :type page_size: int
+        :type page_size: Pagesize
+        :param order_by:
+        :type order_by: str
+        :param order_direction:
+        :type order_direction: Orderdirection
+        :param search:
+        :type search: str
+        :param ontology:
+        :type ontology: Ontology1
+        :param is_local:
+        :type is_local: Islocal
+        :param is_shared:
+        :type is_shared: Isshared
+        :param creator__id:
+        :type creator__id: CreatorId
+        :param created:
+        :type created: Created
+        :param created__gte:
+        :type created__gte: CreatedGte
+        :param created__lte:
+        :type created__lte: CreatedLte
+        :param data_product__id:
+        :type data_product__id: str
+        :param data_product__size__gte:
+        :type data_product__size__gte: DataproductSizeGte
+        :param data_product__size__lte:
+        :type data_product__size__lte: DataproductSizeLte
+        :param data_product__mimetype:
+        :type data_product__mimetype: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1035,6 +1189,20 @@ class CatalogItemsApi:
         _param = self._get_catalog_items_serialize(
             page=page,
             page_size=page_size,
+            order_by=order_by,
+            order_direction=order_direction,
+            search=search,
+            ontology=ontology,
+            is_local=is_local,
+            is_shared=is_shared,
+            creator__id=creator__id,
+            created=created,
+            created__gte=created__gte,
+            created__lte=created__lte,
+            data_product__id=data_product__id,
+            data_product__size__gte=data_product__size__gte,
+            data_product__size__lte=data_product__size__lte,
+            data_product__mimetype=data_product__mimetype,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1056,6 +1224,20 @@ class CatalogItemsApi:
         self,
         page,
         page_size,
+        order_by,
+        order_direction,
+        search,
+        ontology,
+        is_local,
+        is_shared,
+        creator__id,
+        created,
+        created__gte,
+        created__lte,
+        data_product__id,
+        data_product__size__gte,
+        data_product__size__lte,
+        data_product__mimetype,
         _request_auth,
         _content_type,
         _headers,
@@ -1083,6 +1265,62 @@ class CatalogItemsApi:
         if page_size is not None:
             
             _query_params.append(('pageSize', page_size))
+            
+        if order_by is not None:
+            
+            _query_params.append(('orderBy', order_by))
+            
+        if order_direction is not None:
+            
+            _query_params.append(('orderDirection', order_direction))
+            
+        if search is not None:
+            
+            _query_params.append(('search', search))
+            
+        if ontology is not None:
+            
+            _query_params.append(('ontology', ontology))
+            
+        if is_local is not None:
+            
+            _query_params.append(('isLocal', is_local))
+            
+        if is_shared is not None:
+            
+            _query_params.append(('isShared', is_shared))
+            
+        if creator__id is not None:
+            
+            _query_params.append(('creator__id', creator__id))
+            
+        if created is not None:
+            
+            _query_params.append(('created', created))
+            
+        if created__gte is not None:
+            
+            _query_params.append(('created__gte', created__gte))
+            
+        if created__lte is not None:
+            
+            _query_params.append(('created__lte', created__lte))
+            
+        if data_product__id is not None:
+            
+            _query_params.append(('dataProduct__id', data_product__id))
+            
+        if data_product__size__gte is not None:
+            
+            _query_params.append(('dataProduct__size__gte', data_product__size__gte))
+            
+        if data_product__size__lte is not None:
+            
+            _query_params.append(('dataProduct__size__lte', data_product__size__lte))
+            
+        if data_product__mimetype is not None:
+            
+            _query_params.append(('dataProduct__mimetype', data_product__mimetype))
             
         # process the header parameters
         # process the form parameters

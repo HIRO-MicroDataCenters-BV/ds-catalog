@@ -1,14 +1,24 @@
+from typing import Annotated
+
 from abc import ABC, abstractmethod
 
 from classy_fastapi import Routable, delete, get, patch, post
-from fastapi import HTTPException, Request, Response, status
+from fastapi import Depends, HTTPException, Request, Response, status
 
 from app.core.entities import catalog as catalog_entities
 from app.core.exceptions import CatalogItemDoesNotExist
-from app.core.queries import IQuery
-from app.core.queries.common import GetPaginated
+from app.core.queries.catalog import CatalogItemsFilterQuery, CatalogItemsFiltersDTO
+from app.core.queries.common import CompositeQuery, IQuery
+from app.core.queries.list import (
+    OrderQuery,
+    OrderQueryDTO,
+    PaginatorQuery,
+    PaginatorQueryDTO,
+)
 from app.core.usecases import catalog as catalog_usecases
 
+from ..depends.catalog import catalog_items_filters
+from ..depends.list import order_parameters, paginator_parameters
 from ..models.catalog import CatalogItem, CatalogItemForm
 from ..models.common import PaginatedResult
 from ..tags import Tags
@@ -18,7 +28,7 @@ class ICatalogItemsUsecases(ABC):
     @abstractmethod
     async def list(
         self,
-        query: IQuery | None = None,
+        query: IQuery,
     ) -> list[catalog_entities.CatalogItem]:
         ...
 
@@ -79,18 +89,38 @@ class CatalogItemsRoutes(Routable):
     )
     async def get_catalog_items(
         self,
-        page: int = 1,
-        pageSize: int = 100,
+        paginator_parameters: Annotated[
+            PaginatorQueryDTO, Depends(paginator_parameters)
+        ],
+        order_parameters: Annotated[OrderQueryDTO, Depends(order_parameters)],
+        catalog_items_filters: Annotated[
+            CatalogItemsFiltersDTO, Depends(catalog_items_filters)
+        ],
     ) -> PaginatedResult[CatalogItem]:
         """
         Returns the list of catalog items with the ability to search, filter and
         paginate.
 
         """
-        query = GetPaginated(page=page, size=pageSize)
+
+        paginator_query = PaginatorQuery(**paginator_parameters)
+        order_query = OrderQuery(**order_parameters)
+        catalog_items_filters_query = CatalogItemsFilterQuery(**catalog_items_filters)
+
+        query = CompositeQuery(
+            paginator_query,
+            order_query,
+            catalog_items_filters_query,
+        )
+
         catalog_items = await self._usecases.list(query)
         items = [CatalogItem.from_entity(item) for item in catalog_items]
-        return PaginatedResult(page=page, size=pageSize, items=items)
+
+        return PaginatedResult(
+            page=paginator_parameters["page"],
+            size=paginator_parameters["page_size"],
+            items=items,
+        )
 
     @get(
         "/catalog-items/{id}/",
