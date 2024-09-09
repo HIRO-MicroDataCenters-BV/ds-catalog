@@ -18,7 +18,7 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing import Any, ClassVar, Dict, List
 from ds_catalog.models.data_product_form import DataProductForm
 from ds_catalog.models.ontology import Ontology
@@ -36,11 +36,11 @@ class CatalogItemImportForm(BaseModel):
     id: StrictStr
     __properties: ClassVar[List[str]] = ["ontology", "title", "summary", "dataProducts", "id"]
 
-    model_config = {
-        "populate_by_name": True,
-        "validate_assignment": True,
-        "protected_namespaces": (),
-    }
+    model_config = ConfigDict(
+        populate_by_name=True,
+        validate_assignment=True,
+        protected_namespaces=(),
+    )
 
 
     def to_str(self) -> str:
@@ -78,9 +78,9 @@ class CatalogItemImportForm(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of each item in data_products (list)
         _items = []
         if self.data_products:
-            for _item in self.data_products:
-                if _item:
-                    _items.append(_item.to_dict())
+            for _item_data_products in self.data_products:
+                if _item_data_products:
+                    _items.append(_item_data_products.to_dict())
             _dict['dataProducts'] = _items
         return _dict
 

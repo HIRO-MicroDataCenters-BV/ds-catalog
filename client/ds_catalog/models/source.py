@@ -18,11 +18,11 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Any, ClassVar, Dict, List, Optional
 from ds_catalog.models.connector import Connector
-from ds_catalog.models.source_interface import SourceInterface
-from ds_catalog.models.source_node import SourceNode
+from ds_catalog.models.interface import Interface
+from ds_catalog.models.node import Node
 from typing import Optional, Set
 from typing_extensions import Self
 
@@ -31,15 +31,15 @@ class Source(BaseModel):
     Source
     """ # noqa: E501
     connector: Connector
-    node: Optional[SourceNode] = None
-    interface: Optional[SourceInterface] = None
+    node: Optional[Node] = None
+    interface: Optional[Interface] = None
     __properties: ClassVar[List[str]] = ["connector", "node", "interface"]
 
-    model_config = {
-        "populate_by_name": True,
-        "validate_assignment": True,
-        "protected_namespaces": (),
-    }
+    model_config = ConfigDict(
+        populate_by_name=True,
+        validate_assignment=True,
+        protected_namespaces=(),
+    )
 
 
     def to_str(self) -> str:
@@ -83,6 +83,16 @@ class Source(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of interface
         if self.interface:
             _dict['interface'] = self.interface.to_dict()
+        # set to None if node (nullable) is None
+        # and model_fields_set contains the field
+        if self.node is None and "node" in self.model_fields_set:
+            _dict['node'] = None
+
+        # set to None if interface (nullable) is None
+        # and model_fields_set contains the field
+        if self.interface is None and "interface" in self.model_fields_set:
+            _dict['interface'] = None
+
         return _dict
 
     @classmethod
@@ -96,8 +106,8 @@ class Source(BaseModel):
 
         _obj = cls.model_validate({
             "connector": Connector.from_dict(obj["connector"]) if obj.get("connector") is not None else None,
-            "node": SourceNode.from_dict(obj["node"]) if obj.get("node") is not None else None,
-            "interface": SourceInterface.from_dict(obj["interface"]) if obj.get("interface") is not None else None
+            "node": Node.from_dict(obj["node"]) if obj.get("node") is not None else None,
+            "interface": Interface.from_dict(obj["interface"]) if obj.get("interface") is not None else None
         })
         return _obj
 

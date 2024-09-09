@@ -230,6 +230,8 @@ Returns the list of catalog items with the ability to search, filter and paginat
 
 ```python
 import ds_catalog
+from ds_catalog.models.ontology import Ontology
+from ds_catalog.models.order_direction import OrderDirection
 from ds_catalog.models.paginated_result_catalog_item import PaginatedResultCatalogItem
 from ds_catalog.rest import ApiException
 from pprint import pprint
@@ -245,21 +247,21 @@ configuration = ds_catalog.Configuration(
 with ds_catalog.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = ds_catalog.CatalogItemsApi(api_client)
-    page = ds_catalog.Page() # Page |  (optional)
-    page_size = ds_catalog.Pagesize() # Pagesize |  (optional)
+    page = 56 # int |  (optional)
+    page_size = 56 # int |  (optional)
     order_by = '' # str |  (optional) (default to '')
-    order_direction = ds_catalog.Orderdirection() # Orderdirection |  (optional)
+    order_direction = ds_catalog.OrderDirection() # OrderDirection |  (optional)
     search = '' # str |  (optional) (default to '')
-    ontology = ds_catalog.Ontology1() # Ontology1 |  (optional)
-    is_local = ds_catalog.Islocal() # Islocal |  (optional)
-    is_shared = ds_catalog.Isshared() # Isshared |  (optional)
-    creator__id = ds_catalog.CreatorId() # CreatorId |  (optional)
-    created = ds_catalog.Created() # Created |  (optional)
-    created__gte = ds_catalog.CreatedGte() # CreatedGte |  (optional)
-    created__lte = ds_catalog.CreatedLte() # CreatedLte |  (optional)
+    ontology = ds_catalog.Ontology() # Ontology |  (optional)
+    is_local = True # bool |  (optional)
+    is_shared = True # bool |  (optional)
+    creator__id = 'creator__id_example' # str |  (optional)
+    created = '2013-10-20T19:20:30+01:00' # datetime |  (optional)
+    created__gte = '2013-10-20T19:20:30+01:00' # datetime |  (optional)
+    created__lte = '2013-10-20T19:20:30+01:00' # datetime |  (optional)
     data_product__id = '' # str |  (optional) (default to '')
-    data_product__size__gte = ds_catalog.DataproductSizeGte() # DataproductSizeGte |  (optional)
-    data_product__size__lte = ds_catalog.DataproductSizeLte() # DataproductSizeLte |  (optional)
+    data_product__size__gte = 56 # int |  (optional)
+    data_product__size__lte = 56 # int |  (optional)
     data_product__mimetype = '' # str |  (optional) (default to '')
 
     try:
@@ -278,21 +280,21 @@ with ds_catalog.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **page** | [**Page**](.md)|  | [optional] 
- **page_size** | [**Pagesize**](.md)|  | [optional] 
+ **page** | **int**|  | [optional] 
+ **page_size** | **int**|  | [optional] 
  **order_by** | **str**|  | [optional] [default to &#39;&#39;]
- **order_direction** | [**Orderdirection**](.md)|  | [optional] 
+ **order_direction** | [**OrderDirection**](.md)|  | [optional] 
  **search** | **str**|  | [optional] [default to &#39;&#39;]
- **ontology** | [**Ontology1**](.md)|  | [optional] 
- **is_local** | [**Islocal**](.md)|  | [optional] 
- **is_shared** | [**Isshared**](.md)|  | [optional] 
- **creator__id** | [**CreatorId**](.md)|  | [optional] 
- **created** | [**Created**](.md)|  | [optional] 
- **created__gte** | [**CreatedGte**](.md)|  | [optional] 
- **created__lte** | [**CreatedLte**](.md)|  | [optional] 
+ **ontology** | [**Ontology**](.md)|  | [optional] 
+ **is_local** | **bool**|  | [optional] 
+ **is_shared** | **bool**|  | [optional] 
+ **creator__id** | **str**|  | [optional] 
+ **created** | **datetime**|  | [optional] 
+ **created__gte** | **datetime**|  | [optional] 
+ **created__lte** | **datetime**|  | [optional] 
  **data_product__id** | **str**|  | [optional] [default to &#39;&#39;]
- **data_product__size__gte** | [**DataproductSizeGte**](.md)|  | [optional] 
- **data_product__size__lte** | [**DataproductSizeLte**](.md)|  | [optional] 
+ **data_product__size__gte** | **int**|  | [optional] 
+ **data_product__size__lte** | **int**|  | [optional] 
  **data_product__mimetype** | **str**|  | [optional] [default to &#39;&#39;]
 
 ### Return type

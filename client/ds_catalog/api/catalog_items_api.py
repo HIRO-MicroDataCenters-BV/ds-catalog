@@ -17,10 +17,14 @@ from pydantic import validate_call, Field, StrictFloat, StrictStr, StrictInt
 from typing import Any, Dict, List, Optional, Tuple, Union
 from typing_extensions import Annotated
 
-from pydantic import StrictStr
-from typing import Any, Optional
+from datetime import datetime
+from pydantic import Field, StrictBool, StrictStr
+from typing import Optional
+from typing_extensions import Annotated
 from ds_catalog.models.catalog_item import CatalogItem
 from ds_catalog.models.catalog_item_form import CatalogItemForm
+from ds_catalog.models.ontology import Ontology
+from ds_catalog.models.order_direction import OrderDirection
 from ds_catalog.models.paginated_result_catalog_item import PaginatedResultCatalogItem
 
 from ds_catalog.api_client import ApiClient, RequestSerialized
@@ -259,7 +263,7 @@ class CatalogItemsApi:
         _query_params: List[Tuple[str, str]] = []
         _header_params: Dict[str, Optional[str]] = _headers or {}
         _form_params: List[Tuple[str, str]] = []
-        _files: Dict[str, str] = {}
+        _files: Dict[str, Union[str, bytes]] = {}
         _body_params: Optional[bytes] = None
 
         # process the path parameters
@@ -272,11 +276,12 @@ class CatalogItemsApi:
 
 
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            [
-                'application/json'
-            ]
-        )
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
 
         # set the HTTP header `Content-Type`
         if _content_type:
@@ -535,7 +540,7 @@ class CatalogItemsApi:
         _query_params: List[Tuple[str, str]] = []
         _header_params: Dict[str, Optional[str]] = _headers or {}
         _form_params: List[Tuple[str, str]] = []
-        _files: Dict[str, str] = {}
+        _files: Dict[str, Union[str, bytes]] = {}
         _body_params: Optional[bytes] = None
 
         # process the path parameters
@@ -548,11 +553,12 @@ class CatalogItemsApi:
 
 
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            [
-                'application/json'
-            ]
-        )
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
 
 
         # authentication setting
@@ -798,7 +804,7 @@ class CatalogItemsApi:
         _query_params: List[Tuple[str, str]] = []
         _header_params: Dict[str, Optional[str]] = _headers or {}
         _form_params: List[Tuple[str, str]] = []
-        _files: Dict[str, str] = {}
+        _files: Dict[str, Union[str, bytes]] = {}
         _body_params: Optional[bytes] = None
 
         # process the path parameters
@@ -811,11 +817,12 @@ class CatalogItemsApi:
 
 
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            [
-                'application/json'
-            ]
-        )
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
 
 
         # authentication setting
@@ -843,21 +850,21 @@ class CatalogItemsApi:
     @validate_call
     def get_catalog_items(
         self,
-        page: Optional[Any] = None,
-        page_size: Optional[Any] = None,
+        page: Optional[Annotated[int, Field(strict=True, ge=1)]] = None,
+        page_size: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
         order_by: Optional[StrictStr] = None,
-        order_direction: Optional[Any] = None,
+        order_direction: Optional[OrderDirection] = None,
         search: Optional[StrictStr] = None,
-        ontology: Optional[Any] = None,
-        is_local: Optional[Any] = None,
-        is_shared: Optional[Any] = None,
-        creator__id: Optional[Any] = None,
-        created: Optional[Any] = None,
-        created__gte: Optional[Any] = None,
-        created__lte: Optional[Any] = None,
+        ontology: Optional[Ontology] = None,
+        is_local: Optional[StrictBool] = None,
+        is_shared: Optional[StrictBool] = None,
+        creator__id: Optional[StrictStr] = None,
+        created: Optional[datetime] = None,
+        created__gte: Optional[datetime] = None,
+        created__lte: Optional[datetime] = None,
         data_product__id: Optional[StrictStr] = None,
-        data_product__size__gte: Optional[Any] = None,
-        data_product__size__lte: Optional[Any] = None,
+        data_product__size__gte: Optional[Annotated[int, Field(strict=True, ge=0)]] = None,
+        data_product__size__lte: Optional[Annotated[int, Field(strict=True, ge=0)]] = None,
         data_product__mimetype: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
@@ -877,35 +884,35 @@ class CatalogItemsApi:
         Returns the list of catalog items with the ability to search, filter and paginate.
 
         :param page:
-        :type page: Page
+        :type page: int
         :param page_size:
-        :type page_size: Pagesize
+        :type page_size: int
         :param order_by:
         :type order_by: str
         :param order_direction:
-        :type order_direction: Orderdirection
+        :type order_direction: OrderDirection
         :param search:
         :type search: str
         :param ontology:
-        :type ontology: Ontology1
+        :type ontology: Ontology
         :param is_local:
-        :type is_local: Islocal
+        :type is_local: bool
         :param is_shared:
-        :type is_shared: Isshared
+        :type is_shared: bool
         :param creator__id:
-        :type creator__id: CreatorId
+        :type creator__id: str
         :param created:
-        :type created: Created
+        :type created: datetime
         :param created__gte:
-        :type created__gte: CreatedGte
+        :type created__gte: datetime
         :param created__lte:
-        :type created__lte: CreatedLte
+        :type created__lte: datetime
         :param data_product__id:
         :type data_product__id: str
         :param data_product__size__gte:
-        :type data_product__size__gte: DataproductSizeGte
+        :type data_product__size__gte: int
         :param data_product__size__lte:
-        :type data_product__size__lte: DataproductSizeLte
+        :type data_product__size__lte: int
         :param data_product__mimetype:
         :type data_product__mimetype: str
         :param _request_timeout: timeout setting for this request. If one
@@ -971,21 +978,21 @@ class CatalogItemsApi:
     @validate_call
     def get_catalog_items_with_http_info(
         self,
-        page: Optional[Any] = None,
-        page_size: Optional[Any] = None,
+        page: Optional[Annotated[int, Field(strict=True, ge=1)]] = None,
+        page_size: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
         order_by: Optional[StrictStr] = None,
-        order_direction: Optional[Any] = None,
+        order_direction: Optional[OrderDirection] = None,
         search: Optional[StrictStr] = None,
-        ontology: Optional[Any] = None,
-        is_local: Optional[Any] = None,
-        is_shared: Optional[Any] = None,
-        creator__id: Optional[Any] = None,
-        created: Optional[Any] = None,
-        created__gte: Optional[Any] = None,
-        created__lte: Optional[Any] = None,
+        ontology: Optional[Ontology] = None,
+        is_local: Optional[StrictBool] = None,
+        is_shared: Optional[StrictBool] = None,
+        creator__id: Optional[StrictStr] = None,
+        created: Optional[datetime] = None,
+        created__gte: Optional[datetime] = None,
+        created__lte: Optional[datetime] = None,
         data_product__id: Optional[StrictStr] = None,
-        data_product__size__gte: Optional[Any] = None,
-        data_product__size__lte: Optional[Any] = None,
+        data_product__size__gte: Optional[Annotated[int, Field(strict=True, ge=0)]] = None,
+        data_product__size__lte: Optional[Annotated[int, Field(strict=True, ge=0)]] = None,
         data_product__mimetype: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
@@ -1005,35 +1012,35 @@ class CatalogItemsApi:
         Returns the list of catalog items with the ability to search, filter and paginate.
 
         :param page:
-        :type page: Page
+        :type page: int
         :param page_size:
-        :type page_size: Pagesize
+        :type page_size: int
         :param order_by:
         :type order_by: str
         :param order_direction:
-        :type order_direction: Orderdirection
+        :type order_direction: OrderDirection
         :param search:
         :type search: str
         :param ontology:
-        :type ontology: Ontology1
+        :type ontology: Ontology
         :param is_local:
-        :type is_local: Islocal
+        :type is_local: bool
         :param is_shared:
-        :type is_shared: Isshared
+        :type is_shared: bool
         :param creator__id:
-        :type creator__id: CreatorId
+        :type creator__id: str
         :param created:
-        :type created: Created
+        :type created: datetime
         :param created__gte:
-        :type created__gte: CreatedGte
+        :type created__gte: datetime
         :param created__lte:
-        :type created__lte: CreatedLte
+        :type created__lte: datetime
         :param data_product__id:
         :type data_product__id: str
         :param data_product__size__gte:
-        :type data_product__size__gte: DataproductSizeGte
+        :type data_product__size__gte: int
         :param data_product__size__lte:
-        :type data_product__size__lte: DataproductSizeLte
+        :type data_product__size__lte: int
         :param data_product__mimetype:
         :type data_product__mimetype: str
         :param _request_timeout: timeout setting for this request. If one
@@ -1099,21 +1106,21 @@ class CatalogItemsApi:
     @validate_call
     def get_catalog_items_without_preload_content(
         self,
-        page: Optional[Any] = None,
-        page_size: Optional[Any] = None,
+        page: Optional[Annotated[int, Field(strict=True, ge=1)]] = None,
+        page_size: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
         order_by: Optional[StrictStr] = None,
-        order_direction: Optional[Any] = None,
+        order_direction: Optional[OrderDirection] = None,
         search: Optional[StrictStr] = None,
-        ontology: Optional[Any] = None,
-        is_local: Optional[Any] = None,
-        is_shared: Optional[Any] = None,
-        creator__id: Optional[Any] = None,
-        created: Optional[Any] = None,
-        created__gte: Optional[Any] = None,
-        created__lte: Optional[Any] = None,
+        ontology: Optional[Ontology] = None,
+        is_local: Optional[StrictBool] = None,
+        is_shared: Optional[StrictBool] = None,
+        creator__id: Optional[StrictStr] = None,
+        created: Optional[datetime] = None,
+        created__gte: Optional[datetime] = None,
+        created__lte: Optional[datetime] = None,
         data_product__id: Optional[StrictStr] = None,
-        data_product__size__gte: Optional[Any] = None,
-        data_product__size__lte: Optional[Any] = None,
+        data_product__size__gte: Optional[Annotated[int, Field(strict=True, ge=0)]] = None,
+        data_product__size__lte: Optional[Annotated[int, Field(strict=True, ge=0)]] = None,
         data_product__mimetype: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
@@ -1133,35 +1140,35 @@ class CatalogItemsApi:
         Returns the list of catalog items with the ability to search, filter and paginate.
 
         :param page:
-        :type page: Page
+        :type page: int
         :param page_size:
-        :type page_size: Pagesize
+        :type page_size: int
         :param order_by:
         :type order_by: str
         :param order_direction:
-        :type order_direction: Orderdirection
+        :type order_direction: OrderDirection
         :param search:
         :type search: str
         :param ontology:
-        :type ontology: Ontology1
+        :type ontology: Ontology
         :param is_local:
-        :type is_local: Islocal
+        :type is_local: bool
         :param is_shared:
-        :type is_shared: Isshared
+        :type is_shared: bool
         :param creator__id:
-        :type creator__id: CreatorId
+        :type creator__id: str
         :param created:
-        :type created: Created
+        :type created: datetime
         :param created__gte:
-        :type created__gte: CreatedGte
+        :type created__gte: datetime
         :param created__lte:
-        :type created__lte: CreatedLte
+        :type created__lte: datetime
         :param data_product__id:
         :type data_product__id: str
         :param data_product__size__gte:
-        :type data_product__size__gte: DataproductSizeGte
+        :type data_product__size__gte: int
         :param data_product__size__lte:
-        :type data_product__size__lte: DataproductSizeLte
+        :type data_product__size__lte: int
         :param data_product__mimetype:
         :type data_product__mimetype: str
         :param _request_timeout: timeout setting for this request. If one
@@ -1253,7 +1260,7 @@ class CatalogItemsApi:
         _query_params: List[Tuple[str, str]] = []
         _header_params: Dict[str, Optional[str]] = _headers or {}
         _form_params: List[Tuple[str, str]] = []
-        _files: Dict[str, str] = {}
+        _files: Dict[str, Union[str, bytes]] = {}
         _body_params: Optional[bytes] = None
 
         # process the path parameters
@@ -1272,7 +1279,7 @@ class CatalogItemsApi:
             
         if order_direction is not None:
             
-            _query_params.append(('orderDirection', order_direction))
+            _query_params.append(('orderDirection', order_direction.value))
             
         if search is not None:
             
@@ -1280,7 +1287,7 @@ class CatalogItemsApi:
             
         if ontology is not None:
             
-            _query_params.append(('ontology', ontology))
+            _query_params.append(('ontology', ontology.value))
             
         if is_local is not None:
             
@@ -1295,16 +1302,43 @@ class CatalogItemsApi:
             _query_params.append(('creator__id', creator__id))
             
         if created is not None:
-            
-            _query_params.append(('created', created))
+            if isinstance(created, datetime):
+                _query_params.append(
+                    (
+                        'created',
+                        created.strftime(
+                            self.api_client.configuration.datetime_format
+                        )
+                    )
+                )
+            else:
+                _query_params.append(('created', created))
             
         if created__gte is not None:
-            
-            _query_params.append(('created__gte', created__gte))
+            if isinstance(created__gte, datetime):
+                _query_params.append(
+                    (
+                        'created__gte',
+                        created__gte.strftime(
+                            self.api_client.configuration.datetime_format
+                        )
+                    )
+                )
+            else:
+                _query_params.append(('created__gte', created__gte))
             
         if created__lte is not None:
-            
-            _query_params.append(('created__lte', created__lte))
+            if isinstance(created__lte, datetime):
+                _query_params.append(
+                    (
+                        'created__lte',
+                        created__lte.strftime(
+                            self.api_client.configuration.datetime_format
+                        )
+                    )
+                )
+            else:
+                _query_params.append(('created__lte', created__lte))
             
         if data_product__id is not None:
             
@@ -1328,11 +1362,12 @@ class CatalogItemsApi:
 
 
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            [
-                'application/json'
-            ]
-        )
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
 
 
         # authentication setting
@@ -1591,7 +1626,7 @@ class CatalogItemsApi:
         _query_params: List[Tuple[str, str]] = []
         _header_params: Dict[str, Optional[str]] = _headers or {}
         _form_params: List[Tuple[str, str]] = []
-        _files: Dict[str, str] = {}
+        _files: Dict[str, Union[str, bytes]] = {}
         _body_params: Optional[bytes] = None
 
         # process the path parameters
@@ -1606,11 +1641,12 @@ class CatalogItemsApi:
 
 
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            [
-                'application/json'
-            ]
-        )
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
 
         # set the HTTP header `Content-Type`
         if _content_type:

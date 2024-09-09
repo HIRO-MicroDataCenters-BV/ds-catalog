@@ -18,9 +18,8 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, Field, StrictStr
-from typing import Any, ClassVar, Dict, List
-from ds_catalog.models.size import Size
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr
+from typing import Any, ClassVar, Dict, List, Optional
 from ds_catalog.models.source import Source
 from typing import Optional, Set
 from typing_extensions import Self
@@ -31,18 +30,18 @@ class DataProductForm(BaseModel):
     """ # noqa: E501
     id: StrictStr
     name: StrictStr
-    size: Size
+    size: Optional[StrictInt]
     mimetype: StrictStr
     digest: StrictStr
     source: Source
     access_point_url: StrictStr = Field(alias="accessPointUrl")
     __properties: ClassVar[List[str]] = ["id", "name", "size", "mimetype", "digest", "source", "accessPointUrl"]
 
-    model_config = {
-        "populate_by_name": True,
-        "validate_assignment": True,
-        "protected_namespaces": (),
-    }
+    model_config = ConfigDict(
+        populate_by_name=True,
+        validate_assignment=True,
+        protected_namespaces=(),
+    )
 
 
     def to_str(self) -> str:
@@ -77,12 +76,14 @@ class DataProductForm(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of size
-        if self.size:
-            _dict['size'] = self.size.to_dict()
         # override the default output from pydantic by calling `to_dict()` of source
         if self.source:
             _dict['source'] = self.source.to_dict()
+        # set to None if size (nullable) is None
+        # and model_fields_set contains the field
+        if self.size is None and "size" in self.model_fields_set:
+            _dict['size'] = None
+
         return _dict
 
     @classmethod
@@ -97,7 +98,7 @@ class DataProductForm(BaseModel):
         _obj = cls.model_validate({
             "id": obj.get("id"),
             "name": obj.get("name"),
-            "size": Size.from_dict(obj["size"]) if obj.get("size") is not None else None,
+            "size": obj.get("size"),
             "mimetype": obj.get("mimetype"),
             "digest": obj.get("digest"),
             "source": Source.from_dict(obj["source"]) if obj.get("source") is not None else None,

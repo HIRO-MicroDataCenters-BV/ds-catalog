@@ -18,7 +18,7 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, StrictStr
+from pydantic import BaseModel, ConfigDict, StrictStr
 from typing import Any, ClassVar, Dict, List
 from ds_catalog.models.validation_error_loc_inner import ValidationErrorLocInner
 from typing import Optional, Set
@@ -33,11 +33,11 @@ class ValidationError(BaseModel):
     type: StrictStr
     __properties: ClassVar[List[str]] = ["loc", "msg", "type"]
 
-    model_config = {
-        "populate_by_name": True,
-        "validate_assignment": True,
-        "protected_namespaces": (),
-    }
+    model_config = ConfigDict(
+        populate_by_name=True,
+        validate_assignment=True,
+        protected_namespaces=(),
+    )
 
 
     def to_str(self) -> str:
@@ -75,9 +75,9 @@ class ValidationError(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of each item in loc (list)
         _items = []
         if self.loc:
-            for _item in self.loc:
-                if _item:
-                    _items.append(_item.to_dict())
+            for _item_loc in self.loc:
+                if _item_loc:
+                    _items.append(_item_loc.to_dict())
             _dict['loc'] = _items
         return _dict
 
