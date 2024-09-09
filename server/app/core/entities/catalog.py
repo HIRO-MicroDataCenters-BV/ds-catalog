@@ -49,7 +49,7 @@ class DataProductBase:
 
 @dataclass
 class DataProduct(DataProductBase):
-    _links: dict[str, str]
+    links: dict[str, str]
 
 
 @dataclass
@@ -72,7 +72,7 @@ class CatalogItem(CatalogItemBase):
     created: datetime
     creator: User
     data_products: list[DataProduct]
-    _links: dict[str, str]
+    links: dict[str, str]
 
 
 @dataclass

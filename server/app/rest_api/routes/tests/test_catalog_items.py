@@ -58,7 +58,7 @@ class TestCatalogItemsRoutes:
 
         expected_item = CatalogItem.from_entity(catalog_item)
         assert response.text == expected_item.model_dump_json(by_alias=True)
-        usecases.get.assert_called_once_with(catalog_item.id)
+        usecases.get.assert_called_once_with(str(catalog_item.id))
 
     def test_get_catalog_item_if_it_not_found(self) -> None:
         usecases = Mock()

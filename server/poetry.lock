@@ -178,24 +178,6 @@ files = [
 test = ["pytest (>=6)"]
 
 [[package]]
-name = "factory-boy"
-version = "3.3.1"
-description = "A versatile test fixtures replacement based on thoughtbot's factory_bot for Ruby."
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "factory_boy-3.3.1-py2.py3-none-any.whl", hash = "sha256:7b1113c49736e1e9995bc2a18f4dbf2c52cf0f841103517010b1d825712ce3ca"},
-    {file = "factory_boy-3.3.1.tar.gz", hash = "sha256:8317aa5289cdfc45f9cae570feb07a6177316c82e34d14df3c2e1f22f26abef0"},
-]
-
-[package.dependencies]
-Faker = ">=0.7.0"
-
-[package.extras]
-dev = ["Django", "Pillow", "SQLAlchemy", "coverage", "flake8", "isort", "mongoengine", "mongomock", "mypy", "tox", "wheel (>=0.32.0)", "zest.releaser[recommended]"]
-doc = ["Sphinx", "sphinx-rtd-theme", "sphinxcontrib-spelling"]
-
-[[package]]
 name = "faker"
 version = "28.4.1"
 description = "Faker is a Python package that generates fake data for you."
@@ -475,6 +457,30 @@ files = [
 [package.extras]
 dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
+
+[[package]]
+name = "polyfactory"
+version = "2.16.2"
+description = "Mock data generation factories"
+optional = false
+python-versions = "<4.0,>=3.8"
+files = [
+    {file = "polyfactory-2.16.2-py3-none-any.whl", hash = "sha256:e5eaf97358fee07d0d8de86a93e81dc56e3be1e1514d145fea6c5f486cda6ea1"},
+    {file = "polyfactory-2.16.2.tar.gz", hash = "sha256:6d0d90deb85e5bb1733ea8744c2d44eea2b31656e11b4fa73832d2e2ab5422da"},
+]
+
+[package.dependencies]
+faker = "*"
+typing-extensions = ">=4.6.0"
+
+[package.extras]
+attrs = ["attrs (>=22.2.0)"]
+beanie = ["beanie", "pydantic[email]"]
+full = ["attrs", "beanie", "msgspec", "odmantic", "pydantic", "sqlalchemy"]
+msgspec = ["msgspec"]
+odmantic = ["odmantic (<1.0.0)", "pydantic[email]"]
+pydantic = ["pydantic[email]"]
+sqlalchemy = ["sqlalchemy (>=1.4.29)"]
 
 [[package]]
 name = "prometheus-client"
@@ -910,4 +916,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "11828efea01ebe7b2f8c665db0909fd18200b9727109e2abdc5a75b8ac61907a"
+content-hash = "e942cabc5579f7e35db129be1614d952e2d2ce50e2b2499019c339f0f2f6963c"
