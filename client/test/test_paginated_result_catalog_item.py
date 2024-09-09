@@ -36,8 +36,8 @@ class TestPaginatedResultCatalogItem(unittest.TestCase):
         model = PaginatedResultCatalogItem()
         if include_optional:
             return PaginatedResultCatalogItem(
-                page = 56,
-                size = 56,
+                page = 1.0,
+                size = 1.0,
                 items = [
                     ds_catalog.models.catalog_item.CatalogItem(
                         ontology = 'DCAT-3', 
@@ -73,8 +73,8 @@ class TestPaginatedResultCatalogItem(unittest.TestCase):
             )
         else:
             return PaginatedResultCatalogItem(
-                page = 56,
-                size = 56,
+                page = 1.0,
+                size = 1.0,
                 items = [
                     ds_catalog.models.catalog_item.CatalogItem(
                         ontology = 'DCAT-3', 
