@@ -17,9 +17,8 @@ from pydantic import validate_call, Field, StrictFloat, StrictStr, StrictInt
 from typing import Any, Dict, List, Optional, Tuple, Union
 from typing_extensions import Annotated
 
-from pydantic import Field, StrictStr
+from pydantic import StrictStr
 from typing import Any, Dict
-from typing_extensions import Annotated
 
 from ds_catalog.api_client import ApiClient, RequestSerialized
 from ds_catalog.api_response import ApiResponse
@@ -42,7 +41,7 @@ class CatalogItemsDataApi:
     @validate_call
     def change_catalog_item_data(
         self,
-        id: Annotated[StrictStr, Field(description="Catalog Item ID")],
+        catalog_item_id: StrictStr,
         body: Dict[str, Any],
         _request_timeout: Union[
             None,
@@ -61,8 +60,8 @@ class CatalogItemsDataApi:
 
         Change the data for the catalog item
 
-        :param id: Catalog Item ID (required)
-        :type id: str
+        :param catalog_item_id: (required)
+        :type catalog_item_id: str
         :param body: (required)
         :type body: object
         :param _request_timeout: timeout setting for this request. If one
@@ -88,7 +87,7 @@ class CatalogItemsDataApi:
         """ # noqa: E501
 
         _param = self._change_catalog_item_data_serialize(
-            id=id,
+            catalog_item_id=catalog_item_id,
             body=body,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -115,7 +114,7 @@ class CatalogItemsDataApi:
     @validate_call
     def change_catalog_item_data_with_http_info(
         self,
-        id: Annotated[StrictStr, Field(description="Catalog Item ID")],
+        catalog_item_id: StrictStr,
         body: Dict[str, Any],
         _request_timeout: Union[
             None,
@@ -134,8 +133,8 @@ class CatalogItemsDataApi:
 
         Change the data for the catalog item
 
-        :param id: Catalog Item ID (required)
-        :type id: str
+        :param catalog_item_id: (required)
+        :type catalog_item_id: str
         :param body: (required)
         :type body: object
         :param _request_timeout: timeout setting for this request. If one
@@ -161,7 +160,7 @@ class CatalogItemsDataApi:
         """ # noqa: E501
 
         _param = self._change_catalog_item_data_serialize(
-            id=id,
+            catalog_item_id=catalog_item_id,
             body=body,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -188,7 +187,7 @@ class CatalogItemsDataApi:
     @validate_call
     def change_catalog_item_data_without_preload_content(
         self,
-        id: Annotated[StrictStr, Field(description="Catalog Item ID")],
+        catalog_item_id: StrictStr,
         body: Dict[str, Any],
         _request_timeout: Union[
             None,
@@ -207,8 +206,8 @@ class CatalogItemsDataApi:
 
         Change the data for the catalog item
 
-        :param id: Catalog Item ID (required)
-        :type id: str
+        :param catalog_item_id: (required)
+        :type catalog_item_id: str
         :param body: (required)
         :type body: object
         :param _request_timeout: timeout setting for this request. If one
@@ -234,7 +233,7 @@ class CatalogItemsDataApi:
         """ # noqa: E501
 
         _param = self._change_catalog_item_data_serialize(
-            id=id,
+            catalog_item_id=catalog_item_id,
             body=body,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -256,7 +255,7 @@ class CatalogItemsDataApi:
 
     def _change_catalog_item_data_serialize(
         self,
-        id,
+        catalog_item_id,
         body,
         _request_auth,
         _content_type,
@@ -277,8 +276,8 @@ class CatalogItemsDataApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
-        if id is not None:
-            _path_params['id'] = id
+        if catalog_item_id is not None:
+            _path_params['catalog_item_id'] = catalog_item_id
         # process the query parameters
         # process the header parameters
         # process the form parameters
@@ -315,7 +314,7 @@ class CatalogItemsDataApi:
 
         return self.api_client.param_serialize(
             method='PUT',
-            resource_path='/catalog-items/{id}/data/',
+            resource_path='/catalog-items/{catalog_item_id}/data/',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -334,7 +333,7 @@ class CatalogItemsDataApi:
     @validate_call
     def create_catalog_item_data(
         self,
-        id: Annotated[StrictStr, Field(description="Catalog Item ID")],
+        catalog_item_id: StrictStr,
         body: Dict[str, Any],
         _request_timeout: Union[
             None,
@@ -353,8 +352,8 @@ class CatalogItemsDataApi:
 
         Create the data for the catalog item
 
-        :param id: Catalog Item ID (required)
-        :type id: str
+        :param catalog_item_id: (required)
+        :type catalog_item_id: str
         :param body: (required)
         :type body: object
         :param _request_timeout: timeout setting for this request. If one
@@ -380,7 +379,7 @@ class CatalogItemsDataApi:
         """ # noqa: E501
 
         _param = self._create_catalog_item_data_serialize(
-            id=id,
+            catalog_item_id=catalog_item_id,
             body=body,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -407,7 +406,7 @@ class CatalogItemsDataApi:
     @validate_call
     def create_catalog_item_data_with_http_info(
         self,
-        id: Annotated[StrictStr, Field(description="Catalog Item ID")],
+        catalog_item_id: StrictStr,
         body: Dict[str, Any],
         _request_timeout: Union[
             None,
@@ -426,8 +425,8 @@ class CatalogItemsDataApi:
 
         Create the data for the catalog item
 
-        :param id: Catalog Item ID (required)
-        :type id: str
+        :param catalog_item_id: (required)
+        :type catalog_item_id: str
         :param body: (required)
         :type body: object
         :param _request_timeout: timeout setting for this request. If one
@@ -453,7 +452,7 @@ class CatalogItemsDataApi:
         """ # noqa: E501
 
         _param = self._create_catalog_item_data_serialize(
-            id=id,
+            catalog_item_id=catalog_item_id,
             body=body,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -480,7 +479,7 @@ class CatalogItemsDataApi:
     @validate_call
     def create_catalog_item_data_without_preload_content(
         self,
-        id: Annotated[StrictStr, Field(description="Catalog Item ID")],
+        catalog_item_id: StrictStr,
         body: Dict[str, Any],
         _request_timeout: Union[
             None,
@@ -499,8 +498,8 @@ class CatalogItemsDataApi:
 
         Create the data for the catalog item
 
-        :param id: Catalog Item ID (required)
-        :type id: str
+        :param catalog_item_id: (required)
+        :type catalog_item_id: str
         :param body: (required)
         :type body: object
         :param _request_timeout: timeout setting for this request. If one
@@ -526,7 +525,7 @@ class CatalogItemsDataApi:
         """ # noqa: E501
 
         _param = self._create_catalog_item_data_serialize(
-            id=id,
+            catalog_item_id=catalog_item_id,
             body=body,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -548,7 +547,7 @@ class CatalogItemsDataApi:
 
     def _create_catalog_item_data_serialize(
         self,
-        id,
+        catalog_item_id,
         body,
         _request_auth,
         _content_type,
@@ -569,8 +568,8 @@ class CatalogItemsDataApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
-        if id is not None:
-            _path_params['id'] = id
+        if catalog_item_id is not None:
+            _path_params['catalog_item_id'] = catalog_item_id
         # process the query parameters
         # process the header parameters
         # process the form parameters
@@ -607,7 +606,7 @@ class CatalogItemsDataApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/catalog-items/{id}/data/',
+            resource_path='/catalog-items/{catalog_item_id}/data/',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -626,7 +625,7 @@ class CatalogItemsDataApi:
     @validate_call
     def delete_catalog_item_data(
         self,
-        id: Annotated[StrictStr, Field(description="Catalog Item ID")],
+        catalog_item_id: StrictStr,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -644,8 +643,8 @@ class CatalogItemsDataApi:
 
         Delete the data for the catalog item
 
-        :param id: Catalog Item ID (required)
-        :type id: str
+        :param catalog_item_id: (required)
+        :type catalog_item_id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -669,7 +668,7 @@ class CatalogItemsDataApi:
         """ # noqa: E501
 
         _param = self._delete_catalog_item_data_serialize(
-            id=id,
+            catalog_item_id=catalog_item_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -695,7 +694,7 @@ class CatalogItemsDataApi:
     @validate_call
     def delete_catalog_item_data_with_http_info(
         self,
-        id: Annotated[StrictStr, Field(description="Catalog Item ID")],
+        catalog_item_id: StrictStr,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -713,8 +712,8 @@ class CatalogItemsDataApi:
 
         Delete the data for the catalog item
 
-        :param id: Catalog Item ID (required)
-        :type id: str
+        :param catalog_item_id: (required)
+        :type catalog_item_id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -738,7 +737,7 @@ class CatalogItemsDataApi:
         """ # noqa: E501
 
         _param = self._delete_catalog_item_data_serialize(
-            id=id,
+            catalog_item_id=catalog_item_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -764,7 +763,7 @@ class CatalogItemsDataApi:
     @validate_call
     def delete_catalog_item_data_without_preload_content(
         self,
-        id: Annotated[StrictStr, Field(description="Catalog Item ID")],
+        catalog_item_id: StrictStr,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -782,8 +781,8 @@ class CatalogItemsDataApi:
 
         Delete the data for the catalog item
 
-        :param id: Catalog Item ID (required)
-        :type id: str
+        :param catalog_item_id: (required)
+        :type catalog_item_id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -807,7 +806,7 @@ class CatalogItemsDataApi:
         """ # noqa: E501
 
         _param = self._delete_catalog_item_data_serialize(
-            id=id,
+            catalog_item_id=catalog_item_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -828,7 +827,7 @@ class CatalogItemsDataApi:
 
     def _delete_catalog_item_data_serialize(
         self,
-        id,
+        catalog_item_id,
         _request_auth,
         _content_type,
         _headers,
@@ -848,8 +847,8 @@ class CatalogItemsDataApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
-        if id is not None:
-            _path_params['id'] = id
+        if catalog_item_id is not None:
+            _path_params['catalog_item_id'] = catalog_item_id
         # process the query parameters
         # process the header parameters
         # process the form parameters
@@ -871,7 +870,7 @@ class CatalogItemsDataApi:
 
         return self.api_client.param_serialize(
             method='DELETE',
-            resource_path='/catalog-items/{id}/data/',
+            resource_path='/catalog-items/{catalog_item_id}/data/',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -890,7 +889,7 @@ class CatalogItemsDataApi:
     @validate_call
     def get_catalog_item_data(
         self,
-        id: Annotated[StrictStr, Field(description="Catalog Item ID")],
+        catalog_item_id: StrictStr,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -908,8 +907,8 @@ class CatalogItemsDataApi:
 
         Returns the data for the catalog item
 
-        :param id: Catalog Item ID (required)
-        :type id: str
+        :param catalog_item_id: (required)
+        :type catalog_item_id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -933,7 +932,7 @@ class CatalogItemsDataApi:
         """ # noqa: E501
 
         _param = self._get_catalog_item_data_serialize(
-            id=id,
+            catalog_item_id=catalog_item_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -959,7 +958,7 @@ class CatalogItemsDataApi:
     @validate_call
     def get_catalog_item_data_with_http_info(
         self,
-        id: Annotated[StrictStr, Field(description="Catalog Item ID")],
+        catalog_item_id: StrictStr,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -977,8 +976,8 @@ class CatalogItemsDataApi:
 
         Returns the data for the catalog item
 
-        :param id: Catalog Item ID (required)
-        :type id: str
+        :param catalog_item_id: (required)
+        :type catalog_item_id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1002,7 +1001,7 @@ class CatalogItemsDataApi:
         """ # noqa: E501
 
         _param = self._get_catalog_item_data_serialize(
-            id=id,
+            catalog_item_id=catalog_item_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1028,7 +1027,7 @@ class CatalogItemsDataApi:
     @validate_call
     def get_catalog_item_data_without_preload_content(
         self,
-        id: Annotated[StrictStr, Field(description="Catalog Item ID")],
+        catalog_item_id: StrictStr,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1046,8 +1045,8 @@ class CatalogItemsDataApi:
 
         Returns the data for the catalog item
 
-        :param id: Catalog Item ID (required)
-        :type id: str
+        :param catalog_item_id: (required)
+        :type catalog_item_id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1071,7 +1070,7 @@ class CatalogItemsDataApi:
         """ # noqa: E501
 
         _param = self._get_catalog_item_data_serialize(
-            id=id,
+            catalog_item_id=catalog_item_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1092,7 +1091,7 @@ class CatalogItemsDataApi:
 
     def _get_catalog_item_data_serialize(
         self,
-        id,
+        catalog_item_id,
         _request_auth,
         _content_type,
         _headers,
@@ -1112,8 +1111,8 @@ class CatalogItemsDataApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
-        if id is not None:
-            _path_params['id'] = id
+        if catalog_item_id is not None:
+            _path_params['catalog_item_id'] = catalog_item_id
         # process the query parameters
         # process the header parameters
         # process the form parameters
@@ -1135,7 +1134,7 @@ class CatalogItemsDataApi:
 
         return self.api_client.param_serialize(
             method='GET',
-            resource_path='/catalog-items/{id}/data/',
+            resource_path='/catalog-items/{catalog_item_id}/data/',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,

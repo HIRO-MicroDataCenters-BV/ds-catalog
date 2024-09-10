@@ -235,6 +235,7 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
           title: Id
       responses:
         '200':
@@ -263,6 +264,7 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
           title: Id
       requestBody:
         required: true
@@ -297,6 +299,7 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
           title: Id
       responses:
         '204':
@@ -309,7 +312,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /catalog-items/{id}/data/:
+  /catalog-items/{catalog_item_id}/data/:
     get:
       tags:
       - Catalog Items Data
@@ -317,14 +320,13 @@ paths:
       description: Returns the data for the catalog item
       operationId: get_catalog_item_data
       parameters:
-      - name: id
+      - name: catalog_item_id
         in: path
         required: true
         schema:
           type: string
-          description: Catalog Item ID
-          title: Id
-        description: Catalog Item ID
+          format: uuid
+          title: Catalog Item Id
       responses:
         '200':
           description: Successful Response
@@ -347,14 +349,13 @@ paths:
       description: Create the data for the catalog item
       operationId: create_catalog_item_data
       parameters:
-      - name: id
+      - name: catalog_item_id
         in: path
         required: true
         schema:
           type: string
-          description: Catalog Item ID
-          title: Id
-        description: Catalog Item ID
+          format: uuid
+          title: Catalog Item Id
       requestBody:
         required: true
         content:
@@ -389,14 +390,13 @@ paths:
       description: Change the data for the catalog item
       operationId: change_catalog_item_data
       parameters:
-      - name: id
+      - name: catalog_item_id
         in: path
         required: true
         schema:
           type: string
-          description: Catalog Item ID
-          title: Id
-        description: Catalog Item ID
+          format: uuid
+          title: Catalog Item Id
       requestBody:
         required: true
         content:
@@ -425,14 +425,13 @@ paths:
       description: Delete the data for the catalog item
       operationId: delete_catalog_item_data
       parameters:
-      - name: id
+      - name: catalog_item_id
         in: path
         required: true
         schema:
           type: string
-          description: Catalog Item ID
-          title: Id
-        description: Catalog Item ID
+          format: uuid
+          title: Catalog Item Id
       responses:
         '204':
           description: Successful Response
@@ -457,6 +456,7 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
           title: Id
       requestBody:
         required: true
@@ -700,22 +700,22 @@ components:
         summary:
           type: string
           title: Summary
+        id:
+          type: string
+          format: uuid
+          title: Id
         dataProducts:
           items:
             $ref: '#/components/schemas/DataProductForm'
           type: array
           title: Dataproducts
-        id:
-          type: string
-          format: uuid
-          title: Id
       type: object
       required:
       - ontology
       - title
       - summary
-      - dataProducts
       - id
+      - dataProducts
       title: CatalogItemImportForm
       examples:
       - dataProducts:
@@ -916,12 +916,12 @@ components:
       title: PaginatedResult[CatalogItem]
     Source:
       properties:
-        connector:
-          $ref: '#/components/schemas/Connector'
         node:
           anyOf:
           - $ref: '#/components/schemas/Node'
           - type: 'null'
+        connector:
+          $ref: '#/components/schemas/Connector'
         interface:
           anyOf:
           - $ref: '#/components/schemas/Interface'

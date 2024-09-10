@@ -4,10 +4,9 @@ from classy_fastapi import Routable, post
 from fastapi import Request, Response, status
 
 from app.core.entities import catalog as catalog_entities
-from app.core.usecases import marketplace as marketplace_usecases
+from app.core.usecases import catalog as catalog_usecases
 
-from ..models.catalog import CatalogItem
-from ..models.marketplace import CatalogItemImportForm
+from ..models.catalog import CatalogItem, CatalogItemImportForm
 from ..tags import Tags
 
 
@@ -21,7 +20,7 @@ class ICatalogItemsImportingUsecases(ABC):
 
 class CatalogItemsImportingUsecases(ICatalogItemsImportingUsecases):
     async def import_data(self, *args, **kwargs):
-        return await marketplace_usecases.import_catalog_item(*args, **kwargs)
+        return await catalog_usecases.import_catalog_item(*args, **kwargs)
 
 
 class CatalogItemsImportingRoutes(Routable):
@@ -60,13 +59,13 @@ class CatalogItemsImportingRoutes(Routable):
         response: Response,
     ) -> CatalogItem:
         """Import a catalog item from the local catalog"""
-        input_entity = data.to_entity()
-        output_entity = await self._usecases.import_data(input_entity)
-        output_item = CatalogItem.from_entity(output_entity)
+        entity_input = data.to_entity()
+        entity_output = await self._usecases.import_data(entity_input)
+        model_output = CatalogItem.from_entity(entity_output)
         response.headers["Location"] = str(
-            request.url_for("get_catalog_item", id=output_entity.id)
+            request.url_for("get_catalog_item", id=entity_output.id)
         )
-        return output_item
+        return model_output
 
 
 routes = CatalogItemsImportingRoutes(usecases=CatalogItemsImportingUsecases())

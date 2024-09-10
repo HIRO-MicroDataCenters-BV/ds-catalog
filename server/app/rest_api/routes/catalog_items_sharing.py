@@ -1,14 +1,14 @@
 from abc import ABC, abstractmethod
+from uuid import UUID
 
 from classy_fastapi import Routable, post
 from fastapi import HTTPException, Request, Response, status
 
 from app.core.entities import catalog as catalog_entities
 from app.core.exceptions import CatalogItemDoesNotExist
-from app.core.usecases import marketplace as marketplace_usecases
+from app.core.usecases import catalog as catalog_usecases
 
-from ..models.catalog import CatalogItem
-from ..models.marketplace import CatalogItemShareForm
+from ..models.catalog import CatalogItem, CatalogItemShareForm
 from ..strings import CATALOG_ITEM_NOT_FOUND
 from ..tags import Tags
 
@@ -17,15 +17,15 @@ class ICatalogItemsSharingUsecases(ABC):
     @abstractmethod
     async def share(
         self,
-        catalog_item_id: str,
-        marketplace_id: str,
+        catalog_item_id: UUID,
+        marketplace_id: UUID,
     ) -> catalog_entities.CatalogItem:
         ...
 
 
 class CatalogItemsSharingUsecases(ICatalogItemsSharingUsecases):
     async def share(self, *args, **kwargs):
-        return await marketplace_usecases.share_catalog_item(*args, **kwargs)
+        return await catalog_usecases.share_catalog_item(*args, **kwargs)
 
 
 class CatalogItemsSharingRoutes(Routable):
@@ -60,13 +60,13 @@ class CatalogItemsSharingRoutes(Routable):
     )
     async def share_catalog_item(
         self,
-        id: str,
+        id: UUID,
         data: CatalogItemShareForm,
         request: Request,
         response: Response,
     ) -> CatalogItem:
         """Share a catalog item to the marketplace"""
-        marketplace_id = str(data.marketplace_id)
+        marketplace_id = data.marketplace_id
         try:
             output_entity = await self._usecases.share(id, marketplace_id)
         except CatalogItemDoesNotExist:
@@ -74,11 +74,11 @@ class CatalogItemsSharingRoutes(Routable):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=CATALOG_ITEM_NOT_FOUND,
             )
-        result = CatalogItem.from_entity(output_entity)
+        model_output = CatalogItem.from_entity(output_entity)
         response.headers["Location"] = str(
             request.url_for("get_catalog_item", id=output_entity.id)
         )
-        return result
+        return model_output
 
 
 routes = CatalogItemsSharingRoutes(usecases=CatalogItemsSharingUsecases())

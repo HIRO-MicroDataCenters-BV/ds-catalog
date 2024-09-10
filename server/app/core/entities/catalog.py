@@ -81,8 +81,9 @@ class CatalogItemInput(CatalogItemBase):
 
 
 @dataclass
-class CatalogItemImport(CatalogItemInput):
+class CatalogItemImport(CatalogItemBase):
     id: UUID
+    data_products: list[DataProductInput]
 
 
 CatalogItemData: TypeAlias = dict[str, Any]

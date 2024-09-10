@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from abc import ABC, abstractmethod
+from uuid import UUID
 
 from classy_fastapi import Routable, delete, get, patch, post
 from fastapi import Depends, HTTPException, Request, Response, status
@@ -35,7 +36,7 @@ class ICatalogItemsUsecases(ABC):
         ...
 
     @abstractmethod
-    async def get(self, catalog_item_id: str) -> catalog_entities.CatalogItem:
+    async def get(self, catalog_item_id: UUID) -> catalog_entities.CatalogItem:
         ...
 
     @abstractmethod
@@ -48,13 +49,13 @@ class ICatalogItemsUsecases(ABC):
     @abstractmethod
     async def update(
         self,
-        catalog_item_id: str,
+        catalog_item_id: UUID,
         catalog_item_input: catalog_entities.CatalogItemInput,
     ) -> catalog_entities.CatalogItem:
         ...
 
     @abstractmethod
-    async def delete(self, catalog_item_id: str) -> None:
+    async def delete(self, catalog_item_id: UUID) -> None:
         ...
 
 
@@ -134,7 +135,7 @@ class CatalogItemsRoutes(Routable):
             status.HTTP_404_NOT_FOUND: {"description": "Catalog Item not found"},
         },
     )
-    async def get_catalog_item(self, id: str) -> CatalogItem:
+    async def get_catalog_item(self, id: UUID) -> CatalogItem:
         """Get the catalog item"""
         try:
             output_entity = await self._usecases.get(id)
@@ -191,7 +192,7 @@ class CatalogItemsRoutes(Routable):
             status.HTTP_404_NOT_FOUND: {"description": "Catalog Item not found"},
         },
     )
-    async def update_catalog_item(self, id: str, item: CatalogItemForm) -> CatalogItem:
+    async def update_catalog_item(self, id: UUID, item: CatalogItemForm) -> CatalogItem:
         """Update the catalog item"""
         input_entity = item.to_entity()
         try:
@@ -213,7 +214,7 @@ class CatalogItemsRoutes(Routable):
             status.HTTP_404_NOT_FOUND: {"description": "Catalog Item not found"},
         },
     )
-    async def delete_catalog_item(self, id: str) -> None:
+    async def delete_catalog_item(self, id: UUID) -> None:
         """Delete the catalog item"""
         try:
             await self._usecases.delete(id)

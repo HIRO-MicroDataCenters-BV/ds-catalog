@@ -1,6 +1,5 @@
 from typing import Any
 
-import dataclasses
 from datetime import datetime
 from uuid import UUID
 
@@ -10,6 +9,7 @@ from app.core.entities import catalog as catalog_entities
 
 from .base import BaseModel
 from .user import User
+from .utils import entity_to_dict, model_to_dict
 
 
 class Node(BaseModel):
@@ -17,19 +17,61 @@ class Node(BaseModel):
     host: str
     port: int = Field(gt=0)
 
+    def to_entity(self) -> catalog_entities.Node:
+        return catalog_entities.Node(**model_to_dict(self))
 
-class Interface(BaseModel):
-    id: str
+    @classmethod
+    def from_entity(cls, entity: catalog_entities.Node) -> "Node":
+        return cls(**entity_to_dict(entity))
 
 
 class Connector(BaseModel):
     id: str
 
+    def to_entity(self) -> catalog_entities.Connector:
+        return catalog_entities.Connector(**model_to_dict(self))
+
+    @classmethod
+    def from_entity(cls, entity: catalog_entities.Connector) -> "Connector":
+        return cls(**entity_to_dict(entity))
+
+
+class Interface(BaseModel):
+    id: str
+
+    def to_entity(self) -> catalog_entities.Interface:
+        return catalog_entities.Interface(**model_to_dict(self))
+
+    @classmethod
+    def from_entity(cls, entity: catalog_entities.Interface) -> "Interface":
+        return cls(**entity_to_dict(entity))
+
 
 class Source(BaseModel):
-    connector: Connector
     node: Node | None = None
+    connector: Connector
     interface: Interface | None = None
+
+    def to_entity(self) -> catalog_entities.Source:
+        fields = model_to_dict(
+            self, exclude_fields=set(["node", "connector", "interface"])
+        )
+        return catalog_entities.Source(
+            **fields,
+            node=self.node.to_entity() if self.node else None,
+            connector=self.connector.to_entity(),
+            interface=self.interface.to_entity() if self.interface else None,
+        )
+
+    @classmethod
+    def from_entity(cls, entity: catalog_entities.Source) -> "Source":
+        return cls(
+            node=Node.from_entity(entity.node) if entity.node else None,
+            connector=Connector.from_entity(entity.connector),
+            interface=(
+                Interface.from_entity(entity.interface) if entity.interface else None
+            ),
+        )
 
 
 class DataProductBase(BaseModel):
@@ -44,9 +86,41 @@ class DataProductBase(BaseModel):
 class DataProduct(DataProductBase):
     links: dict[str, str] = Field(alias="_links")
 
+    def to_entity(self) -> catalog_entities.DataProduct:
+        fields = model_to_dict(self, exclude_fields=set(["source"]))
+        return catalog_entities.DataProduct(
+            **fields,
+            source=self.source.to_entity(),
+        )
+
+    @classmethod
+    def from_entity(cls, entity: catalog_entities.DataProduct) -> "DataProduct":
+        fields = entity_to_dict(entity, exclude_fields=set(["source"]))
+        return cls(
+            **fields,
+            source=Source.from_entity(entity.source),
+        )
+
 
 class DataProductForm(DataProductBase):
     access_point_url: str
+
+    def to_entity(self) -> catalog_entities.DataProductInput:
+        fields = model_to_dict(self, exclude_fields=set(["source"]))
+        return catalog_entities.DataProductInput(
+            **fields,
+            source=self.source.to_entity(),
+        )
+
+    @classmethod
+    def from_entity(
+        cls, entity: catalog_entities.DataProductInput
+    ) -> "DataProductForm":
+        fields = entity_to_dict(entity, exclude_fields=set(["source"]))
+        return cls(
+            **fields,
+            source=Source.from_entity(entity.source),
+        )
 
 
 class CatalogItemBase(BaseModel):
@@ -110,9 +184,30 @@ class CatalogItem(CatalogItemBase):
         }
     }
 
+    def to_entity(self) -> catalog_entities.CatalogItem:
+        fields = model_to_dict(self, exclude_fields=set(["creator", "data_products"]))
+        return catalog_entities.CatalogItem(
+            **fields,
+            creator=self.creator.to_entity(),
+            data_products=[
+                data_product.to_entity() for data_product in self.data_products
+            ],
+        )
+
     @classmethod
     def from_entity(cls, entity: catalog_entities.CatalogItem) -> "CatalogItem":
-        return cls(**dataclasses.asdict(entity))
+        fields = entity_to_dict(
+            entity, exclude_fields=set(["creator", "data_products"])
+        )
+        data_products = [
+            DataProduct.from_entity(data_product_entity)
+            for data_product_entity in entity.data_products
+        ]
+        return cls(
+            **fields,
+            creator=User.from_entity(entity.creator),
+            data_products=data_products,
+        )
 
 
 class CatalogItemForm(CatalogItemBase):
@@ -149,14 +244,90 @@ class CatalogItemForm(CatalogItemBase):
         }
     }
 
+    def to_entity(self) -> catalog_entities.CatalogItemInput:
+        fields = model_to_dict(self, exclude_fields=set(["data_products"]))
+        return catalog_entities.CatalogItemInput(
+            **fields,
+            data_products=[
+                data_product.to_entity() for data_product in self.data_products
+            ],
+        )
+
     @classmethod
     def from_entity(
         cls, entity: catalog_entities.CatalogItemInput
     ) -> "CatalogItemForm":
-        return cls(**dataclasses.asdict(entity))
+        fields = entity_to_dict(entity, exclude_fields=set(["data_products"]))
+        return cls(
+            **fields,
+            data_products=[
+                DataProductForm.from_entity(data_product_entity)
+                for data_product_entity in entity.data_products
+            ],
+        )
 
-    def to_entity(self) -> catalog_entities.CatalogItemInput:
-        return catalog_entities.CatalogItemInput(**self.model_dump())
+
+class CatalogItemShareForm(BaseModel):
+    marketplace_id: UUID
+
+
+class CatalogItemImportForm(CatalogItemBase):
+    id: UUID
+    data_products: list[DataProductForm]
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "id": "c6b59f81-e7b5-46d6-84b9-c0dee695c7ec",
+                    "ontology": "DCAT-3",
+                    "title": "Cancer 2024",
+                    "summary": "Some description",
+                    "dataProducts": [
+                        {
+                            "id": "dataproduct1",
+                            "name": "cancer_data_2024",
+                            "size": 1024,
+                            "mimetype": "text/plain",
+                            "digest": "1df50e8ad219e34f0b911e097b7b588e31f9b435",
+                            "source": {
+                                "node": {
+                                    "protocol": "https",
+                                    "host": "localhost",
+                                    "port": 8000,
+                                },
+                                "connector": {"id": "connector1"},
+                                "interface": {"id": "interface2"},
+                            },
+                            "accessPointUrl": "/connector1/interface2/dataproduct1/",
+                        }
+                    ],
+                }
+            ]
+        }
+    }
+
+    def to_entity(self) -> catalog_entities.CatalogItemImport:
+        fields = model_to_dict(self, exclude_fields=set(["data_products"]))
+        return catalog_entities.CatalogItemImport(
+            **fields,
+            data_products=[
+                data_product.to_entity() for data_product in self.data_products
+            ],
+        )
+
+    @classmethod
+    def from_entity(
+        cls, entity: catalog_entities.CatalogItemImport
+    ) -> "CatalogItemImportForm":
+        fields = entity_to_dict(entity, exclude_fields=set(["data_products"]))
+        return cls(
+            **fields,
+            data_products=[
+                DataProductForm.from_entity(data_product_entity)
+                for data_product_entity in entity.data_products
+            ],
+        )
 
 
 class CatalogItemData(RootModel[dict[str, Any]]):
@@ -218,3 +389,10 @@ class CatalogItemData(RootModel[dict[str, Any]]):
             ]
         }
     }
+
+    @classmethod
+    def from_entity(cls, entity: catalog_entities.CatalogItemData) -> "CatalogItemData":
+        return cls(entity)
+
+    def to_entity(self) -> catalog_entities.CatalogItemData:
+        return catalog_entities.CatalogItemData(self.model_dump())

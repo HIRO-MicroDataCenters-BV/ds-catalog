@@ -1,15 +1,9 @@
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
-
 from .. import health_check
-
-app = FastAPI()
-app.include_router(health_check.routes.router)
-
-client = TestClient(app)
+from .helpers import create_test_client
 
 
 def test_health_check() -> None:
+    client = create_test_client(health_check.routes.router)
     response = client.get("/health-check/")
     assert response.status_code == 200
     assert response.json() == {"status": "OK"}

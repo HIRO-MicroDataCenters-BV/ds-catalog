@@ -8,8 +8,8 @@ Name | Type | Description | Notes
 **ontology** | [**Ontology**](Ontology.md) |  | 
 **title** | **str** |  | 
 **summary** | **str** |  | 
-**data_products** | [**List[DataProductForm]**](DataProductForm.md) |  | 
 **id** | **str** |  | 
+**data_products** | [**List[DataProductForm]**](DataProductForm.md) |  | 
 
 ## Example
 

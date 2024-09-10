@@ -30,10 +30,10 @@ class Source(BaseModel):
     """
     Source
     """ # noqa: E501
-    connector: Connector
     node: Optional[Node] = None
+    connector: Connector
     interface: Optional[Interface] = None
-    __properties: ClassVar[List[str]] = ["connector", "node", "interface"]
+    __properties: ClassVar[List[str]] = ["node", "connector", "interface"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -74,12 +74,12 @@ class Source(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of connector
-        if self.connector:
-            _dict['connector'] = self.connector.to_dict()
         # override the default output from pydantic by calling `to_dict()` of node
         if self.node:
             _dict['node'] = self.node.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of connector
+        if self.connector:
+            _dict['connector'] = self.connector.to_dict()
         # override the default output from pydantic by calling `to_dict()` of interface
         if self.interface:
             _dict['interface'] = self.interface.to_dict()
@@ -105,8 +105,8 @@ class Source(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "connector": Connector.from_dict(obj["connector"]) if obj.get("connector") is not None else None,
             "node": Node.from_dict(obj["node"]) if obj.get("node") is not None else None,
+            "connector": Connector.from_dict(obj["connector"]) if obj.get("connector") is not None else None,
             "interface": Interface.from_dict(obj["interface"]) if obj.get("interface") is not None else None
         })
         return _obj

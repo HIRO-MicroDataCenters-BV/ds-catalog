@@ -1,16 +1,15 @@
-from typing import Annotated
-
 from abc import ABC, abstractmethod
+from uuid import UUID
 
 from classy_fastapi import Routable, delete, get, post, put
-from fastapi import HTTPException, Path, Request, Response, status
+from fastapi import HTTPException, Request, Response, status
 
 from app.core.entities import catalog as catalog_entities
 from app.core.exceptions import CatalogItemDataDoesNotExist, CatalogItemDoesNotExist
 from app.core.usecases import catalog as catalog_usecases
 
 from ..models.catalog import CatalogItemData
-from ..strings import CATALOG_ITEM_NOT_FOUND
+from ..strings import CATALOG_ITEM_DATA_NOT_FOUND, CATALOG_ITEM_NOT_FOUND
 from ..tags import Tags
 
 
@@ -18,26 +17,26 @@ class ICatalogItemsDataUsecases(ABC):
     @abstractmethod
     async def get(
         self,
-        catalog_item_id: str,
+        catalog_item_id: UUID,
     ) -> catalog_entities.CatalogItemData:
         ...
 
     @abstractmethod
     async def create(
-        self, catalog_item_id: str, catalog_item_data: catalog_entities.CatalogItemData
+        self, catalog_item_id: UUID, catalog_item_data: catalog_entities.CatalogItemData
     ) -> catalog_entities.CatalogItemData:
         ...
 
     @abstractmethod
     async def change(
         self,
-        catalog_item_id: str,
+        catalog_item_id: UUID,
         catalog_item_data: catalog_entities.CatalogItemData,
     ) -> catalog_entities.CatalogItemData:
         ...
 
     @abstractmethod
-    async def delete(self, catalog_item_id: str) -> None:
+    async def delete(self, catalog_item_id: UUID) -> None:
         ...
 
 
@@ -63,7 +62,7 @@ class CatalogItemsDataRoutes(Routable):
         super().__init__()
 
     @get(
-        "/catalog-items/{id}/data/",
+        "/catalog-items/{catalog_item_id}/data/",
         operation_id="get_catalog_item_data",
         summary="Get the data for the catalog item",
         tags=[Tags.CatalogItemsData],
@@ -76,11 +75,11 @@ class CatalogItemsDataRoutes(Routable):
     )
     async def get_catalog_item_data(
         self,
-        id: Annotated[str, Path(description="Catalog Item ID")],
+        catalog_item_id: UUID,
     ) -> CatalogItemData:
         """Returns the data for the catalog item"""
         try:
-            output_entity = await self._usecases.get(id)
+            output_entity = await self._usecases.get(catalog_item_id)
         except CatalogItemDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=CATALOG_ITEM_NOT_FOUND
@@ -88,12 +87,12 @@ class CatalogItemsDataRoutes(Routable):
         except CatalogItemDataDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Catalog item data not found",
+                detail=CATALOG_ITEM_DATA_NOT_FOUND,
             )
-        return CatalogItemData(output_entity)
+        return CatalogItemData.from_entity(output_entity)
 
     @post(
-        "/catalog-items/{id}/data/",
+        "/catalog-items/{catalog_item_id}/data/",
         operation_id="create_catalog_item_data",
         summary="Create the data for the catalog item",
         tags=[Tags.CatalogItemsData],
@@ -117,26 +116,27 @@ class CatalogItemsDataRoutes(Routable):
     )
     async def create_catalog_item_data(
         self,
-        id: Annotated[str, Path(description="Catalog Item ID")],
+        catalog_item_id: UUID,
         data: CatalogItemData,
         request: Request,
         response: Response,
     ) -> CatalogItemData:
         """Create the data for the catalog item"""
+        input_entity = data.to_entity()
         try:
-            output_entity = await self._usecases.create(id, data)
+            output_entity = await self._usecases.create(catalog_item_id, input_entity)
         except CatalogItemDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=CATALOG_ITEM_NOT_FOUND
             )
-        output_item = CatalogItemData(output_entity)
+        output_item = CatalogItemData.from_entity(output_entity)
         response.headers["Location"] = str(
-            request.url_for("get_catalog_item_data", id=id)
+            request.url_for("get_catalog_item_data", catalog_item_id=catalog_item_id)
         )
         return output_item
 
     @put(
-        "/catalog-items/{id}/data/",
+        "/catalog-items/{catalog_item_id}/data/",
         operation_id="change_catalog_item_data",
         summary="Change the data for the catalog item",
         tags=[Tags.CatalogItemsData],
@@ -149,12 +149,13 @@ class CatalogItemsDataRoutes(Routable):
     )
     async def change_catalog_item_data(
         self,
-        id: Annotated[str, Path(description="Catalog Item ID")],
+        catalog_item_id: UUID,
         data: CatalogItemData,
     ) -> CatalogItemData:
         """Change the data for the catalog item"""
+        input_entity = data.to_entity()
         try:
-            output_entity = await self._usecases.change(id, data)
+            output_entity = await self._usecases.change(catalog_item_id, input_entity)
         except CatalogItemDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=CATALOG_ITEM_NOT_FOUND
@@ -162,12 +163,12 @@ class CatalogItemsDataRoutes(Routable):
         except CatalogItemDataDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Catalog Item Data not found",
+                detail=CATALOG_ITEM_DATA_NOT_FOUND,
             )
-        return CatalogItemData(output_entity)
+        return CatalogItemData.from_entity(output_entity)
 
     @delete(
-        "/catalog-items/{id}/data/",
+        "/catalog-items/{catalog_item_id}/data/",
         operation_id="delete_catalog_item_data",
         summary="Delete the data for the catalog item",
         tags=[Tags.CatalogItemsData],
@@ -181,11 +182,11 @@ class CatalogItemsDataRoutes(Routable):
     )
     async def delete_catalog_item_data(
         self,
-        id: Annotated[str, Path(description="Catalog Item ID")],
+        catalog_item_id: UUID,
     ) -> None:
         """Delete the data for the catalog item"""
         try:
-            await self._usecases.delete(id)
+            await self._usecases.delete(catalog_item_id)
         except CatalogItemDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=CATALOG_ITEM_NOT_FOUND
@@ -193,7 +194,7 @@ class CatalogItemsDataRoutes(Routable):
         except CatalogItemDataDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Catalog Item Data not found",
+                detail=CATALOG_ITEM_DATA_NOT_FOUND,
             )
 
 

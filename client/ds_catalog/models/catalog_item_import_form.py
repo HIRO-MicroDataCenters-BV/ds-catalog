@@ -32,9 +32,9 @@ class CatalogItemImportForm(BaseModel):
     ontology: Ontology
     title: StrictStr
     summary: StrictStr
-    data_products: List[DataProductForm] = Field(alias="dataProducts")
     id: StrictStr
-    __properties: ClassVar[List[str]] = ["ontology", "title", "summary", "dataProducts", "id"]
+    data_products: List[DataProductForm] = Field(alias="dataProducts")
+    __properties: ClassVar[List[str]] = ["ontology", "title", "summary", "id", "dataProducts"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -97,8 +97,8 @@ class CatalogItemImportForm(BaseModel):
             "ontology": obj.get("ontology"),
             "title": obj.get("title"),
             "summary": obj.get("summary"),
-            "dataProducts": [DataProductForm.from_dict(_item) for _item in obj["dataProducts"]] if obj.get("dataProducts") is not None else None,
-            "id": obj.get("id")
+            "id": obj.get("id"),
+            "dataProducts": [DataProductForm.from_dict(_item) for _item in obj["dataProducts"]] if obj.get("dataProducts") is not None else None
         })
         return _obj
 

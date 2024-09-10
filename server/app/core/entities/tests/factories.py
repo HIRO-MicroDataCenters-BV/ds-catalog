@@ -1,16 +1,77 @@
-# TODO: Delete this file after implementation usecases
+from polyfactory import Use
+from polyfactory.factories import DataclassFactory
 
-from app.core.tests.fabrics import CatalogItemFactory, UserFactory
+from ..catalog import (
+    CatalogItem,
+    CatalogItemData,
+    CatalogItemImport,
+    CatalogItemInput,
+    Connector,
+    DataProduct,
+    DataProductInput,
+    Interface,
+    Node,
+    Source,
+)
+from ..user import User
 
-from ..entities.catalog import CatalogItemData
 
-DUMMY_USER = UserFactory.build()
-DUMMY_CATALOG_ITEMS = [
-    CatalogItemFactory.build(),
-    CatalogItemFactory.build(),
-]
-DUMMY_CATALOG_ITEM_DATA = CatalogItemData(
-    {
+class UserFactory(DataclassFactory[User]):
+    __model__ = User
+
+
+class NodeFactory(DataclassFactory[Node]):
+    __model__ = Node
+
+
+class ConnectorFactory(DataclassFactory[Connector]):
+    __model__ = Connector
+
+
+class InterfaceFactory(DataclassFactory[Interface]):
+    __model__ = Interface
+
+
+class SourceFactory(DataclassFactory[Source]):
+    __model__ = Source
+
+    node = NodeFactory
+    connector = ConnectorFactory
+    interface = InterfaceFactory
+
+
+class DataProductFactory(DataclassFactory[DataProduct]):
+    __model__ = DataProduct
+
+    source = SourceFactory
+
+
+class DataProductInputFactory(DataclassFactory[DataProductInput]):
+    __model__ = DataProductInput
+
+    source = SourceFactory
+
+
+class CatalogItemFactory(DataclassFactory[CatalogItem]):
+    __model__ = CatalogItem
+
+    data_products = Use(DataProductFactory.batch, size=2)
+
+
+class CatalogItemInputFactory(DataclassFactory[CatalogItemInput]):
+    __model__ = CatalogItemInput
+
+    data_products = Use(DataProductInputFactory.batch, size=2)
+
+
+class CatalogItemImportFactory(DataclassFactory[CatalogItemImport]):
+    __model__ = CatalogItemImport
+
+    data_products = Use(DataProductInputFactory.batch, size=2)
+
+
+def catalog_item_data_factory() -> CatalogItemData:
+    return {
         "@context": {
             "dcat": "http://www.w3.org/ns/dcat#",
             "dcterms": "http://purl.org/dc/terms/",
@@ -73,4 +134,3 @@ DUMMY_CATALOG_ITEM_DATA = CatalogItemData(
             },
         },
     }
-)

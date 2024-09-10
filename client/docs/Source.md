@@ -5,8 +5,8 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**connector** | [**Connector**](Connector.md) |  | 
 **node** | [**Node**](Node.md) |  | [optional] 
+**connector** | [**Connector**](Connector.md) |  | 
 **interface** | [**Interface**](Interface.md) |  | [optional] 
 
 ## Example

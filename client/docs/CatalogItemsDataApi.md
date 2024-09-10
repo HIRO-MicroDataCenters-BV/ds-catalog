@@ -4,14 +4,14 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**change_catalog_item_data**](CatalogItemsDataApi.md#change_catalog_item_data) | **PUT** /catalog-items/{id}/data/ | Change the data for the catalog item
-[**create_catalog_item_data**](CatalogItemsDataApi.md#create_catalog_item_data) | **POST** /catalog-items/{id}/data/ | Create the data for the catalog item
-[**delete_catalog_item_data**](CatalogItemsDataApi.md#delete_catalog_item_data) | **DELETE** /catalog-items/{id}/data/ | Delete the data for the catalog item
-[**get_catalog_item_data**](CatalogItemsDataApi.md#get_catalog_item_data) | **GET** /catalog-items/{id}/data/ | Get the data for the catalog item
+[**change_catalog_item_data**](CatalogItemsDataApi.md#change_catalog_item_data) | **PUT** /catalog-items/{catalog_item_id}/data/ | Change the data for the catalog item
+[**create_catalog_item_data**](CatalogItemsDataApi.md#create_catalog_item_data) | **POST** /catalog-items/{catalog_item_id}/data/ | Create the data for the catalog item
+[**delete_catalog_item_data**](CatalogItemsDataApi.md#delete_catalog_item_data) | **DELETE** /catalog-items/{catalog_item_id}/data/ | Delete the data for the catalog item
+[**get_catalog_item_data**](CatalogItemsDataApi.md#get_catalog_item_data) | **GET** /catalog-items/{catalog_item_id}/data/ | Get the data for the catalog item
 
 
 # **change_catalog_item_data**
-> object change_catalog_item_data(id, body)
+> object change_catalog_item_data(catalog_item_id, body)
 
 Change the data for the catalog item
 
@@ -36,12 +36,12 @@ configuration = ds_catalog.Configuration(
 with ds_catalog.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = ds_catalog.CatalogItemsDataApi(api_client)
-    id = 'id_example' # str | Catalog Item ID
+    catalog_item_id = 'catalog_item_id_example' # str | 
     body = None # object | 
 
     try:
         # Change the data for the catalog item
-        api_response = api_instance.change_catalog_item_data(id, body)
+        api_response = api_instance.change_catalog_item_data(catalog_item_id, body)
         print("The response of CatalogItemsDataApi->change_catalog_item_data:\n")
         pprint(api_response)
     except Exception as e:
@@ -55,7 +55,7 @@ with ds_catalog.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **id** | **str**| Catalog Item ID | 
+ **catalog_item_id** | **str**|  | 
  **body** | **object**|  | 
 
 ### Return type
@@ -82,7 +82,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **create_catalog_item_data**
-> object create_catalog_item_data(id, body)
+> object create_catalog_item_data(catalog_item_id, body)
 
 Create the data for the catalog item
 
@@ -107,12 +107,12 @@ configuration = ds_catalog.Configuration(
 with ds_catalog.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = ds_catalog.CatalogItemsDataApi(api_client)
-    id = 'id_example' # str | Catalog Item ID
+    catalog_item_id = 'catalog_item_id_example' # str | 
     body = None # object | 
 
     try:
         # Create the data for the catalog item
-        api_response = api_instance.create_catalog_item_data(id, body)
+        api_response = api_instance.create_catalog_item_data(catalog_item_id, body)
         print("The response of CatalogItemsDataApi->create_catalog_item_data:\n")
         pprint(api_response)
     except Exception as e:
@@ -126,7 +126,7 @@ with ds_catalog.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **id** | **str**| Catalog Item ID | 
+ **catalog_item_id** | **str**|  | 
  **body** | **object**|  | 
 
 ### Return type
@@ -153,7 +153,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **delete_catalog_item_data**
-> delete_catalog_item_data(id)
+> delete_catalog_item_data(catalog_item_id)
 
 Delete the data for the catalog item
 
@@ -178,11 +178,11 @@ configuration = ds_catalog.Configuration(
 with ds_catalog.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = ds_catalog.CatalogItemsDataApi(api_client)
-    id = 'id_example' # str | Catalog Item ID
+    catalog_item_id = 'catalog_item_id_example' # str | 
 
     try:
         # Delete the data for the catalog item
-        api_instance.delete_catalog_item_data(id)
+        api_instance.delete_catalog_item_data(catalog_item_id)
     except Exception as e:
         print("Exception when calling CatalogItemsDataApi->delete_catalog_item_data: %s\n" % e)
 ```
@@ -194,7 +194,7 @@ with ds_catalog.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **id** | **str**| Catalog Item ID | 
+ **catalog_item_id** | **str**|  | 
 
 ### Return type
 
@@ -220,7 +220,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **get_catalog_item_data**
-> object get_catalog_item_data(id)
+> object get_catalog_item_data(catalog_item_id)
 
 Get the data for the catalog item
 
@@ -245,11 +245,11 @@ configuration = ds_catalog.Configuration(
 with ds_catalog.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = ds_catalog.CatalogItemsDataApi(api_client)
-    id = 'id_example' # str | Catalog Item ID
+    catalog_item_id = 'catalog_item_id_example' # str | 
 
     try:
         # Get the data for the catalog item
-        api_response = api_instance.get_catalog_item_data(id)
+        api_response = api_instance.get_catalog_item_data(catalog_item_id)
         print("The response of CatalogItemsDataApi->get_catalog_item_data:\n")
         pprint(api_response)
     except Exception as e:
@@ -263,7 +263,7 @@ with ds_catalog.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **id** | **str**| Catalog Item ID | 
+ **catalog_item_id** | **str**|  | 
 
 ### Return type
 
