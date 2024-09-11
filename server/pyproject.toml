@@ -14,7 +14,7 @@ homepage = "https://github.com/HIRO-MicroDataCenters-BV/ds-catalog"
 packages = [{include = "*", from="app"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.12"
 fastapi = "^0.109"
 uvicorn = "^0.26"
 classy-fastapi = "^0.6.1"
