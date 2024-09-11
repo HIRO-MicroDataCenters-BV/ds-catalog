@@ -8,7 +8,7 @@ from app.core.entities import catalog as catalog_entities
 from app.core.exceptions import CatalogItemDataDoesNotExist, CatalogItemDoesNotExist
 from app.core.usecases import catalog as catalog_usecases
 
-from ..models.catalog import CatalogItemData
+from ..serializers.catalog import CatalogItemData
 from ..strings import CATALOG_ITEM_DATA_NOT_FOUND, CATALOG_ITEM_NOT_FOUND
 from ..tags import Tags
 
@@ -79,7 +79,7 @@ class CatalogItemsDataRoutes(Routable):
     ) -> CatalogItemData:
         """Returns the data for the catalog item"""
         try:
-            output_entity = await self._usecases.get(catalog_item_id)
+            entity_output = await self._usecases.get(catalog_item_id)
         except CatalogItemDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=CATALOG_ITEM_NOT_FOUND
@@ -89,7 +89,7 @@ class CatalogItemsDataRoutes(Routable):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=CATALOG_ITEM_DATA_NOT_FOUND,
             )
-        return CatalogItemData.from_entity(output_entity)
+        return CatalogItemData.from_entity(entity_output)
 
     @post(
         "/catalog-items/{catalog_item_id}/data/",
@@ -122,18 +122,18 @@ class CatalogItemsDataRoutes(Routable):
         response: Response,
     ) -> CatalogItemData:
         """Create the data for the catalog item"""
-        input_entity = data.to_entity()
+        entity_input = data.to_entity()
         try:
-            output_entity = await self._usecases.create(catalog_item_id, input_entity)
+            entity_output = await self._usecases.create(catalog_item_id, entity_input)
         except CatalogItemDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=CATALOG_ITEM_NOT_FOUND
             )
-        output_item = CatalogItemData.from_entity(output_entity)
+        item_data_output = CatalogItemData.from_entity(entity_output)
         response.headers["Location"] = str(
             request.url_for("get_catalog_item_data", catalog_item_id=catalog_item_id)
         )
-        return output_item
+        return item_data_output
 
     @put(
         "/catalog-items/{catalog_item_id}/data/",

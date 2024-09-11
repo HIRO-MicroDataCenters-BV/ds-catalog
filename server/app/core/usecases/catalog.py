@@ -12,7 +12,7 @@ from ..entities.catalog import (
     CatalogItemImport,
     CatalogItemInput,
 )
-from ..queries import IQuery
+from ..queries.catalog import CatalogItemsQuery
 
 DUMMY_USER = UserFactory.build()
 DUMMY_CATALOG_ITEMS = [
@@ -22,7 +22,9 @@ DUMMY_CATALOG_ITEMS = [
 DUMMY_CATALOG_ITEM_DATA = catalog_item_data_factory()
 
 
-async def get_catalog_items_list(query: IQuery | None = None) -> list[CatalogItem]:
+async def get_catalog_items_list(
+    query: CatalogItemsQuery | None = None,
+) -> list[CatalogItem]:
     # TODO: Implement
     return DUMMY_CATALOG_ITEMS
 

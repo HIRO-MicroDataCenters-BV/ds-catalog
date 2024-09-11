@@ -19,6 +19,9 @@ fastapi = "^0.109"
 uvicorn = "^0.26"
 classy-fastapi = "^0.6.1"
 prometheus-fastapi-instrumentator = "^6.1.0"
+sqlalchemy = "^2.0.34"
+alembic = "^1.13.2"
+polyfactory = "^2.16.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.12"
@@ -35,7 +38,6 @@ pytest = "^8.2"
 pytest-mock = "^3.12.0"
 httpx = "^0.26"
 tox = "^4.13.0"
-polyfactory = "^2.16.2"
 
 [tool.isort]
 # https://github.com/timothycrosley/isort/
@@ -100,4 +102,5 @@ addopts = [
   "--tb=short",
   "--doctest-modules",
   "--doctest-continue-on-failure",
+  "--ignore=alembic",
 ]

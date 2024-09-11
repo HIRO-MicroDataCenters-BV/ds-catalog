@@ -1,12 +1,17 @@
-from .interface import IQuery, QueryResult
+from typing import TypeVar
+
+from sqlalchemy import Select
+
+from .interface import IQuery
+
+T = TypeVar("T")
 
 
-class CompositeQuery(IQuery):
-    def __init__(self, *queries: IQuery) -> None:
+class CompositeQuery(IQuery[T]):
+    def __init__(self, *queries: IQuery[T]) -> None:
         self._queries = queries
 
-    def build(self) -> QueryResult:
-        result = QueryResult()
-        for query in self._queries:
-            result += query.build()
-        return result
+    def apply(self, query: Select[tuple[T]]) -> Select[tuple[T]]:
+        for q in self._queries:
+            query = q.apply(query)
+        return query

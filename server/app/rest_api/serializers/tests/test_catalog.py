@@ -182,24 +182,24 @@ class TestCatalogItem:
 
 class TestCatalogItemForm:
     def test_to_entity(self):
-        catalog_item = CatalogItemFormFactory.build()
-        entity = catalog_item.to_entity()
+        catalog_item_form = CatalogItemFormFactory.build()
+        entity = catalog_item_form.to_entity()
 
-        assert entity.ontology == catalog_item.ontology
-        assert entity.title == catalog_item.title
-        assert entity.summary == catalog_item.summary
+        assert entity.ontology == catalog_item_form.ontology
+        assert entity.title == catalog_item_form.title
+        assert entity.summary == catalog_item_form.summary
         assert entity.data_products == [
-            data_product.to_entity() for data_product in catalog_item.data_products
+            data_product.to_entity() for data_product in catalog_item_form.data_products
         ]
 
     def test_from_entity(self):
         entity = entities_factories.CatalogItemInputFactory.build()
-        catalog_item = CatalogItemForm.from_entity(entity)
+        catalog_item_form = CatalogItemForm.from_entity(entity)
 
-        assert catalog_item.ontology == entity.ontology
-        assert catalog_item.title == entity.title
-        assert catalog_item.summary == entity.summary
-        assert catalog_item.data_products == [
+        assert catalog_item_form.ontology == entity.ontology
+        assert catalog_item_form.title == entity.title
+        assert catalog_item_form.summary == entity.summary
+        assert catalog_item_form.data_products == [
             DataProductForm.from_entity(data_product)
             for data_product in entity.data_products
         ]
@@ -207,26 +207,27 @@ class TestCatalogItemForm:
 
 class TestCatalogItemImportForm:
     def test_to_entity(self):
-        catalog_item = CatalogItemImportFormFactory.build()
-        entity = catalog_item.to_entity()
+        catalog_item_import = CatalogItemImportFormFactory.build()
+        entity = catalog_item_import.to_entity()
 
-        assert entity.id == catalog_item.id
-        assert entity.ontology == catalog_item.ontology
-        assert entity.title == catalog_item.title
-        assert entity.summary == catalog_item.summary
+        assert entity.id == catalog_item_import.id
+        assert entity.ontology == catalog_item_import.ontology
+        assert entity.title == catalog_item_import.title
+        assert entity.summary == catalog_item_import.summary
         assert entity.data_products == [
-            data_product.to_entity() for data_product in catalog_item.data_products
+            data_product.to_entity()
+            for data_product in catalog_item_import.data_products
         ]
 
     def test_from_entity(self):
         entity = entities_factories.CatalogItemImportFactory.build()
-        catalog_item = CatalogItemImportForm.from_entity(entity)
+        catalog_item_import = CatalogItemImportForm.from_entity(entity)
 
-        assert catalog_item.id == entity.id
-        assert catalog_item.ontology == entity.ontology
-        assert catalog_item.title == entity.title
-        assert catalog_item.summary == entity.summary
-        assert catalog_item.data_products == [
+        assert catalog_item_import.id == entity.id
+        assert catalog_item_import.ontology == entity.ontology
+        assert catalog_item_import.title == entity.title
+        assert catalog_item_import.summary == entity.summary
+        assert catalog_item_import.data_products == [
             DataProductForm.from_entity(data_product)
             for data_product in entity.data_products
         ]

@@ -8,7 +8,7 @@ from app.core.entities import catalog as catalog_entities
 from app.core.exceptions import CatalogItemDoesNotExist
 from app.core.usecases import catalog as catalog_usecases
 
-from ..models.catalog import CatalogItem, CatalogItemShareForm
+from ..serializers.catalog import CatalogItem, CatalogItemShareForm
 from ..strings import CATALOG_ITEM_NOT_FOUND
 from ..tags import Tags
 
@@ -68,17 +68,17 @@ class CatalogItemsSharingRoutes(Routable):
         """Share a catalog item to the marketplace"""
         marketplace_id = data.marketplace_id
         try:
-            output_entity = await self._usecases.share(id, marketplace_id)
+            entity_output = await self._usecases.share(id, marketplace_id)
         except CatalogItemDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=CATALOG_ITEM_NOT_FOUND,
             )
-        model_output = CatalogItem.from_entity(output_entity)
+        item_output = CatalogItem.from_entity(entity_output)
         response.headers["Location"] = str(
-            request.url_for("get_catalog_item", id=output_entity.id)
+            request.url_for("get_catalog_item", id=entity_output.id)
         )
-        return model_output
+        return item_output
 
 
 routes = CatalogItemsSharingRoutes(usecases=CatalogItemsSharingUsecases())
