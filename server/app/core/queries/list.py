@@ -2,8 +2,6 @@ from typing import TypedDict, TypeVar, Unpack
 
 from enum import Enum
 
-from sqlalchemy import Select, asc, desc
-
 from .interface import IQuery
 
 T = TypeVar("T")
@@ -32,8 +30,9 @@ class PaginatorQuery(IQuery[T]):
         self._page = kwargs["page"]
         self._page_size = kwargs["page_size"]
 
-    def apply(self, query: Select[tuple[T]]) -> Select[tuple[T]]:
-        return query.limit(self._page_size).offset(self._page * self._page_size)
+    def apply(self, query: T) -> T:
+        # TODO: Implement
+        return query
 
 
 class OrderQuery(IQuery[T]):
@@ -44,10 +43,6 @@ class OrderQuery(IQuery[T]):
         self._order_by = kwargs["order_by"]
         self._order_direction = kwargs["order_direction"]
 
-    def apply(self, query: Select[tuple[T]]) -> Select[tuple[T]]:
-        direction = {
-            OrderDirection.DESC: desc,
-            OrderDirection.ASC: asc,
-        }
-        direction_func = direction[self._order_direction]
-        return query.order_by(direction_func(self._order_by))
+    def apply(self, query: T) -> T:
+        # TODO: Implement
+        return query

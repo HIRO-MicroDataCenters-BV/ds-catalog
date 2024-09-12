@@ -19,8 +19,6 @@ fastapi = "^0.109"
 uvicorn = "^0.26"
 classy-fastapi = "^0.6.1"
 prometheus-fastapi-instrumentator = "^6.1.0"
-sqlalchemy = "^2.0.34"
-alembic = "^1.13.2"
 polyfactory = "^2.16.2"
 
 [tool.poetry.group.dev.dependencies]
@@ -102,5 +100,4 @@ addopts = [
   "--tb=short",
   "--doctest-modules",
   "--doctest-continue-on-failure",
-  "--ignore=alembic",
 ]

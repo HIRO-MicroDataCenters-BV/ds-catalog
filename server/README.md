@@ -63,12 +63,7 @@ poetry config virtualenvs.in-project true
 poetry install --no-root --with dev,test
 ```
 
-3. Creating database:
-```bash
-poetry run alembic upgrade head
-```
-
-4. Launch the project:
+3. Launch the project:
 ```bash
 poetry run uvicorn app.main:app [--reload]
 ```
@@ -78,7 +73,7 @@ poetry shell
 uvicorn app.main:app
 ```
 
-5. Running tests:
+4. Running tests:
 ```bash
 poetry run pytest
 ```
@@ -86,17 +81,6 @@ poetry run pytest
 You can test the application for multiple versions of Python. To do this, you need to install the required Python versions on your operating system, specify these versions in the tox.ini file, and then run the tests:
 ```bash
 poetry run tox
-```
-
-## Database migrations
-To create a new migration run:
-```bash
-poetry run alembic revision --autogenerate
-```
-
-To apply migrations run:
-```bash
-poetry run alembic upgrade head
 ```
 
 ## Package

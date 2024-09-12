@@ -3,5 +3,3 @@ services:
     build: .
     ports:
       - "8001:80"
-    volumes:
-      - ./database.db:/code/database.db

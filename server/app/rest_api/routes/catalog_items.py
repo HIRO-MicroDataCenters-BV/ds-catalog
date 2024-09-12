@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Any
 
 from abc import ABC, abstractmethod
 from uuid import UUID
@@ -8,7 +8,6 @@ from fastapi import Depends, HTTPException, Request, Response, status
 
 from app.core.entities import catalog as catalog_entities
 from app.core.exceptions import CatalogItemDoesNotExist
-from app.core.models.catalog import CatalogItemModel
 from app.core.queries.catalog import (
     CatalogItemsFilterQuery,
     CatalogItemsFiltersDTO,
@@ -110,10 +109,8 @@ class CatalogItemsRoutes(Routable):
 
         """
 
-        paginator_query: PaginatorQuery[CatalogItemModel] = PaginatorQuery(
-            **paginator_parameters
-        )
-        order_query: OrderQuery[CatalogItemModel] = OrderQuery(**order_parameters)
+        paginator_query: PaginatorQuery[Any] = PaginatorQuery(**paginator_parameters)
+        order_query: OrderQuery[Any] = OrderQuery(**order_parameters)
         catalog_items_filters_query = CatalogItemsFilterQuery(**catalog_items_filters)
 
         query = CompositeQuery(

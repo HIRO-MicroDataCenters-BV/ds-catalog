@@ -1,16 +1,12 @@
-from typing import TypeAlias, TypedDict, Unpack
+from typing import Any, TypeAlias, TypedDict, Unpack
 
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import Select
-
 from ..entities.catalog import Ontology
-from ..models.catalog import CatalogItemModel
 from .interface import IQuery
 
-CatalogItemsQuery: TypeAlias = IQuery[CatalogItemModel]
-CatalogItemsQueryResult: TypeAlias = Select[tuple[CatalogItemModel]]
+CatalogItemsQuery: TypeAlias = Any
 
 
 class CatalogItemsFiltersDTO(TypedDict):
@@ -28,11 +24,11 @@ class CatalogItemsFiltersDTO(TypedDict):
     data_product_mimetype: str
 
 
-class CatalogItemsFilterQuery(CatalogItemsQuery):
+class CatalogItemsFilterQuery(IQuery[CatalogItemsQuery]):
     def __init__(self, **kwargs: Unpack[CatalogItemsFiltersDTO]) -> None:
         # TODO: Implement
         ...
 
-    def apply(self, query: CatalogItemsQueryResult) -> CatalogItemsQueryResult:
+    def apply(self, query: CatalogItemsQuery) -> CatalogItemsQuery:
         # TODO: Implement
         return query
