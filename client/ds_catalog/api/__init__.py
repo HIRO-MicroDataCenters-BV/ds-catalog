@@ -1,9 +1,8 @@
 # flake8: noqa
 
 # import apis into api package
-from ds_catalog.api.catalog_items_api import CatalogItemsApi
-from ds_catalog.api.catalog_items_data_api import CatalogItemsDataApi
-from ds_catalog.api.catalog_items_importing_api import CatalogItemsImportingApi
-from ds_catalog.api.catalog_items_sharing_api import CatalogItemsSharingApi
+from ds_catalog.api.datasets_api import DatasetsApi
+from ds_catalog.api.importing_api import ImportingApi
+from ds_catalog.api.sharing_api import SharingApi
 from ds_catalog.api.default_api import DefaultApi
 

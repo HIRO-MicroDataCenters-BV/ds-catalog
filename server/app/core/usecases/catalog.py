@@ -1,91 +1,46 @@
-from uuid import UUID
+from pydantic import AnyUrl
 
-from app.core.entities.tests.factories import (
-    CatalogItemFactory,
-    UserFactory,
-    catalog_item_data_factory,
-)
+from ..entities.catalog import Dataset, DatasetImport, DatasetInput
+from ..entities.tests.factories import DatasetFactory, PersonFactory
+from ..queries.catalog import DatasetsQuery
 
-from ..entities.catalog import (
-    CatalogItem,
-    CatalogItemData,
-    CatalogItemImport,
-    CatalogItemInput,
-)
-from ..queries.catalog import CatalogItemsQuery
-
-DUMMY_USER = UserFactory.build()
-DUMMY_CATALOG_ITEMS = [
-    CatalogItemFactory.build(),
-    CatalogItemFactory.build(),
+DUMMY_PERSON = PersonFactory.build()
+DUMMY_DATASETS = [
+    DatasetFactory.build(),
+    DatasetFactory.build(),
 ]
-DUMMY_CATALOG_ITEM_DATA = catalog_item_data_factory()
 
 
-async def get_catalog_items_list(
-    query: CatalogItemsQuery | None = None,
-) -> list[CatalogItem]:
+async def get_datasets_list(query: DatasetsQuery | None = None) -> list[Dataset]:
     # TODO: Implement
-    return DUMMY_CATALOG_ITEMS
+    return DUMMY_DATASETS
 
 
-async def get_catalog_item(catalog_item_id: UUID) -> CatalogItem:
+async def get_dataset(id: str) -> Dataset:
     # TODO: Implement
-    return DUMMY_CATALOG_ITEMS[0]
+    return DUMMY_DATASETS[0]
 
 
-async def create_catalog_item(catalog_item_input: CatalogItemInput) -> CatalogItem:
+async def create_dataset(data: DatasetInput) -> Dataset:
     # TODO: Implement
-    return DUMMY_CATALOG_ITEMS[0]
+    return DUMMY_DATASETS[0]
 
 
-async def update_catalog_item(
-    catalog_item_id: UUID,
-    catalog_item_input: CatalogItemInput,
-) -> CatalogItem:
+async def update_dataset(id: str, data: DatasetInput) -> Dataset:
     # TODO: Implement
-    return DUMMY_CATALOG_ITEMS[0]
+    return DUMMY_DATASETS[0]
 
 
-async def delete_catalog_item(catalog_item_id: UUID) -> None:
+async def delete_dataset(id: str) -> None:
     # TODO: Implement
     ...
 
 
-async def get_catalog_item_data(catalog_item_id: UUID) -> CatalogItemData:
+async def share_dataset(id: str, marketplace_url: AnyUrl) -> Dataset:
     # TODO: Implement
-    return DUMMY_CATALOG_ITEM_DATA
+    return DUMMY_DATASETS[0]
 
 
-async def create_catalog_item_data(
-    catalog_item_id: UUID,
-    catalog_item_data: CatalogItemData,
-) -> CatalogItemData:
+async def import_dataset(data: DatasetImport) -> Dataset:
     # TODO: Implement
-    return DUMMY_CATALOG_ITEM_DATA
-
-
-async def change_catalog_item_data(
-    catalog_item_id: UUID,
-    catalog_item_data: CatalogItemData,
-) -> CatalogItemData:
-    # TODO: Implement
-    return DUMMY_CATALOG_ITEM_DATA
-
-
-async def delete_catalog_item_data(catalog_item_id: UUID) -> None:
-    # TODO: Implement
-    ...
-
-
-async def share_catalog_item(
-    catalog_item_id: UUID,
-    marketplace_id: UUID,
-) -> CatalogItem:
-    # TODO: Implement
-    return DUMMY_CATALOG_ITEMS[0]
-
-
-async def import_catalog_item(catalog_item: CatalogItemImport) -> CatalogItem:
-    # TODO: Implement
-    return DUMMY_CATALOG_ITEMS[0]
+    return DUMMY_DATASETS[0]

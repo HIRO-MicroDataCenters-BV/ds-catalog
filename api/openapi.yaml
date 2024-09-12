@@ -34,16 +34,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthCheck'
-  /catalog-items/:
+  /datasets/:
     get:
       tags:
-      - Catalog Items
-      summary: Get the list of catalog items
-      description: 'Returns the list of catalog items with the ability to search,
-        filter and
-
-        paginate.'
-      operationId: get_catalog_items
+      - Datasets
+      summary: Get Datasets
+      description: Get the datasets list
+      operationId: get_datasets
       parameters:
       - name: page
         in: query
@@ -86,14 +83,16 @@ paths:
           type: string
           default: ''
           title: Search
-      - name: ontology
+      - name: theme
         in: query
         required: false
         schema:
           anyOf:
-          - $ref: '#/components/schemas/Ontology'
+          - type: array
+            items:
+              type: string
           - type: 'null'
-          title: Ontology
+          title: Theme
       - name: isLocal
         in: query
         required: false
@@ -114,46 +113,37 @@ paths:
         in: query
         required: false
         schema:
-          anyOf:
-          - type: string
-            format: uuid
-          - type: 'null'
+          type: string
+          default: ''
           title: Creator  Id
-      - name: created
+      - name: issued
         in: query
         required: false
         schema:
           anyOf:
           - type: string
-            format: date-time
+            format: date
           - type: 'null'
-          title: Created
-      - name: created__gte
+          title: Issued
+      - name: issued__gte
         in: query
         required: false
         schema:
           anyOf:
           - type: string
-            format: date-time
+            format: date
           - type: 'null'
-          title: Created  Gte
-      - name: created__lte
+          title: Issued  Gte
+      - name: issued__lte
         in: query
         required: false
         schema:
           anyOf:
           - type: string
-            format: date-time
+            format: date
           - type: 'null'
-          title: Created  Lte
-      - name: dataProduct__id
-        in: query
-        required: false
-        schema:
-          type: string
-          default: ''
-          title: Dataproduct  Id
-      - name: dataProduct__size__gte
+          title: Issued  Lte
+      - name: distribution__byteSize__gte
         in: query
         required: false
         schema:
@@ -161,8 +151,8 @@ paths:
           - type: integer
             minimum: 0
           - type: 'null'
-          title: Dataproduct  Size  Gte
-      - name: dataProduct__size__lte
+          title: Distribution  Bytesize  Gte
+      - name: distribution__byteSize__lte
         in: query
         required: false
         schema:
@@ -170,21 +160,21 @@ paths:
           - type: integer
             minimum: 0
           - type: 'null'
-          title: Dataproduct  Size  Lte
-      - name: dataProduct__mimetype
+          title: Distribution  Bytesize  Lte
+      - name: distribution__mimeType
         in: query
         required: false
         schema:
           type: string
           default: ''
-          title: Dataproduct  Mimetype
+          title: Distribution  Mimetype
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedResult_CatalogItem_'
+                $ref: '#/components/schemas/PaginatedResult_Dataset_'
         '422':
           description: Validation Error
           content:
@@ -193,23 +183,23 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
     post:
       tags:
-      - Catalog Items
-      summary: Create a catalog item
-      description: Create a catalog item
-      operationId: create_catalog_item
+      - Datasets
+      summary: Create Dataset
+      description: Create a dataset
+      operationId: create_dataset
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CatalogItemForm'
+              $ref: '#/components/schemas/DatasetForm'
       responses:
         '201':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CatalogItem'
+                $ref: '#/components/schemas/Dataset'
           headers:
             Location:
               description: The URL of the newly created resource
@@ -222,20 +212,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /catalog-items/{id}/:
+  /datasets/{id}/:
     get:
       tags:
-      - Catalog Items
-      summary: Get the catalog item
-      description: Get the catalog item
-      operationId: get_catalog_item
+      - Datasets
+      summary: Get Dataset
+      description: Get the dataset
+      operationId: get_dataset
       parameters:
       - name: id
         in: path
         required: true
         schema:
           type: string
-          format: uuid
           title: Id
       responses:
         '200':
@@ -243,9 +232,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CatalogItem'
+                $ref: '#/components/schemas/Dataset'
         '404':
-          description: Catalog Item not found
+          description: Dataset not found
         '422':
           description: Validation Error
           content:
@@ -254,33 +243,32 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
     patch:
       tags:
-      - Catalog Items
-      summary: Update the catalog item
-      description: Update the catalog item
-      operationId: update_catalog_item
+      - Datasets
+      summary: Update Dataset
+      description: Update the dataset
+      operationId: update_dataset
       parameters:
       - name: id
         in: path
         required: true
         schema:
           type: string
-          format: uuid
           title: Id
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CatalogItemForm'
+              $ref: '#/components/schemas/DatasetForm'
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CatalogItem'
+                $ref: '#/components/schemas/Dataset'
         '404':
-          description: Catalog Item not found
+          description: Dataset not found
         '422':
           description: Validation Error
           content:
@@ -289,188 +277,55 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
     delete:
       tags:
-      - Catalog Items
-      summary: Delete the catalog item
-      description: Delete the catalog item
-      operationId: delete_catalog_item
+      - Datasets
+      summary: Delete Dataset
+      description: Delete the dataset
+      operationId: delete_dataset
       parameters:
       - name: id
         in: path
         required: true
         schema:
           type: string
-          format: uuid
           title: Id
       responses:
         '204':
           description: Successful Response
         '404':
-          description: Catalog Item not found
+          description: Dataset not found
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /catalog-items/{catalog_item_id}/data/:
-    get:
-      tags:
-      - Catalog Items Data
-      summary: Get the data for the catalog item
-      description: Returns the data for the catalog item
-      operationId: get_catalog_item_data
-      parameters:
-      - name: catalog_item_id
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-          title: Catalog Item Id
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CatalogItemData'
-        '404':
-          description: Catalog Item or Catalog Item Data not found
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+  /datasets/{id}/share/:
     post:
       tags:
-      - Catalog Items Data
-      summary: Create the data for the catalog item
-      description: Create the data for the catalog item
-      operationId: create_catalog_item_data
-      parameters:
-      - name: catalog_item_id
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-          title: Catalog Item Id
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CatalogItemData'
-      responses:
-        '201':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CatalogItemData'
-          headers:
-            Location:
-              description: The URL of the newly created resource
-              schema:
-                type: string
-                format: uri
-        '404':
-          description: Catalog item not found
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-    put:
-      tags:
-      - Catalog Items Data
-      summary: Change the data for the catalog item
-      description: Change the data for the catalog item
-      operationId: change_catalog_item_data
-      parameters:
-      - name: catalog_item_id
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-          title: Catalog Item Id
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CatalogItemData'
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CatalogItemData'
-        '404':
-          description: Catalog Item or Catalog Item Data not found
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-    delete:
-      tags:
-      - Catalog Items Data
-      summary: Delete the data for the catalog item
-      description: Delete the data for the catalog item
-      operationId: delete_catalog_item_data
-      parameters:
-      - name: catalog_item_id
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-          title: Catalog Item Id
-      responses:
-        '204':
-          description: Successful Response
-        '404':
-          description: Catalog Item or Catalog Item Data not found
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /catalog-items/{id}/share/:
-    post:
-      tags:
-      - Catalog Items Sharing
-      summary: Share a catalog item
-      description: Share a catalog item to the marketplace
-      operationId: share_catalog_item
+      - Sharing
+      summary: Share Dataset
+      description: Share the dataset to the marketplace
+      operationId: share_dataset
       parameters:
       - name: id
         in: path
         required: true
         schema:
           type: string
-          format: uuid
           title: Id
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CatalogItemShareForm'
+              $ref: '#/components/schemas/DatasetShareForm'
       responses:
         '201':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CatalogItem'
+                $ref: '#/components/schemas/Dataset'
           headers:
             Location:
               description: The URL of the newly created resource
@@ -478,25 +333,25 @@ paths:
                 type: string
                 format: uri
         '404':
-          description: Catalog Item not found
+          description: Dataset not found
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /catalog-items/import/:
+  /datasets/import/:
     post:
       tags:
-      - Catalog Items Importing
-      summary: Import a catalog item
-      description: Import a catalog item from the local catalog
-      operationId: import_catalog_item
+      - Importing
+      summary: Import Dataset
+      description: Import a dataset from the local catalog
+      operationId: import_dataset
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CatalogItemImportForm'
+              $ref: '#/components/schemas/DatasetImportForm'
         required: true
       responses:
         '201':
@@ -510,7 +365,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CatalogItem'
+                $ref: '#/components/schemas/Dataset'
         '422':
           description: Validation Error
           content:
@@ -519,316 +374,139 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
-    CatalogItem:
+    DataService:
       properties:
-        ontology:
-          $ref: '#/components/schemas/Ontology'
+        endpointUrl:
+          type: string
+          title: Endpointurl
+      type: object
+      required:
+      - endpointUrl
+      title: DataService
+    Dataset:
+      properties:
+        identifier:
+          type: string
+          title: Identifier
         title:
           type: string
           title: Title
-        summary:
-          type: string
-          title: Summary
-        id:
-          type: string
-          format: uuid
-          title: Id
         isLocal:
           type: boolean
           title: Islocal
         isShared:
           type: boolean
           title: Isshared
-        created:
+        issued:
           type: string
-          format: date-time
-          title: Created
-        creator:
-          $ref: '#/components/schemas/User'
-        dataProducts:
+          format: date
+          title: Issued
+        theme:
           items:
-            $ref: '#/components/schemas/DataProduct'
-          type: array
-          title: Dataproducts
-        _links:
-          additionalProperties:
             type: string
-          type: object
-          title: ' Links'
+          type: array
+          title: Theme
+        creator:
+          $ref: '#/components/schemas/Person'
+        distribution:
+          items:
+            $ref: '#/components/schemas/Distribution'
+          type: array
+          title: Distribution
       type: object
       required:
-      - ontology
+      - identifier
       - title
-      - summary
-      - id
       - isLocal
       - isShared
-      - created
+      - issued
+      - theme
       - creator
-      - dataProducts
-      - _links
-      title: CatalogItem
-      examples:
-      - _links:
-          data: /catalog-items/c6b59f81-e7b5-46d6-84b9-c0dee695c7ec/data
-        created: '2023-08-27T14:00:00Z'
-        creator:
-          fullName: John Smith
-          id: c6b59f81-e7b5-46d6-84b9-c0dee695c7ec
-        dataProducts:
-        - _links:
-            accessPoint: /connector1/interface2/8D8AC610-566D-4EF0-9C22-186B2A5ED793/
-          digest: 1df50e8ad219e34f0b911e097b7b588e31f9b435
-          id: 8D8AC610-566D-4EF0-9C22-186B2A5ED793
-          mimetype: text/plain
-          name: cancer_data_2024
-          size: 1024
-          source:
-            connector:
-              id: connector1
-            interface:
-              id: interface2
-            node:
-              host: localhost
-              port: 8000
-              protocol: https
-        id: c6b59f81-e7b5-46d6-84b9-c0dee695c7ec
-        isLocal: true
-        isShared: false
-        ontology: DCAT-3
-        summary: Some description
-        title: Cancer 2024
-    CatalogItemData:
-      type: object
-      title: CatalogItemData
-      description: Catalog Item Data in Json-ld format
-      examples:
-      - '@context':
-          dcat: http://www.w3.org/ns/dcat#
-          dcterms: http://purl.org/dc/terms/
-          ex: http://example.org/
-          rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
-          rdfs: http://www.w3.org/2000/01/rdf-schema#
-          spdx: http://spdx.org/rdf/terms#
-          xsd: http://www.w3.org/2001/XMLSchema#
-        ex:catalog:
-          '@type': dcat:Catalog
-          dcat:dataset:
-            '@id': ex:dataset-001
-          dcat:service:
-            '@id': ex:data-service-001
-          dcat:version: 1.0.0
-          dcterms:identifier: c6b59f81-e7b5-46d6-84b9-c0dee695c7ec
-          dcterms:title:
-            '@language': en
-            '@value': Cancer 2024
-        ex:data-service-001:
-          '@type': dcat:DataService
-          dcat:endpointURL:
-            '@id': /connector1/interface2/dataproduct1/
-          dcat:servesDataset:
-            '@id': ex:dataset-001
-        ex:dataset-001:
-          '@type': dcat:Dataset
-          dcat:distribution:
-            '@id': ex:distribution-001
-          dcterms:identifier: dataproduct1
-          dcterms:title:
-            '@language': en
-            '@value': cancer_data_2024
-        ex:distribution-001:
-          '@type': dcat:Distribution
-          dcat:accessService:
-            '@id': ex:data-service-001
-          dcat:byteSize:
-            '@type': xsd:nonNegativeInteger
-            '@value': '1024'
-          dcat:mediaType: text/plain
-          spdx:checksum:
-            '@type': spdx:Checksum
-            spdx:algorithm: spdx:checksumAlgorithm_sha256
-            spdx:checksumValue: 3e23e8160039594a33894f6564e1b1348bb8e482aa04f83e4d19b84
-    CatalogItemForm:
+      - distribution
+      title: Dataset
+    DatasetForm:
       properties:
-        ontology:
-          $ref: '#/components/schemas/Ontology'
         title:
           type: string
           title: Title
-        summary:
-          type: string
-          title: Summary
-        dataProducts:
+        theme:
           items:
-            $ref: '#/components/schemas/DataProductForm'
-          type: array
-          title: Dataproducts
-      type: object
-      required:
-      - ontology
-      - title
-      - summary
-      - dataProducts
-      title: CatalogItemForm
-      examples:
-      - dataProducts:
-        - accessPointUrl: /connector1/interface2/dataproduct1/
-          digest: 1df50e8ad219e34f0b911e097b7b588e31f9b435
-          id: dataproduct1
-          mimetype: text/plain
-          name: cancer_data_2024
-          size: 1024
-          source:
-            connector:
-              id: connector1
-            interface:
-              id: interface2
-            node:
-              host: localhost
-              port: 8000
-              protocol: https
-        ontology: DCAT-3
-        summary: Some description
-        title: Cancer 2024
-    CatalogItemImportForm:
-      properties:
-        ontology:
-          $ref: '#/components/schemas/Ontology'
-        title:
-          type: string
-          title: Title
-        summary:
-          type: string
-          title: Summary
-        id:
-          type: string
-          format: uuid
-          title: Id
-        dataProducts:
-          items:
-            $ref: '#/components/schemas/DataProductForm'
-          type: array
-          title: Dataproducts
-      type: object
-      required:
-      - ontology
-      - title
-      - summary
-      - id
-      - dataProducts
-      title: CatalogItemImportForm
-      examples:
-      - dataProducts:
-        - accessPointUrl: /connector1/interface2/dataproduct1/
-          digest: 1df50e8ad219e34f0b911e097b7b588e31f9b435
-          id: dataproduct1
-          mimetype: text/plain
-          name: cancer_data_2024
-          size: 1024
-          source:
-            connector:
-              id: connector1
-            interface:
-              id: interface2
-            node:
-              host: localhost
-              port: 8000
-              protocol: https
-        id: c6b59f81-e7b5-46d6-84b9-c0dee695c7ec
-        ontology: DCAT-3
-        summary: Some description
-        title: Cancer 2024
-    CatalogItemShareForm:
-      properties:
-        marketplaceId:
-          type: string
-          format: uuid
-          title: Marketplaceid
-      type: object
-      required:
-      - marketplaceId
-      title: CatalogItemShareForm
-    Connector:
-      properties:
-        id:
-          type: string
-          title: Id
-      type: object
-      required:
-      - id
-      title: Connector
-    DataProduct:
-      properties:
-        id:
-          type: string
-          title: Id
-        name:
-          type: string
-          title: Name
-        size:
-          anyOf:
-          - type: integer
-            exclusiveMinimum: 0.0
-          - type: 'null'
-          title: Size
-        mimetype:
-          type: string
-          title: Mimetype
-        digest:
-          type: string
-          title: Digest
-        source:
-          $ref: '#/components/schemas/Source'
-        _links:
-          additionalProperties:
             type: string
-          type: object
-          title: ' Links'
+          type: array
+          title: Theme
+        distribution:
+          items:
+            $ref: '#/components/schemas/Distribution'
+          type: array
+          title: Distribution
       type: object
       required:
-      - id
-      - name
-      - size
-      - mimetype
-      - digest
-      - source
-      - _links
-      title: DataProduct
-    DataProductForm:
+      - title
+      - theme
+      - distribution
+      title: DatasetForm
+    DatasetImportForm:
       properties:
-        id:
+        identifier:
           type: string
-          title: Id
-        name:
+          title: Identifier
+        title:
           type: string
-          title: Name
-        size:
+          title: Title
+        theme:
+          items:
+            type: string
+          type: array
+          title: Theme
+        distribution:
+          items:
+            $ref: '#/components/schemas/Distribution'
+          type: array
+          title: Distribution
+      type: object
+      required:
+      - identifier
+      - title
+      - theme
+      - distribution
+      title: DatasetImportForm
+    DatasetShareForm:
+      properties:
+        marketplaceUrl:
+          type: string
+          minLength: 1
+          format: uri
+          title: Marketplaceurl
+      type: object
+      required:
+      - marketplaceUrl
+      title: DatasetShareForm
+    Distribution:
+      properties:
+        bytesize:
           anyOf:
           - type: integer
             exclusiveMinimum: 0.0
           - type: 'null'
-          title: Size
+          title: Bytesize
         mimetype:
           type: string
           title: Mimetype
-        digest:
+        checksum:
           type: string
-          title: Digest
-        source:
-          $ref: '#/components/schemas/Source'
-        accessPointUrl:
-          type: string
-          title: Accesspointurl
+          title: Checksum
+        accessService:
+          items:
+            $ref: '#/components/schemas/DataService'
+          type: array
+          title: Accessservice
       type: object
       required:
-      - id
-      - name
-      - size
+      - bytesize
       - mimetype
-      - digest
-      - source
-      - accessPointUrl
-      title: DataProductForm
+      - checksum
+      - accessService
+      title: Distribution
     HTTPValidationError:
       properties:
         detail:
@@ -849,46 +527,13 @@ components:
       required:
       - status
       title: HealthCheck
-    Interface:
-      properties:
-        id:
-          type: string
-          title: Id
-      type: object
-      required:
-      - id
-      title: Interface
-    Node:
-      properties:
-        protocol:
-          type: string
-          title: Protocol
-        host:
-          type: string
-          title: Host
-        port:
-          type: integer
-          exclusiveMinimum: 0.0
-          title: Port
-      type: object
-      required:
-      - protocol
-      - host
-      - port
-      title: Node
-    Ontology:
-      type: string
-      enum:
-      - DCAT-3
-      - DCAT-AP
-      title: Ontology
     OrderDirection:
       type: string
       enum:
       - asc
       - desc
       title: OrderDirection
-    PaginatedResult_CatalogItem_:
+    PaginatedResult_Dataset_:
       properties:
         page:
           type: integer
@@ -905,7 +550,7 @@ components:
           - 100
         items:
           items:
-            $ref: '#/components/schemas/CatalogItem'
+            $ref: '#/components/schemas/Dataset'
           type: array
           title: Items
       type: object
@@ -913,37 +558,20 @@ components:
       - page
       - size
       - items
-      title: PaginatedResult[CatalogItem]
-    Source:
-      properties:
-        node:
-          anyOf:
-          - $ref: '#/components/schemas/Node'
-          - type: 'null'
-        connector:
-          $ref: '#/components/schemas/Connector'
-        interface:
-          anyOf:
-          - $ref: '#/components/schemas/Interface'
-          - type: 'null'
-      type: object
-      required:
-      - connector
-      title: Source
-    User:
+      title: PaginatedResult[Dataset]
+    Person:
       properties:
         id:
           type: string
-          format: uuid
           title: Id
-        fullName:
+        name:
           type: string
-          title: Fullname
+          title: Name
       type: object
       required:
       - id
-      - fullName
-      title: User
+      - name
+      title: Person
     ValidationError:
       properties:
         loc:

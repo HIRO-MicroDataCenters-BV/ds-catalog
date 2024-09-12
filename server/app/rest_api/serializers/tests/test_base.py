@@ -5,7 +5,7 @@ import pytest
 from ..base import BaseModel
 
 
-class DummySerializer(BaseModel):
+class Serializer(BaseModel):
     some_field: str
     another_field: int
 
@@ -13,7 +13,7 @@ class DummySerializer(BaseModel):
 class TestBaseModel:
     @pytest.mark.asyncio
     async def test_to_camel_aliases(self):
-        serializer = DummySerializer(some_field="test", another_field=123)
+        serializer = Serializer(some_field="test", another_field=123)
 
         assert serializer.some_field == "test"
         assert serializer.another_field == 123
@@ -30,7 +30,7 @@ class TestBaseModel:
             "someField": "test_value",
             "anotherField": 42,
         }
-        serializer = DummySerializer(**data)
+        serializer = Serializer(**data)
 
         assert serializer.some_field == "test_value"
         assert serializer.another_field == 42

@@ -6,37 +6,36 @@ from fastapi import Request, Response, status
 from app.core.entities import catalog as catalog_entities
 from app.core.usecases import catalog as catalog_usecases
 
-from ..serializers.catalog import CatalogItem, CatalogItemImportForm
+from ..serializers.catalog import Dataset, DatasetImportForm
 from ..tags import Tags
 
 
-class ICatalogItemsImportingUsecases(ABC):
+class IDatasetsImportingUsecases(ABC):
     @abstractmethod
     async def import_data(
-        self, catalog_item: catalog_entities.CatalogItemImport
-    ) -> catalog_entities.CatalogItem:
+        self, data: catalog_entities.DatasetImport
+    ) -> catalog_entities.Dataset:
         ...
 
 
-class CatalogItemsImportingUsecases(ICatalogItemsImportingUsecases):
+class DatasetsImportingUsecases(IDatasetsImportingUsecases):
     async def import_data(self, *args, **kwargs):
-        return await catalog_usecases.import_catalog_item(*args, **kwargs)
+        return await catalog_usecases.import_dataset(*args, **kwargs)
 
 
-class CatalogItemsImportingRoutes(Routable):
-    _usecases: ICatalogItemsImportingUsecases
+class DatasetsImportingRoutes(Routable):
+    _usecases: IDatasetsImportingUsecases
 
-    def __init__(self, usecases: ICatalogItemsImportingUsecases) -> None:
+    def __init__(self, usecases: IDatasetsImportingUsecases) -> None:
         self._usecases = usecases
         super().__init__()
 
     @post(
-        "/catalog-items/import/",
-        operation_id="import_catalog_item",
-        summary="Import a catalog item",
-        tags=[Tags.CatalogItemsImporting],
+        "/datasets/import/",
+        operation_id="import_dataset",
+        tags=[Tags.Importing],
         status_code=status.HTTP_201_CREATED,
-        response_model=CatalogItem,
+        response_model=Dataset,
         responses={
             status.HTTP_201_CREATED: {
                 "description": "Successful Response",
@@ -52,20 +51,20 @@ class CatalogItemsImportingRoutes(Routable):
             },
         },
     )
-    async def import_catalog_item(
+    async def import_dataset(
         self,
-        data: CatalogItemImportForm,
+        data: DatasetImportForm,
         request: Request,
         response: Response,
-    ) -> CatalogItem:
-        """Import a catalog item from the local catalog"""
+    ) -> Dataset:
+        """Import a dataset from the local catalog"""
         entity_input = data.to_entity()
         entity_output = await self._usecases.import_data(entity_input)
-        item_output = CatalogItem.from_entity(entity_output)
+        item_output = Dataset.from_entity(entity_output)
         response.headers["Location"] = str(
-            request.url_for("get_catalog_item", id=entity_output.id)
+            request.url_for("get_dataset", id=entity_output.identifier)
         )
         return item_output
 
 
-routes = CatalogItemsImportingRoutes(usecases=CatalogItemsImportingUsecases())
+routes = DatasetsImportingRoutes(usecases=DatasetsImportingUsecases())

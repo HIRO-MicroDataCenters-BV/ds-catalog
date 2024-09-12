@@ -1,89 +1,44 @@
-from typing import Any, TypeAlias
-
 from dataclasses import dataclass
-from datetime import datetime
-from enum import Enum
-from uuid import UUID
+from datetime import date
 
-from .user import User
-
-
-class Ontology(str, Enum):
-    DCAT_3 = "DCAT-3"
-    DCAT_AP = "DCAT-AP"
+from .person import Person
 
 
 @dataclass
-class Node:
-    protocol: str
-    host: str
-    port: int
+class DataService:
+    endpoint_url: str
 
 
 @dataclass
-class Interface:
-    id: str
-
-
-@dataclass
-class Connector:
-    id: str
-
-
-@dataclass
-class Source:
-    connector: Connector
-    node: Node | None = None
-    interface: Interface | None = None
-
-
-@dataclass
-class DataProductBase:
-    id: str
-    name: str
-    size: int | None
+class Distribution:
+    bytesize: int | None
     mimetype: str
-    digest: str
-    source: Source
+    checksum: str
+    access_service: list[DataService]
 
 
 @dataclass
-class DataProduct(DataProductBase):
-    links: dict[str, str]
-
-
-@dataclass
-class DataProductInput(DataProductBase):
-    access_point_url: str
-
-
-@dataclass
-class CatalogItemBase:
-    ontology: Ontology
+class Dataset:
+    identifier: str
     title: str
-    summary: str
-
-
-@dataclass
-class CatalogItem(CatalogItemBase):
-    id: UUID
     is_local: bool
     is_shared: bool
-    created: datetime
-    creator: User
-    data_products: list[DataProduct]
-    links: dict[str, str]
+    issued: date
+    theme: list[str]
+    creator: Person
+    distribution: list[Distribution]
 
 
 @dataclass
-class CatalogItemInput(CatalogItemBase):
-    data_products: list[DataProductInput]
+class DatasetInput:
+    title: str
+    theme: list[str]
+    distribution: list[Distribution]
 
 
 @dataclass
-class CatalogItemImport(CatalogItemBase):
-    id: UUID
-    data_products: list[DataProductInput]
-
-
-CatalogItemData: TypeAlias = dict[str, Any]
+class DatasetImport:
+    identifier: str
+    title: str
+    theme: list[str]
+    distribution: list[Distribution]

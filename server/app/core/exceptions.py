@@ -1,6 +1,2 @@
-class CatalogItemDoesNotExist(Exception):
-    ...
-
-
-class CatalogItemDataDoesNotExist(Exception):
+class DatasetDoesNotExist(Exception):
     ...

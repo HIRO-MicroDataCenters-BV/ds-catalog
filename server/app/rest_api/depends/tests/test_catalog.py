@@ -1,83 +1,56 @@
 from datetime import datetime
-from uuid import uuid4
 
 import pytest
 
-from app.core.entities.catalog import Ontology
-from app.core.queries.catalog import CatalogItemsFiltersDTO
+from app.core.queries.catalog import DatasetsFilterDTO
 
-from ..catalog import catalog_items_filters
+from ..catalog import datasets_filter
 
 
-class TestCatalogItemsFilters:
+class TestDatasetsFilter:
     @pytest.mark.asyncio
     async def test_default_values(self):
-        result = await catalog_items_filters()
-        assert result == CatalogItemsFiltersDTO(
+        result = await datasets_filter()
+        assert result == DatasetsFilterDTO(
             search="",
-            ontology=None,
+            theme=None,
             is_local=None,
             is_shared=None,
-            creator_id=None,
-            created=None,
-            created_gte=None,
-            created_lte=None,
-            data_product_id="",
-            data_product_size_gte=None,
-            data_product_size_lte=None,
-            data_product_mimetype="",
+            creator_id="",
+            issued=None,
+            issued_gte=None,
+            issued_lte=None,
+            distribution_bytesize_gte=None,
+            distribution_bytesize_lte=None,
+            distribution_mimetype="",
         )
 
     @pytest.mark.asyncio
     async def test_custom_values(self):
-        now = datetime.now()
-        creator_id = uuid4()
-        result = await catalog_items_filters(
+        now = datetime.now().date()
+        result = await datasets_filter(
             search="test",
-            ontology=Ontology.DCAT_3,
+            theme=["theme1", "theme2"],
             is_local=True,
             is_shared=False,
-            creator_id=creator_id,
-            created=now,
-            created_gte=now,
-            created_lte=now,
-            data_product_id="dp123",
-            data_product_size_gte=100,
-            data_product_size_lte=500,
-            data_product_mimetype="application/json",
+            creator_id="kate123",
+            issued=now,
+            issued_gte=now,
+            issued_lte=now,
+            distribution_bytesize_gte=100,
+            distribution_bytesize_lte=500,
+            distribution_mimetype="application/json",
         )
-        assert result == CatalogItemsFiltersDTO(
+        assert result == DatasetsFilterDTO(
             search="test",
-            ontology=Ontology.DCAT_3,
+            theme=["theme1", "theme2"],
             is_local=True,
             is_shared=False,
-            creator_id=creator_id,
-            created=now,
-            created_gte=now,
-            created_lte=now,
-            data_product_id="dp123",
-            data_product_size_gte=100,
-            data_product_size_lte=500,
-            data_product_mimetype="application/json",
-        )
-
-    @pytest.mark.asyncio
-    async def test_partial_values(self):
-        creator_id = uuid4()
-        result = await catalog_items_filters(
-            creator_id=creator_id, data_product_id="dp123"
-        )
-        assert result == CatalogItemsFiltersDTO(
-            search="",
-            ontology=None,
-            is_local=None,
-            is_shared=None,
-            creator_id=creator_id,
-            created=None,
-            created_gte=None,
-            created_lte=None,
-            data_product_id="dp123",
-            data_product_size_gte=None,
-            data_product_size_lte=None,
-            data_product_mimetype="",
+            creator_id="kate123",
+            issued=now,
+            issued_gte=now,
+            issued_lte=now,
+            distribution_bytesize_gte=100,
+            distribution_bytesize_lte=500,
+            distribution_mimetype="application/json",
         )

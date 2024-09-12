@@ -1,43 +1,39 @@
 from unittest.mock import AsyncMock, Mock
-from uuid import uuid4
 
 from fastapi import status
 
-from app.core.entities.tests.factories import (
-    CatalogItemFactory,
-    CatalogItemInputFactory,
-)
-from app.core.exceptions import CatalogItemDoesNotExist
+from app.core.entities.tests.factories import DatasetFactory, DatasetInputFactory
+from app.core.exceptions import DatasetDoesNotExist
 from app.core.queries.common import CompositeQuery
 from app.core.queries.list import OrderDirection
-from app.rest_api.serializers.catalog import CatalogItem, CatalogItemForm
+from app.rest_api.serializers.catalog import Dataset, DatasetForm
 from app.rest_api.serializers.common import PaginatedResult
-from app.rest_api.strings import CATALOG_ITEM_NOT_FOUND
+from app.rest_api.strings import DATASET_NOT_FOUND
 
-from ..catalog_items import CatalogItemsRoutes
+from ..datasets import DatasetsRoutes
 from .helpers import create_test_client
 
 
-class TestCatalogItemsRoutes:
-    def test_get_catalog_items(self) -> None:
+class TestDatasetsRoutes:
+    def test_get_datasets(self) -> None:
         page = 2
         page_size = 50
 
         entities_output = [
-            CatalogItemFactory.build(),
-            CatalogItemFactory.build(),
+            DatasetFactory.build(),
+            DatasetFactory.build(),
         ]
-        items_output = [CatalogItem.from_entity(item) for item in entities_output]
+        items_output = [Dataset.from_entity(item) for item in entities_output]
         expected_result = PaginatedResult(page=page, size=page_size, items=items_output)
 
         usecases = Mock()
         usecases.list = AsyncMock(return_value=entities_output)
 
-        routes = CatalogItemsRoutes(usecases=usecases)
+        routes = DatasetsRoutes(usecases=usecases)
 
         client = create_test_client(routes.router)
         response = client.get(
-            "/catalog-items/",
+            "/datasets/",
             params={
                 "page": page,
                 "pageSize": page_size,
@@ -61,74 +57,72 @@ class TestCatalogItemsRoutes:
         query = call_args[0]
         assert isinstance(query, CompositeQuery)
 
-    def test_get_catalog_item(self) -> None:
-        entity_output = CatalogItemFactory.build()
-        item_output = CatalogItem.from_entity(entity_output)
+    def test_get_dataset(self) -> None:
+        entity_output = DatasetFactory.build()
+        item_output = Dataset.from_entity(entity_output)
 
         usecases = Mock()
         usecases.get = AsyncMock(return_value=entity_output)
 
-        routes = CatalogItemsRoutes(usecases=usecases)
+        routes = DatasetsRoutes(usecases=usecases)
 
         client = create_test_client(routes.router)
-        response = client.get(f"/catalog-items/{entity_output.id}/")
+        response = client.get(f"/datasets/{entity_output.identifier}/")
 
         assert response.status_code == status.HTTP_200_OK
         assert response.text == item_output.model_dump_json(by_alias=True)
-        usecases.get.assert_called_once_with(entity_output.id)
+        usecases.get.assert_called_once_with(entity_output.identifier)
 
-    def test_get_catalog_item_if_it_not_found(self) -> None:
-        id = uuid4()
-
+    def test_get_dataset_if_it_not_found(self) -> None:
         usecases = Mock()
-        usecases.get = AsyncMock(side_effect=CatalogItemDoesNotExist)
+        usecases.get = AsyncMock(side_effect=DatasetDoesNotExist)
 
-        routes = CatalogItemsRoutes(usecases=usecases)
+        routes = DatasetsRoutes(usecases=usecases)
 
         client = create_test_client(routes.router)
-        response = client.get(f"/catalog-items/{id}/")
+        response = client.get("/datasets/1/")
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json()["detail"] == CATALOG_ITEM_NOT_FOUND
+        assert response.json()["detail"] == DATASET_NOT_FOUND
 
-    def test_create_catalog_item(self) -> None:
-        entity_input = CatalogItemInputFactory.build()
-        entity_output = CatalogItemFactory.build()
-        item_input = CatalogItemForm.from_entity(entity_input)
-        item_output = CatalogItem.from_entity(entity_output)
+    def test_create_dataset(self) -> None:
+        entity_input = DatasetInputFactory.build()
+        entity_output = DatasetFactory.build()
+        item_input = DatasetForm.from_entity(entity_input)
+        item_output = Dataset.from_entity(entity_output)
 
         usecases = Mock()
         usecases.create = AsyncMock(return_value=entity_output)
 
-        routes = CatalogItemsRoutes(usecases=usecases)
+        routes = DatasetsRoutes(usecases=usecases)
 
         client = create_test_client(routes.router)
         response = client.post(
-            "/catalog-items/",
+            "/datasets/",
             json=item_input.model_dump(by_alias=True),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.text == item_output.model_dump_json(by_alias=True)
         assert "Location" in response.headers
-        assert f"/catalog-items/{entity_output.id}" in response.headers["Location"]
+        assert f"/datasets/{entity_output.identifier}" in response.headers["Location"]
         usecases.create.assert_called_once_with(item_input.to_entity())
 
-    def test_update_catalog_item(self) -> None:
-        id = uuid4()
-        entity_input = CatalogItemInputFactory.build()
-        entity_output = CatalogItemFactory.build()
-        item_input = CatalogItemForm.from_entity(entity_input)
-        item_output = CatalogItem.from_entity(entity_output)
+    def test_update_dataset(self) -> None:
+        id = "1"
+        entity_input = DatasetInputFactory.build()
+        entity_output = DatasetFactory.build()
+        item_input = DatasetForm.from_entity(entity_input)
+        item_output = Dataset.from_entity(entity_output)
 
         usecases = Mock()
         usecases.update = AsyncMock(return_value=entity_output)
 
-        routes = CatalogItemsRoutes(usecases=usecases)
+        routes = DatasetsRoutes(usecases=usecases)
 
         client = create_test_client(routes.router)
         response = client.patch(
-            f"/catalog-items/{id}/",
+            f"/datasets/{id}/",
             json=item_input.model_dump(by_alias=True),
         )
 
@@ -136,49 +130,46 @@ class TestCatalogItemsRoutes:
         assert response.text == item_output.model_dump_json(by_alias=True)
         usecases.update.assert_called_once_with(id, item_input.to_entity())
 
-    def test_update_catalog_item_if_it_not_found(self) -> None:
-        id = uuid4()
-        entity_input = CatalogItemInputFactory.build()
-        item_input = CatalogItemForm.from_entity(entity_input)
+    def test_update_dataset_if_it_not_found(self) -> None:
+        entity_input = DatasetInputFactory.build()
+        item_input = DatasetForm.from_entity(entity_input)
 
         usecases = Mock()
-        usecases.update = AsyncMock(side_effect=CatalogItemDoesNotExist)
+        usecases.update = AsyncMock(side_effect=DatasetDoesNotExist)
 
-        routes = CatalogItemsRoutes(usecases=usecases)
+        routes = DatasetsRoutes(usecases=usecases)
 
         client = create_test_client(routes.router)
         response = client.patch(
-            f"/catalog-items/{id}/",
+            "/datasets/1/",
             json=item_input.model_dump(by_alias=True),
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json()["detail"] == CATALOG_ITEM_NOT_FOUND
+        assert response.json()["detail"] == DATASET_NOT_FOUND
 
-    def test_delete_catalog_item(self) -> None:
-        id = uuid4()
+    def test_delete_dataset(self) -> None:
+        id = "1"
 
         usecases = Mock()
         usecases.delete = AsyncMock()
 
-        routes = CatalogItemsRoutes(usecases=usecases)
+        routes = DatasetsRoutes(usecases=usecases)
 
         client = create_test_client(routes.router)
-        response = client.delete(f"/catalog-items/{id}/")
+        response = client.delete(f"/datasets/{id}/")
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
         usecases.delete.assert_called_once_with(id)
 
-    def test_delete_catalog_item_if_it_not_found(self) -> None:
-        id = uuid4()
-
+    def test_delete_dataset_if_it_not_found(self) -> None:
         usecases = Mock()
-        usecases.delete = AsyncMock(side_effect=CatalogItemDoesNotExist)
+        usecases.delete = AsyncMock(side_effect=DatasetDoesNotExist)
 
-        routes = CatalogItemsRoutes(usecases=usecases)
+        routes = DatasetsRoutes(usecases=usecases)
 
         client = create_test_client(routes.router)
-        response = client.delete(f"/catalog-items/{id}/")
+        response = client.delete("/datasets/1/")
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json()["detail"] == CATALOG_ITEM_NOT_FOUND
+        assert response.json()["detail"] == DATASET_NOT_FOUND
