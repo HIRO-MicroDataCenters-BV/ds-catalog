@@ -42,3 +42,5 @@ venv
 
 # Release
 .dist
+
+database.db

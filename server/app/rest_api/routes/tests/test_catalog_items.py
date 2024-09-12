@@ -10,8 +10,8 @@ from app.core.entities.tests.factories import (
 from app.core.exceptions import CatalogItemDoesNotExist
 from app.core.queries.common import CompositeQuery
 from app.core.queries.list import OrderDirection
-from app.rest_api.models.catalog import CatalogItem, CatalogItemForm
-from app.rest_api.models.common import PaginatedResult
+from app.rest_api.serializers.catalog import CatalogItem, CatalogItemForm
+from app.rest_api.serializers.common import PaginatedResult
 from app.rest_api.strings import CATALOG_ITEM_NOT_FOUND
 
 from ..catalog_items import CatalogItemsRoutes
@@ -27,10 +27,8 @@ class TestCatalogItemsRoutes:
             CatalogItemFactory.build(),
             CatalogItemFactory.build(),
         ]
-        models_output = [CatalogItem.from_entity(item) for item in entities_output]
-        expected_result = PaginatedResult(
-            page=page, size=page_size, items=models_output
-        )
+        items_output = [CatalogItem.from_entity(item) for item in entities_output]
+        expected_result = PaginatedResult(page=page, size=page_size, items=items_output)
 
         usecases = Mock()
         usecases.list = AsyncMock(return_value=entities_output)
@@ -65,7 +63,7 @@ class TestCatalogItemsRoutes:
 
     def test_get_catalog_item(self) -> None:
         entity_output = CatalogItemFactory.build()
-        model_output = CatalogItem.from_entity(entity_output)
+        item_output = CatalogItem.from_entity(entity_output)
 
         usecases = Mock()
         usecases.get = AsyncMock(return_value=entity_output)
@@ -76,7 +74,7 @@ class TestCatalogItemsRoutes:
         response = client.get(f"/catalog-items/{entity_output.id}/")
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.text == model_output.model_dump_json(by_alias=True)
+        assert response.text == item_output.model_dump_json(by_alias=True)
         usecases.get.assert_called_once_with(entity_output.id)
 
     def test_get_catalog_item_if_it_not_found(self) -> None:
@@ -96,8 +94,8 @@ class TestCatalogItemsRoutes:
     def test_create_catalog_item(self) -> None:
         entity_input = CatalogItemInputFactory.build()
         entity_output = CatalogItemFactory.build()
-        model_input = CatalogItemForm.from_entity(entity_input)
-        model_output = CatalogItem.from_entity(entity_output)
+        item_input = CatalogItemForm.from_entity(entity_input)
+        item_output = CatalogItem.from_entity(entity_output)
 
         usecases = Mock()
         usecases.create = AsyncMock(return_value=entity_output)
@@ -107,21 +105,21 @@ class TestCatalogItemsRoutes:
         client = create_test_client(routes.router)
         response = client.post(
             "/catalog-items/",
-            json=model_input.model_dump(by_alias=True),
+            json=item_input.model_dump(by_alias=True),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.text == model_output.model_dump_json(by_alias=True)
+        assert response.text == item_output.model_dump_json(by_alias=True)
         assert "Location" in response.headers
         assert f"/catalog-items/{entity_output.id}" in response.headers["Location"]
-        usecases.create.assert_called_once_with(model_input.to_entity())
+        usecases.create.assert_called_once_with(item_input.to_entity())
 
     def test_update_catalog_item(self) -> None:
         id = uuid4()
         entity_input = CatalogItemInputFactory.build()
         entity_output = CatalogItemFactory.build()
-        model_input = CatalogItemForm.from_entity(entity_input)
-        model_output = CatalogItem.from_entity(entity_output)
+        item_input = CatalogItemForm.from_entity(entity_input)
+        item_output = CatalogItem.from_entity(entity_output)
 
         usecases = Mock()
         usecases.update = AsyncMock(return_value=entity_output)
@@ -131,17 +129,17 @@ class TestCatalogItemsRoutes:
         client = create_test_client(routes.router)
         response = client.patch(
             f"/catalog-items/{id}/",
-            json=model_input.model_dump(by_alias=True),
+            json=item_input.model_dump(by_alias=True),
         )
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.text == model_output.model_dump_json(by_alias=True)
-        usecases.update.assert_called_once_with(id, model_input.to_entity())
+        assert response.text == item_output.model_dump_json(by_alias=True)
+        usecases.update.assert_called_once_with(id, item_input.to_entity())
 
     def test_update_catalog_item_if_it_not_found(self) -> None:
         id = uuid4()
         entity_input = CatalogItemInputFactory.build()
-        model_input = CatalogItemForm.from_entity(entity_input)
+        item_input = CatalogItemForm.from_entity(entity_input)
 
         usecases = Mock()
         usecases.update = AsyncMock(side_effect=CatalogItemDoesNotExist)
@@ -151,7 +149,7 @@ class TestCatalogItemsRoutes:
         client = create_test_client(routes.router)
         response = client.patch(
             f"/catalog-items/{id}/",
-            json=model_input.model_dump(by_alias=True),
+            json=item_input.model_dump(by_alias=True),
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND

@@ -1,27 +1,15 @@
-from typing import Any
+from typing import Generic, TypeVar
 
 from abc import ABC, abstractmethod
 
+from sqlalchemy import Select
 
-class QueryResult:
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        # TODO: Implement
-        ...
-
-    def __add__(self, other: "QueryResult") -> "QueryResult":
-        # TODO: Implement
-        return QueryResult()
+T = TypeVar("T")
 
 
-class IQuery(ABC):
+class IQuery(Generic[T], ABC):
     """Interface for implementing repository queries"""
 
     @abstractmethod
-    def build(self) -> QueryResult:
+    def apply(self, query: Select[tuple[T]]) -> Select[tuple[T]]:
         ...
-
-    def __str__(self) -> str:
-        return self.__repr__()
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.build()})"

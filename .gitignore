@@ -198,6 +198,7 @@ dmypy.json
 
 ### VisualStudioCode ###
 .vscode/*
+**/.vscode/*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
@@ -587,3 +588,5 @@ MigrationBackup/
 .helm
 
 .dist
+
+database.db

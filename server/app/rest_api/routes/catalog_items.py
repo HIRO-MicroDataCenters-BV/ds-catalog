@@ -8,9 +8,13 @@ from fastapi import Depends, HTTPException, Request, Response, status
 
 from app.core.entities import catalog as catalog_entities
 from app.core.exceptions import CatalogItemDoesNotExist
-from app.core.queries.catalog import CatalogItemsFilterQuery, CatalogItemsFiltersDTO
+from app.core.models.catalog import CatalogItemModel
+from app.core.queries.catalog import (
+    CatalogItemsFilterQuery,
+    CatalogItemsFiltersDTO,
+    CatalogItemsQuery,
+)
 from app.core.queries.common import CompositeQuery
-from app.core.queries.interface import IQuery
 from app.core.queries.list import (
     OrderQuery,
     OrderQueryDTO,
@@ -21,8 +25,8 @@ from app.core.usecases import catalog as catalog_usecases
 
 from ..depends.catalog import catalog_items_filters
 from ..depends.list import order_parameters, paginator_parameters
-from ..models.catalog import CatalogItem, CatalogItemForm
-from ..models.common import PaginatedResult
+from ..serializers.catalog import CatalogItem, CatalogItemForm
+from ..serializers.common import PaginatedResult
 from ..strings import CATALOG_ITEM_NOT_FOUND
 from ..tags import Tags
 
@@ -31,7 +35,7 @@ class ICatalogItemsUsecases(ABC):
     @abstractmethod
     async def list(
         self,
-        query: IQuery,
+        query: CatalogItemsQuery,
     ) -> list[catalog_entities.CatalogItem]:
         ...
 
@@ -106,8 +110,10 @@ class CatalogItemsRoutes(Routable):
 
         """
 
-        paginator_query = PaginatorQuery(**paginator_parameters)
-        order_query = OrderQuery(**order_parameters)
+        paginator_query: PaginatorQuery[CatalogItemModel] = PaginatorQuery(
+            **paginator_parameters
+        )
+        order_query: OrderQuery[CatalogItemModel] = OrderQuery(**order_parameters)
         catalog_items_filters_query = CatalogItemsFilterQuery(**catalog_items_filters)
 
         query = CompositeQuery(
