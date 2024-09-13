@@ -20,6 +20,8 @@ uvicorn = "^0.26"
 classy-fastapi = "^0.6.1"
 prometheus-fastapi-instrumentator = "^6.1.0"
 polyfactory = "^2.16.2"
+neo4j = "^5.24.0"
+pydantic-settings = "^2.5.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.12"
