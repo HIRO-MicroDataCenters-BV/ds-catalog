@@ -35,6 +35,8 @@ jobs:
           NEO4J_AUTH: "${{ env.DB_USERNAME }}/${{ env.DB_PASSWORD }}"
           DS__TEST_DATABASE__USERNAME: "${{ env.DB_USERNAME }}"
           DS__TEST_DATABASE__PASSWORD: "${{ env.DB_PASSWORD }}"
+        ports:
+          - 7687:7687
     steps:
       - uses: actions/checkout@v4
 
@@ -60,7 +62,7 @@ jobs:
 
       - name: Run tests
         run: |
-          export DS__TEST_DATABASE__HOST=neo4j
+          export DS__TEST_DATABASE__HOST=localhost
           export DS__TEST_DATABASE__PORT=7687
           export DS__TEST_DATABASE__USERNAME="${{ env.DB_USERNAME }}"
           export DS__TEST_DATABASE__PASSWORD="${{ env.DB_PASSWORD }}"
