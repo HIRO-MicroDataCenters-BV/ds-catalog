@@ -17,7 +17,7 @@ env:
   REGISTRY: ghcr.io
   DOCKER_IMAGE_NAME: hiro-microdatacenters-bv/ds-catalog
   DB_USERNAME: neo4j
-  DB_PASSWORD: 12345
+  DB_PASSWORD: 1234567890
 
 jobs:
   test_server:
@@ -32,7 +32,7 @@ jobs:
       neo4j:
         image: neo4j:5.22.0
         env:
-          NEO4J_AUTH: ${{ env.DB_USERNAME }}/${{ env.DB_PASSWORD }}
+          NEO4J_AUTH: "${{ env.DB_USERNAME }}/${{ env.DB_PASSWORD }}"
         ports:
           - 7687:7687
           - 7474:7474
