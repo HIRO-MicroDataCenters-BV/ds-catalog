@@ -1,7 +1,7 @@
 from ..health_check import HealthCheck
 
 
-def test_health_check():
+def test_health_check() -> None:
     health_check = HealthCheck(status="OK")
     assert health_check.status == "OK"
 

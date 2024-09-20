@@ -1,43 +1,27 @@
 from typing import Annotated
 
-from datetime import datetime
-from uuid import UUID
+from datetime import date
 
 from fastapi import Query
 
-from app.core.entities.catalog import Ontology
-from app.core.queries.catalog import CatalogItemsFiltersDTO
+from app.core.repository.queries import DatasetsFilterDTO
 
 
-async def catalog_items_filters(
-    search: str = "",
-    ontology: Ontology | None = None,
+async def datasets_filter(
+    search: Annotated[str, Query()] = "",
+    theme: Annotated[list[str] | None, Query()] = None,
     is_local: Annotated[bool | None, Query(alias="isLocal")] = None,
     is_shared: Annotated[bool | None, Query(alias="isShared")] = None,
-    creator_id: Annotated[UUID | None, Query(alias="creator__id")] = None,
-    created: datetime | None = None,
-    created_gte: Annotated[datetime | None, Query(alias="created__gte")] = None,
-    created_lte: Annotated[datetime | None, Query(alias="created__lte")] = None,
-    data_product_id: Annotated[str, Query(alias="dataProduct__id")] = "",
-    data_product_size_gte: Annotated[
-        int | None, Query(ge=0, alias="dataProduct__size__gte")
-    ] = None,
-    data_product_size_lte: Annotated[
-        int | None, Query(ge=0, alias="dataProduct__size__lte")
-    ] = None,
-    data_product_mimetype: Annotated[str, Query(alias="dataProduct__mimetype")] = "",
-) -> CatalogItemsFiltersDTO:
+    issued: Annotated[date | None, Query()] = None,
+    issued_gte: Annotated[date | None, Query(alias="issued__gte")] = None,
+    issued_lte: Annotated[date | None, Query(alias="issued__lte")] = None,
+) -> DatasetsFilterDTO:
     return {
         "search": search,
-        "ontology": ontology,
+        "theme": theme,
         "is_local": is_local,
         "is_shared": is_shared,
-        "creator_id": creator_id,
-        "created": created,
-        "created_gte": created_gte,
-        "created_lte": created_lte,
-        "data_product_id": data_product_id,
-        "data_product_size_gte": data_product_size_gte,
-        "data_product_size_lte": data_product_size_lte,
-        "data_product_mimetype": data_product_mimetype,
+        "issued": issued,
+        "issued_gte": issued_gte,
+        "issued_lte": issued_lte,
     }

@@ -63,9 +63,23 @@ poetry config virtualenvs.in-project true
 poetry install --no-root --with dev,test
 ```
 
-3. Creating database:
+3. Create .env file from the template .env.template:
 ```bash
-poetry run alembic upgrade head
+DS__DATABASE__PROTOCOL=neo4j
+DS__DATABASE__HOST=localhost
+DS__DATABASE__PORT=7687
+DS__DATABASE__NAME=neo4j
+DS__DATABASE__USERNAME=neo4j
+DS__DATABASE__PASSWORD=your_password
+
+DS__TEST_DATABASE__PROTOCOL=neo4j
+DS__TEST_DATABASE__HOST=localhost
+DS__TEST_DATABASE__PORT=7688
+DS__TEST_DATABASE__NAME=neo4j
+DS__TEST_DATABASE__USERNAME=neo4j
+DS__TEST_DATABASE__PASSWORD=your_password
+
+NEO4J_AUTH=neo4j/your_password
 ```
 
 4. Launch the project:
@@ -78,7 +92,7 @@ poetry shell
 uvicorn app.main:app
 ```
 
-5. Running tests:
+1. Run tests:
 ```bash
 poetry run pytest
 ```
@@ -86,17 +100,6 @@ poetry run pytest
 You can test the application for multiple versions of Python. To do this, you need to install the required Python versions on your operating system, specify these versions in the tox.ini file, and then run the tests:
 ```bash
 poetry run tox
-```
-
-## Database migrations
-To create a new migration run:
-```bash
-poetry run alembic revision --autogenerate
-```
-
-To apply migrations run:
-```bash
-poetry run alembic upgrade head
 ```
 
 ## Package

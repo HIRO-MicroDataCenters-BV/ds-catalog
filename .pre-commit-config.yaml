@@ -25,7 +25,7 @@ repos:
       - id: mypy
         name: mypy
         files: ^server/
-        entry: poetry --directory server run mypy
+        entry: poetry --directory server run mypy --config-file=server/pyproject.toml
         language: system
         types: [python]
 

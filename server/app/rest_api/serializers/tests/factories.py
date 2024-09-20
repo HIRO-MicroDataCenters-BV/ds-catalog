@@ -2,73 +2,54 @@ from polyfactory import Use
 from polyfactory.factories.pydantic_factory import ModelFactory
 
 from ..catalog import (
-    CatalogItem,
-    CatalogItemData,
-    CatalogItemForm,
-    CatalogItemImportForm,
-    Connector,
-    DataProduct,
-    DataProductForm,
-    Interface,
-    Node,
-    Source,
+    Checksum,
+    DataService,
+    Dataset,
+    DatasetForm,
+    DatasetImportForm,
+    DatasetShareForm,
+    Distribution,
 )
-from ..user import User
+from ..person import Person
 
 
-class UserFactory(ModelFactory[User]):
-    __model__ = User
+class PersonFactory(ModelFactory[Person]):
+    __model__ = Person
 
 
-class NodeFactory(ModelFactory[Node]):
-    __model__ = Node
+class ChecksumFactory(ModelFactory[Checksum]):
+    __model__ = Checksum
 
 
-class ConnectorFactory(ModelFactory[Connector]):
-    __model__ = Connector
+class DataServiceFactory(ModelFactory[DataService]):
+    __model__ = DataService
 
 
-class InterfaceFactory(ModelFactory[Interface]):
-    __model__ = Interface
+class DistributionFactory(ModelFactory[Distribution]):
+    __model__ = Distribution
+
+    checksum = ChecksumFactory
+    access_service = Use(DataServiceFactory.batch, size=1)
 
 
-class SourceFactory(ModelFactory[Source]):
-    __model__ = Source
+class DatasetFactory(ModelFactory[Dataset]):
+    __model__ = Dataset
 
-    node = NodeFactory
-    connector = ConnectorFactory
-    interface = InterfaceFactory
-
-
-class DataProductFactory(ModelFactory[DataProduct]):
-    __model__ = DataProduct
-
-    source = SourceFactory
+    creator = PersonFactory
+    distribution = Use(DistributionFactory.batch, size=1)
 
 
-class DataProductFormFactory(ModelFactory[DataProductForm]):
-    __model__ = DataProductForm
+class DatasetFormFactory(ModelFactory[DatasetForm]):
+    __model__ = DatasetForm
 
-    source = SourceFactory
-
-
-class CatalogItemFactory(ModelFactory[CatalogItem]):
-    __model__ = CatalogItem
-
-    data_products = Use(DataProductFactory.batch, size=2)
+    distribution = Use(DistributionFactory.batch, size=1)
 
 
-class CatalogItemFormFactory(ModelFactory[CatalogItemForm]):
-    __model__ = CatalogItemForm
-
-    data_products = Use(DataProductFormFactory.batch, size=2)
+class DatasetShareFormFactory(ModelFactory[DatasetShareForm]):
+    __model__ = DatasetShareForm
 
 
-class CatalogItemImportFormFactory(ModelFactory[CatalogItemImportForm]):
-    __model__ = CatalogItemImportForm
+class DatasetImportFormFactory(ModelFactory[DatasetImportForm]):
+    __model__ = DatasetImportForm
 
-    data_products = Use(DataProductFormFactory.batch, size=2)
-
-
-class CatalogItemDataFactory(ModelFactory[CatalogItemData]):
-    __model__ = CatalogItemData
+    distribution = Use(DistributionFactory.batch, size=1)

@@ -19,9 +19,11 @@ fastapi = "^0.109"
 uvicorn = "^0.26"
 classy-fastapi = "^0.6.1"
 prometheus-fastapi-instrumentator = "^6.1.0"
-sqlalchemy = "^2.0.34"
-alembic = "^1.13.2"
 polyfactory = "^2.16.2"
+pydantic-settings = "^2.5.2"
+neomodel = "^5.3.2"
+pytz = "^2024.2"
+types-pytz = "^2024.2.0.20240913"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.12"
@@ -87,7 +89,6 @@ warn_return_any = true
 warn_unreachable = true
 warn_unused_configs = true
 warn_unused_ignores = true
-enable_incomplete_feature = ["Unpack"]
 
 [tool.pytest.ini_options]
 # https://docs.pytest.org/en/6.2.x/customize.html#pyproject-toml
@@ -102,5 +103,4 @@ addopts = [
   "--tb=short",
   "--doctest-modules",
   "--doctest-continue-on-failure",
-  "--ignore=alembic",
 ]

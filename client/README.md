@@ -105,16 +105,16 @@ configuration = ds_catalog.Configuration(
 # Enter a context with an instance of the API client
 with ds_catalog.ApiClient(configuration) as api_client:
     # Create an instance of the API class
-    api_instance = ds_catalog.CatalogItemsApi(api_client)
-    catalog_item_form = ds_catalog.CatalogItemForm() # CatalogItemForm | 
+    api_instance = ds_catalog.DatasetsApi(api_client)
+    dataset_form = ds_catalog.DatasetForm() # DatasetForm | 
 
     try:
-        # Create a catalog item
-        api_response = api_instance.create_catalog_item(catalog_item_form)
-        print("The response of CatalogItemsApi->create_catalog_item:\n")
+        # Create Dataset
+        api_response = api_instance.create_dataset(dataset_form)
+        print("The response of DatasetsApi->create_dataset:\n")
         pprint(api_response)
     except ApiException as e:
-        print("Exception when calling CatalogItemsApi->create_catalog_item: %s\n" % e)
+        print("Exception when calling DatasetsApi->create_dataset: %s\n" % e)
 
 ```
 
@@ -124,39 +124,30 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*CatalogItemsApi* | [**create_catalog_item**](docs/CatalogItemsApi.md#create_catalog_item) | **POST** /catalog-items/ | Create a catalog item
-*CatalogItemsApi* | [**delete_catalog_item**](docs/CatalogItemsApi.md#delete_catalog_item) | **DELETE** /catalog-items/{id}/ | Delete the catalog item
-*CatalogItemsApi* | [**get_catalog_item**](docs/CatalogItemsApi.md#get_catalog_item) | **GET** /catalog-items/{id}/ | Get the catalog item
-*CatalogItemsApi* | [**get_catalog_items**](docs/CatalogItemsApi.md#get_catalog_items) | **GET** /catalog-items/ | Get the list of catalog items
-*CatalogItemsApi* | [**update_catalog_item**](docs/CatalogItemsApi.md#update_catalog_item) | **PATCH** /catalog-items/{id}/ | Update the catalog item
-*CatalogItemsDataApi* | [**change_catalog_item_data**](docs/CatalogItemsDataApi.md#change_catalog_item_data) | **PUT** /catalog-items/{catalog_item_id}/data/ | Change the data for the catalog item
-*CatalogItemsDataApi* | [**create_catalog_item_data**](docs/CatalogItemsDataApi.md#create_catalog_item_data) | **POST** /catalog-items/{catalog_item_id}/data/ | Create the data for the catalog item
-*CatalogItemsDataApi* | [**delete_catalog_item_data**](docs/CatalogItemsDataApi.md#delete_catalog_item_data) | **DELETE** /catalog-items/{catalog_item_id}/data/ | Delete the data for the catalog item
-*CatalogItemsDataApi* | [**get_catalog_item_data**](docs/CatalogItemsDataApi.md#get_catalog_item_data) | **GET** /catalog-items/{catalog_item_id}/data/ | Get the data for the catalog item
-*CatalogItemsImportingApi* | [**import_catalog_item**](docs/CatalogItemsImportingApi.md#import_catalog_item) | **POST** /catalog-items/import/ | Import a catalog item
-*CatalogItemsSharingApi* | [**share_catalog_item**](docs/CatalogItemsSharingApi.md#share_catalog_item) | **POST** /catalog-items/{id}/share/ | Share a catalog item
+*DatasetsApi* | [**create_dataset**](docs/DatasetsApi.md#create_dataset) | **POST** /datasets/ | Create Dataset
+*DatasetsApi* | [**delete_dataset**](docs/DatasetsApi.md#delete_dataset) | **DELETE** /datasets/{id}/ | Delete Dataset
+*DatasetsApi* | [**get_dataset**](docs/DatasetsApi.md#get_dataset) | **GET** /datasets/{id}/ | Get Dataset
+*DatasetsApi* | [**get_datasets**](docs/DatasetsApi.md#get_datasets) | **GET** /datasets/ | Get Datasets
+*DatasetsApi* | [**update_dataset**](docs/DatasetsApi.md#update_dataset) | **PATCH** /datasets/{id}/ | Update Dataset
+*ImportingApi* | [**import_dataset**](docs/ImportingApi.md#import_dataset) | **POST** /datasets/import/ | Import Dataset
+*SharingApi* | [**share_dataset**](docs/SharingApi.md#share_dataset) | **POST** /datasets/{id}/share/ | Share Dataset
 *DefaultApi* | [**health_check**](docs/DefaultApi.md#health_check) | **GET** /health-check/ | Health check
 *DefaultApi* | [**metrics_metrics_get**](docs/DefaultApi.md#metrics_metrics_get) | **GET** /metrics | Metrics
 
 
 ## Documentation For Models
 
- - [CatalogItem](docs/CatalogItem.md)
- - [CatalogItemForm](docs/CatalogItemForm.md)
- - [CatalogItemImportForm](docs/CatalogItemImportForm.md)
- - [CatalogItemShareForm](docs/CatalogItemShareForm.md)
- - [Connector](docs/Connector.md)
- - [DataProduct](docs/DataProduct.md)
- - [DataProductForm](docs/DataProductForm.md)
+ - [Checksum](docs/Checksum.md)
+ - [DataService](docs/DataService.md)
+ - [Dataset](docs/Dataset.md)
+ - [DatasetForm](docs/DatasetForm.md)
+ - [DatasetImportForm](docs/DatasetImportForm.md)
+ - [DatasetShareForm](docs/DatasetShareForm.md)
+ - [Distribution](docs/Distribution.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
  - [HealthCheck](docs/HealthCheck.md)
- - [Interface](docs/Interface.md)
- - [Node](docs/Node.md)
- - [Ontology](docs/Ontology.md)
- - [OrderDirection](docs/OrderDirection.md)
- - [PaginatedResultCatalogItem](docs/PaginatedResultCatalogItem.md)
- - [Source](docs/Source.md)
- - [User](docs/User.md)
+ - [PaginatedResultDataset](docs/PaginatedResultDataset.md)
+ - [Person](docs/Person.md)
  - [ValidationError](docs/ValidationError.md)
  - [ValidationErrorLocInner](docs/ValidationErrorLocInner.md)
 

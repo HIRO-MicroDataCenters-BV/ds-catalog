@@ -1,7 +1,7 @@
 from ..common import PaginatedResult
 
 
-def test_paginated_result():
+def test_paginated_result() -> None:
     result = PaginatedResult[int](page=1, size=50, items=[1, 2, 3, 4, 5])
     assert result.page == 1
     assert result.size == 50

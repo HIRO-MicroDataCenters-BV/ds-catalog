@@ -43,4 +43,5 @@ venv
 # Release
 .dist
 
-database.db
+volumes
+.env

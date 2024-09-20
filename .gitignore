@@ -589,4 +589,5 @@ MigrationBackup/
 
 .dist
 
-database.db
+/server/volumes
+/server/.env

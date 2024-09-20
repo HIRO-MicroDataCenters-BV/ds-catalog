@@ -4,12 +4,24 @@ from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from .rest_api.routes import (
-    catalog_items,
-    catalog_items_data,
-    catalog_items_importing,
-    catalog_items_sharing,
+from app.rest_api.routes import (
+    datasets,
+    datasets_importing,
+    datasets_sharing,
     health_check,
+)
+
+from .database import initialize_graph_db_connection
+from .settings import get_settings
+
+settings = get_settings()
+initialize_graph_db_connection(
+    protocol=settings.database.protocol,
+    host=settings.database.host,
+    port=settings.database.port,
+    name=settings.database.name,
+    username=settings.database.username,
+    password=settings.database.password,
 )
 
 
@@ -45,7 +57,6 @@ Instrumentator().instrument(app).expose(app)
 
 
 app.include_router(health_check.routes.router)
-app.include_router(catalog_items.routes.router)
-app.include_router(catalog_items_data.routes.router)
-app.include_router(catalog_items_sharing.routes.router)
-app.include_router(catalog_items_importing.routes.router)
+app.include_router(datasets.routes.router)
+app.include_router(datasets_sharing.routes.router)
+app.include_router(datasets_importing.routes.router)
