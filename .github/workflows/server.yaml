@@ -16,8 +16,6 @@ on:
 env:
   REGISTRY: ghcr.io
   DOCKER_IMAGE_NAME: hiro-microdatacenters-bv/ds-catalog
-  DB_USERNAME: neo4j
-  DB_PASSWORD: 1234567890
 
 jobs:
   test_server:
@@ -28,6 +26,9 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.12"]
+    env:
+      DB_USERNAME: neo4j
+      DB_PASSWORD: 1234567890
     services:
       neo4j:
         image: neo4j:5.22.0
@@ -37,7 +38,7 @@ jobs:
           - 7687:7687
           - 7474:7474
         options: >-
-          --health-cmd "cypher-shell -u neo4j -p 1234567890 'RETURN 1'"
+          --health-cmd "cypher-shell -u ${{ env.DB_USERNAME }} -p ${{ env.DB_PASSWORD }} 'RETURN 1'"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -67,7 +68,7 @@ jobs:
       - name: Run tests
         env:
           DS__TEST_DATABASE__HOST: localhost
-          DS__TEST_DATABASE__PORT: ${{job.services.neo4j.ports[7687]}}
+          DS__TEST_DATABASE__PORT: 7687
           DS__TEST_DATABASE__USERNAME: ${{ env.DB_USERNAME }}
           DS__TEST_DATABASE__PASSWORD: ${{ env.DB_PASSWORD }}
         run: poetry run pytest
