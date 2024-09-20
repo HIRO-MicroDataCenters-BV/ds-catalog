@@ -53,6 +53,10 @@ jobs:
           poetry config virtualenvs.in-project true
           poetry install --no-root --with dev,test
 
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
+
       - name: Run style checks
         run: |
           poetry run mypy .
