@@ -37,11 +37,10 @@ jobs:
           - 7687:7687
           - 7474:7474
         options: >-
-          --health-cmd "curl -f --insecure http://localhost:7474"
+          --health-cmd "cypher-shell -u neo4j -p 1234567890 'RETURN 1'"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 7
-          --health-start-period 10s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -66,12 +65,12 @@ jobs:
           poetry run black . --check --diff
 
       - name: Run tests
-        run: |
-          export DS__TEST_DATABASE__HOST=localhost
-          export DS__TEST_DATABASE__PORT=${{job.services.neo4j.ports[7687]}}
-          export DS__TEST_DATABASE__USERNAME=${{ env.DB_USERNAME }}
-          export DS__TEST_DATABASE__PASSWORD=${{ env.DB_PASSWORD }}
-          poetry run pytest
+        env:
+          DS__TEST_DATABASE__HOST: localhost
+          DS__TEST_DATABASE__PORT: ${{job.services.neo4j.ports[7687]}}
+          DS__TEST_DATABASE__USERNAME: ${{ env.DB_USERNAME }}
+          DS__TEST_DATABASE__PASSWORD: ${{ env.DB_PASSWORD }}
+        run: poetry run pytest
 
       - name: Verify OpenAPI spec has been updated
         run: |
