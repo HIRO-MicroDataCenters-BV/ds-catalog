@@ -1,16 +1,16 @@
 from polyfactory import Use
 from polyfactory.factories.pydantic_factory import ModelFactory
 
-from ..catalog import (
+from ..entities import (
     Checksum,
     DataService,
     Dataset,
-    DatasetForm,
-    DatasetImportForm,
-    DatasetShareForm,
+    DatasetImport,
+    DatasetInput,
     Distribution,
+    NewDataset,
+    Person,
 )
-from ..person import Person
 
 
 class PersonFactory(ModelFactory[Person]):
@@ -32,6 +32,13 @@ class DistributionFactory(ModelFactory[Distribution]):
     access_service = Use(DataServiceFactory.batch, size=1)
 
 
+class NewDatasetFactory(ModelFactory[NewDataset]):
+    __model__ = NewDataset
+
+    creator = PersonFactory
+    distribution = Use(DistributionFactory.batch, size=1)
+
+
 class DatasetFactory(ModelFactory[Dataset]):
     __model__ = Dataset
 
@@ -39,17 +46,13 @@ class DatasetFactory(ModelFactory[Dataset]):
     distribution = Use(DistributionFactory.batch, size=1)
 
 
-class DatasetFormFactory(ModelFactory[DatasetForm]):
-    __model__ = DatasetForm
+class DatasetInputFactory(ModelFactory[DatasetInput]):
+    __model__ = DatasetInput
 
     distribution = Use(DistributionFactory.batch, size=1)
 
 
-class DatasetShareFormFactory(ModelFactory[DatasetShareForm]):
-    __model__ = DatasetShareForm
-
-
-class DatasetImportFormFactory(ModelFactory[DatasetImportForm]):
-    __model__ = DatasetImportForm
+class DatasetImportFactory(ModelFactory[DatasetImport]):
+    __model__ = DatasetImport
 
     distribution = Use(DistributionFactory.batch, size=1)

@@ -1,4 +1,5 @@
 README.md
+docs/Checksum.md
 docs/DataService.md
 docs/Dataset.md
 docs/DatasetForm.md
@@ -10,7 +11,6 @@ docs/Distribution.md
 docs/HTTPValidationError.md
 docs/HealthCheck.md
 docs/ImportingApi.md
-docs/OrderDirection.md
 docs/PaginatedResultDataset.md
 docs/Person.md
 docs/SharingApi.md
@@ -27,6 +27,7 @@ ds_catalog/api_response.py
 ds_catalog/configuration.py
 ds_catalog/exceptions.py
 ds_catalog/models/__init__.py
+ds_catalog/models/checksum.py
 ds_catalog/models/data_service.py
 ds_catalog/models/dataset.py
 ds_catalog/models/dataset_form.py
@@ -35,7 +36,6 @@ ds_catalog/models/dataset_share_form.py
 ds_catalog/models/distribution.py
 ds_catalog/models/health_check.py
 ds_catalog/models/http_validation_error.py
-ds_catalog/models/order_direction.py
 ds_catalog/models/paginated_result_dataset.py
 ds_catalog/models/person.py
 ds_catalog/models/validation_error.py

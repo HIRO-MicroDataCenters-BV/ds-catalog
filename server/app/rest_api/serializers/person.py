@@ -1,7 +1,6 @@
-from app.core.entities.person import Person as PersonEntity
+from app.core.entities import Person as PersonEntity
 
 from .base import BaseModel
-from .utils import entity_to_dict, model_to_dict
 
 
 class Person(BaseModel):
@@ -9,8 +8,8 @@ class Person(BaseModel):
     name: str
 
     def to_entity(self) -> PersonEntity:
-        return PersonEntity(**model_to_dict(self))
+        return PersonEntity(**self.model_dump())
 
     @classmethod
     def from_entity(cls, entity: PersonEntity) -> "Person":
-        return cls(**entity_to_dict(entity))
+        return cls(**entity.model_dump())

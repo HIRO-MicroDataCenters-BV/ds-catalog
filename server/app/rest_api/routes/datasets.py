@@ -1,28 +1,27 @@
-from typing import Annotated, Any
+from typing import Annotated
 
 from abc import ABC, abstractmethod
 
 from classy_fastapi import Routable, delete, get, patch, post
 from fastapi import Depends, HTTPException, Request, Response, status
 
-from app.core.entities import catalog as catalog_entities
+from app.core import entities, usecases
+from app.core.context import Context
 from app.core.exceptions import DatasetDoesNotExist
-from app.core.queries.catalog import (
+from app.core.repository.queries import (
+    CompositeQuery,
     DatasetsFilterDTO,
     DatasetsFilterQuery,
-    DatasetsQuery,
-)
-from app.core.queries.common import CompositeQuery
-from app.core.queries.list import (
+    IQuery,
     OrderQuery,
     OrderQueryDTO,
     PaginatorQuery,
     PaginatorQueryDTO,
 )
-from app.core.usecases import catalog as catalog_usecases
 
 from ..depends.catalog import datasets_filter
 from ..depends.list import order_parameters, paginator_parameters
+from ..depends.user import get_user
 from ..serializers.catalog import Dataset, DatasetForm
 from ..serializers.common import PaginatedResult
 from ..strings import DATASET_NOT_FOUND
@@ -31,48 +30,62 @@ from ..tags import Tags
 
 class IDatasetsUsecases(ABC):
     @abstractmethod
-    async def list(self, query: DatasetsQuery) -> list[catalog_entities.Dataset]:
+    async def list(
+        self,
+        query: IQuery,
+        context: Context,
+    ) -> list[entities.Dataset]:
         ...
 
     @abstractmethod
-    async def get(self, id: str) -> catalog_entities.Dataset:
+    async def get(
+        self,
+        id: str,
+        context: Context,
+    ) -> entities.Dataset:
         ...
 
     @abstractmethod
     async def create(
         self,
-        data: catalog_entities.DatasetInput,
-    ) -> catalog_entities.Dataset:
+        data: entities.DatasetInput,
+        context: Context,
+    ) -> entities.Dataset:
         ...
 
     @abstractmethod
     async def update(
         self,
         id: str,
-        data: catalog_entities.DatasetInput,
-    ) -> catalog_entities.Dataset:
+        data: entities.DatasetInput,
+        context: Context,
+    ) -> entities.Dataset:
         ...
 
     @abstractmethod
-    async def delete(self, id: str) -> None:
+    async def delete(
+        self,
+        id: str,
+        context: Context,
+    ) -> None:
         ...
 
 
 class DatasetsUsecases(IDatasetsUsecases):
     async def list(self, *args, **kwargs):
-        return await catalog_usecases.get_datasets_list(*args, **kwargs)
+        return await usecases.get_datasets_list(*args, **kwargs)
 
     async def get(self, *args, **kwargs):
-        return await catalog_usecases.get_dataset(*args, **kwargs)
+        return await usecases.get_dataset(*args, **kwargs)
 
     async def create(self, *args, **kwargs):
-        return await catalog_usecases.create_dataset(*args, **kwargs)
+        return await usecases.create_dataset(*args, **kwargs)
 
     async def update(self, *args, **kwargs):
-        return await catalog_usecases.update_dataset(*args, **kwargs)
+        return await usecases.update_dataset(*args, **kwargs)
 
     async def delete(self, *args, **kwargs):
-        return await catalog_usecases.delete_dataset(*args, **kwargs)
+        return await usecases.delete_dataset(*args, **kwargs)
 
 
 class DatasetsRoutes(Routable):
@@ -95,11 +108,12 @@ class DatasetsRoutes(Routable):
         ],
         order_parameters: Annotated[OrderQueryDTO, Depends(order_parameters)],
         filters: Annotated[DatasetsFilterDTO, Depends(datasets_filter)],
+        user: Annotated[entities.Person, Depends(get_user)],
     ) -> PaginatedResult[Dataset]:
         """Get the datasets list"""
 
-        paginator_query: PaginatorQuery[Any] = PaginatorQuery(**paginator_parameters)
-        order_query: OrderQuery[Any] = OrderQuery(**order_parameters)
+        paginator_query = PaginatorQuery(**paginator_parameters)
+        order_query = OrderQuery(**order_parameters)
         filters_query = DatasetsFilterQuery(**filters)
 
         query = CompositeQuery(
@@ -108,7 +122,7 @@ class DatasetsRoutes(Routable):
             filters_query,
         )
 
-        output_entities = await self._usecases.list(query)
+        output_entities = await self._usecases.list(query, context={"user": user})
         items = [Dataset.from_entity(entity) for entity in output_entities]
 
         return PaginatedResult(
@@ -126,10 +140,14 @@ class DatasetsRoutes(Routable):
             status.HTTP_404_NOT_FOUND: {"description": "Dataset not found"},
         },
     )
-    async def get_dataset(self, id: str) -> Dataset:
+    async def get_dataset(
+        self,
+        id: str,
+        user: Annotated[entities.Person, Depends(get_user)],
+    ) -> Dataset:
         """Get the dataset"""
         try:
-            output_entity = await self._usecases.get(id)
+            output_entity = await self._usecases.get(id, context={"user": user})
         except DatasetDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=DATASET_NOT_FOUND
@@ -162,10 +180,14 @@ class DatasetsRoutes(Routable):
         item: DatasetForm,
         request: Request,
         response: Response,
+        user: Annotated[entities.Person, Depends(get_user)],
     ) -> Dataset:
         """Create a dataset"""
         input_entity = item.to_entity()
-        output_entity = await self._usecases.create(input_entity)
+        output_entity = await self._usecases.create(
+            input_entity,
+            context={"user": user},
+        )
         output_item = Dataset.from_entity(output_entity)
         response.headers["Location"] = str(
             request.url_for("get_dataset", id=output_entity.identifier)
@@ -181,11 +203,20 @@ class DatasetsRoutes(Routable):
             status.HTTP_404_NOT_FOUND: {"description": "Dataset not found"},
         },
     )
-    async def update_dataset(self, id: str, data: DatasetForm) -> Dataset:
+    async def update_dataset(
+        self,
+        id: str,
+        data: DatasetForm,
+        user: Annotated[entities.Person, Depends(get_user)],
+    ) -> Dataset:
         """Update the dataset"""
         input_entity = data.to_entity()
         try:
-            output_entity = await self._usecases.update(id, input_entity)
+            output_entity = await self._usecases.update(
+                id,
+                input_entity,
+                context={"user": user},
+            )
         except DatasetDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=DATASET_NOT_FOUND
@@ -202,10 +233,14 @@ class DatasetsRoutes(Routable):
             status.HTTP_404_NOT_FOUND: {"description": "Dataset not found"},
         },
     )
-    async def delete_dataset(self, id: str) -> None:
+    async def delete_dataset(
+        self,
+        id: str,
+        user: Annotated[entities.Person, Depends(get_user)],
+    ) -> None:
         """Delete the dataset"""
         try:
-            await self._usecases.delete(id)
+            await self._usecases.delete(id, context={"user": user})
         except DatasetDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=DATASET_NOT_FOUND

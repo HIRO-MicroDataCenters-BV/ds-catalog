@@ -68,14 +68,6 @@ paths:
           type: string
           default: ''
           title: Orderby
-      - name: orderDirection
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - $ref: '#/components/schemas/OrderDirection'
-          - type: 'null'
-          title: Orderdirection
       - name: search
         in: query
         required: false
@@ -109,13 +101,6 @@ paths:
           - type: boolean
           - type: 'null'
           title: Isshared
-      - name: creator__id
-        in: query
-        required: false
-        schema:
-          type: string
-          default: ''
-          title: Creator  Id
       - name: issued
         in: query
         required: false
@@ -143,31 +128,6 @@ paths:
             format: date
           - type: 'null'
           title: Issued  Lte
-      - name: distribution__byteSize__gte
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: integer
-            minimum: 0
-          - type: 'null'
-          title: Distribution  Bytesize  Gte
-      - name: distribution__byteSize__lte
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: integer
-            minimum: 0
-          - type: 'null'
-          title: Distribution  Bytesize  Lte
-      - name: distribution__mimeType
-        in: query
-        required: false
-        schema:
-          type: string
-          default: ''
-          title: Distribution  Mimetype
       responses:
         '200':
           description: Successful Response
@@ -374,6 +334,19 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
+    Checksum:
+      properties:
+        algorithm:
+          type: string
+          title: Algorithm
+        checksumValue:
+          type: string
+          title: Checksumvalue
+      type: object
+      required:
+      - algorithm
+      - checksumValue
+      title: Checksum
     DataService:
       properties:
         endpointUrl:
@@ -483,18 +456,17 @@ components:
       title: DatasetShareForm
     Distribution:
       properties:
-        bytesize:
+        byteSize:
           anyOf:
           - type: integer
             exclusiveMinimum: 0.0
           - type: 'null'
           title: Bytesize
-        mimetype:
+        mediaType:
           type: string
-          title: Mimetype
+          title: Mediatype
         checksum:
-          type: string
-          title: Checksum
+          $ref: '#/components/schemas/Checksum'
         accessService:
           items:
             $ref: '#/components/schemas/DataService'
@@ -502,8 +474,8 @@ components:
           title: Accessservice
       type: object
       required:
-      - bytesize
-      - mimetype
+      - byteSize
+      - mediaType
       - checksum
       - accessService
       title: Distribution
@@ -527,12 +499,6 @@ components:
       required:
       - status
       title: HealthCheck
-    OrderDirection:
-      type: string
-      enum:
-      - asc
-      - desc
-      title: OrderDirection
     PaginatedResult_Dataset_:
       properties:
         page:

@@ -137,6 +137,7 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [Checksum](docs/Checksum.md)
  - [DataService](docs/DataService.md)
  - [Dataset](docs/Dataset.md)
  - [DatasetForm](docs/DatasetForm.md)
@@ -145,7 +146,6 @@ Class | Method | HTTP request | Description
  - [Distribution](docs/Distribution.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
  - [HealthCheck](docs/HealthCheck.md)
- - [OrderDirection](docs/OrderDirection.md)
  - [PaginatedResultDataset](docs/PaginatedResultDataset.md)
  - [Person](docs/Person.md)
  - [ValidationError](docs/ValidationError.md)

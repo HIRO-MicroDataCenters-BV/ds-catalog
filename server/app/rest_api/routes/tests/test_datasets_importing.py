@@ -3,7 +3,8 @@ from unittest.mock import AsyncMock, Mock
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
 
-from app.core.entities.tests.factories import DatasetFactory, DatasetImportFactory
+from app.core.tests.factories import DatasetFactory, DatasetImportFactory
+from app.rest_api.depends.user import get_user
 from app.rest_api.serializers.catalog import Dataset, DatasetImportForm
 
 from ..datasets import DatasetsRoutes
@@ -37,4 +38,6 @@ class TestDatasetsImportingRoutes:
         assert response.text == item_output.model_dump_json(by_alias=True)
         assert "Location" in response.headers
         assert f"/datasets/{entity_output.identifier}/" in response.headers["Location"]
-        usecases.import_data.assert_called_once_with(form_input.to_entity())
+        usecases.import_data.assert_called_once_with(
+            form_input.to_entity(), context={"user": get_user()}
+        )

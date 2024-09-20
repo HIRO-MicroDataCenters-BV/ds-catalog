@@ -1,13 +1,16 @@
+from typing import Annotated
+
 from abc import ABC, abstractmethod
 
 from classy_fastapi import Routable, post
-from fastapi import HTTPException, Request, Response, status
+from fastapi import Depends, HTTPException, Request, Response, status
 from pydantic import AnyUrl
 
-from app.core.entities import catalog as catalog_entities
+from app.core import entities, usecases
+from app.core.context import Context
 from app.core.exceptions import DatasetDoesNotExist
-from app.core.usecases import catalog as catalog_usecases
 
+from ..depends.user import get_user
 from ..serializers.catalog import Dataset, DatasetShareForm
 from ..strings import DATASET_NOT_FOUND
 from ..tags import Tags
@@ -19,13 +22,14 @@ class IDatasetsSharingUsecases(ABC):
         self,
         id: str,
         marketplace_url: AnyUrl,
-    ) -> catalog_entities.Dataset:
+        context: Context,
+    ) -> entities.Dataset:
         ...
 
 
 class DatasetsSharingUsecases(IDatasetsSharingUsecases):
     async def share(self, *args, **kwargs):
-        return await catalog_usecases.share_dataset(*args, **kwargs)
+        return await usecases.share_dataset(*args, **kwargs)
 
 
 class DatasetsSharingRoutes(Routable):
@@ -63,11 +67,14 @@ class DatasetsSharingRoutes(Routable):
         data: DatasetShareForm,
         request: Request,
         response: Response,
+        user: Annotated[entities.Person, Depends(get_user)],
     ) -> Dataset:
         """Share the dataset to the marketplace"""
         marketplace_url = data.marketplace_url
         try:
-            entity_output = await self._usecases.share(id, marketplace_url)
+            entity_output = await self._usecases.share(
+                id, marketplace_url, context={"user": user}
+            )
         except DatasetDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

@@ -12,7 +12,7 @@ class Serializer(BaseModel):
 
 class TestBaseModel:
     @pytest.mark.asyncio
-    async def test_to_camel_aliases(self):
+    async def test_to_camel_aliases(self) -> None:
         serializer = Serializer(some_field="test", another_field=123)
 
         assert serializer.some_field == "test"
@@ -25,7 +25,7 @@ class TestBaseModel:
         }
 
     @pytest.mark.asyncio
-    async def test_from_attributes(self):
+    async def test_from_attributes(self) -> None:
         data: dict[str, Any] = {
             "someField": "test_value",
             "anotherField": 42,

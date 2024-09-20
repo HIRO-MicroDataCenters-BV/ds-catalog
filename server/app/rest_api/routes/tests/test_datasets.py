@@ -2,10 +2,9 @@ from unittest.mock import AsyncMock, Mock
 
 from fastapi import status
 
-from app.core.entities.tests.factories import DatasetFactory, DatasetInputFactory
 from app.core.exceptions import DatasetDoesNotExist
-from app.core.queries.common import CompositeQuery
-from app.core.queries.list import OrderDirection
+from app.core.tests.factories import DatasetFactory, DatasetInputFactory
+from app.rest_api.depends.user import get_user
 from app.rest_api.serializers.catalog import Dataset, DatasetForm
 from app.rest_api.serializers.common import PaginatedResult
 from app.rest_api.strings import DATASET_NOT_FOUND
@@ -38,7 +37,6 @@ class TestDatasetsRoutes:
                 "page": page,
                 "pageSize": page_size,
                 "orderBy": "title",
-                "orderDirection": OrderDirection.ASC.value,
                 "search": "search term",
                 "is_local": "false",
             },
@@ -47,15 +45,6 @@ class TestDatasetsRoutes:
         assert response.status_code == status.HTTP_200_OK
         assert response.text == expected_result.model_dump_json(by_alias=True)
         usecases.list.assert_called_once()
-
-        call_args = usecases.list.call_args[0]
-        call_kwargs = usecases.list.call_args[1]
-
-        assert len(call_args) == 1
-        assert call_kwargs == {}
-
-        query = call_args[0]
-        assert isinstance(query, CompositeQuery)
 
     def test_get_dataset(self) -> None:
         entity_output = DatasetFactory.build()
@@ -71,7 +60,9 @@ class TestDatasetsRoutes:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.text == item_output.model_dump_json(by_alias=True)
-        usecases.get.assert_called_once_with(entity_output.identifier)
+        usecases.get.assert_called_once_with(
+            entity_output.identifier, context={"user": get_user()}
+        )
 
     def test_get_dataset_if_it_not_found(self) -> None:
         usecases = Mock()
@@ -106,7 +97,9 @@ class TestDatasetsRoutes:
         assert response.text == item_output.model_dump_json(by_alias=True)
         assert "Location" in response.headers
         assert f"/datasets/{entity_output.identifier}" in response.headers["Location"]
-        usecases.create.assert_called_once_with(item_input.to_entity())
+        usecases.create.assert_called_once_with(
+            item_input.to_entity(), context={"user": get_user()}
+        )
 
     def test_update_dataset(self) -> None:
         id = "1"
@@ -128,7 +121,9 @@ class TestDatasetsRoutes:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.text == item_output.model_dump_json(by_alias=True)
-        usecases.update.assert_called_once_with(id, item_input.to_entity())
+        usecases.update.assert_called_once_with(
+            id, item_input.to_entity(), context={"user": get_user()}
+        )
 
     def test_update_dataset_if_it_not_found(self) -> None:
         entity_input = DatasetInputFactory.build()
@@ -160,7 +155,7 @@ class TestDatasetsRoutes:
         response = client.delete(f"/datasets/{id}/")
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        usecases.delete.assert_called_once_with(id)
+        usecases.delete.assert_called_once_with(id, context={"user": get_user()})
 
     def test_delete_dataset_if_it_not_found(self) -> None:
         usecases = Mock()

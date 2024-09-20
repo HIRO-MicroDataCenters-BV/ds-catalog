@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import Query
 
-from app.core.queries.list import OrderDirection, OrderQueryDTO, PaginatorQueryDTO
+from app.core.repository.queries import OrderQueryDTO, PaginatorQueryDTO
 
 
 async def paginator_parameters(
@@ -14,11 +14,5 @@ async def paginator_parameters(
 
 async def order_parameters(
     order_by: Annotated[str, Query(alias="orderBy")] = "",
-    order_direction: Annotated[
-        OrderDirection | None, Query(alias="orderDirection")
-    ] = None,
 ) -> OrderQueryDTO:
-    return {
-        "order_by": order_by,
-        "order_direction": order_direction or OrderDirection.ASC,
-    }
+    return {"order_by": order_by}

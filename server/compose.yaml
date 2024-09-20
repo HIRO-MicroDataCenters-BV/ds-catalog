@@ -1,6 +1,6 @@
 services:
   neo4j:
-    image: neo4j:5.23.0
+    image: neo4j:5.22.0
     volumes:
       - ./volumes/neo4j:/data
     ports:
@@ -13,3 +13,7 @@ services:
     build: .
     ports:
       - "8001:80"
+    env_file:
+      - .env
+    environment:
+      - DS__DATABASE__HOST=neo4j

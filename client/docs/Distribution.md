@@ -5,9 +5,9 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**bytesize** | **int** |  | 
-**mimetype** | **str** |  | 
-**checksum** | **str** |  | 
+**byte_size** | **int** |  | 
+**media_type** | **str** |  | 
+**checksum** | [**Checksum**](Checksum.md) |  | 
 **access_service** | [**List[DataService]**](DataService.md) |  | 
 
 ## Example

@@ -18,22 +18,18 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional
-from ds_catalog.models.checksum import Checksum
-from ds_catalog.models.data_service import DataService
+from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from typing import Any, ClassVar, Dict, List
 from typing import Optional, Set
 from typing_extensions import Self
 
-class Distribution(BaseModel):
+class Checksum(BaseModel):
     """
-    Distribution
+    Checksum
     """ # noqa: E501
-    byte_size: Optional[StrictInt] = Field(alias="byteSize")
-    media_type: StrictStr = Field(alias="mediaType")
-    checksum: Checksum
-    access_service: List[DataService] = Field(alias="accessService")
-    __properties: ClassVar[List[str]] = ["byteSize", "mediaType", "checksum", "accessService"]
+    algorithm: StrictStr
+    checksum_value: StrictStr = Field(alias="checksumValue")
+    __properties: ClassVar[List[str]] = ["algorithm", "checksumValue"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -53,7 +49,7 @@ class Distribution(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of Distribution from a JSON string"""
+        """Create an instance of Checksum from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -74,26 +70,11 @@ class Distribution(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of checksum
-        if self.checksum:
-            _dict['checksum'] = self.checksum.to_dict()
-        # override the default output from pydantic by calling `to_dict()` of each item in access_service (list)
-        _items = []
-        if self.access_service:
-            for _item_access_service in self.access_service:
-                if _item_access_service:
-                    _items.append(_item_access_service.to_dict())
-            _dict['accessService'] = _items
-        # set to None if byte_size (nullable) is None
-        # and model_fields_set contains the field
-        if self.byte_size is None and "byte_size" in self.model_fields_set:
-            _dict['byteSize'] = None
-
         return _dict
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of Distribution from a dict"""
+        """Create an instance of Checksum from a dict"""
         if obj is None:
             return None
 
@@ -101,10 +82,8 @@ class Distribution(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "byteSize": obj.get("byteSize"),
-            "mediaType": obj.get("mediaType"),
-            "checksum": Checksum.from_dict(obj["checksum"]) if obj.get("checksum") is not None else None,
-            "accessService": [DataService.from_dict(_item) for _item in obj["accessService"]] if obj.get("accessService") is not None else None
+            "algorithm": obj.get("algorithm"),
+            "checksumValue": obj.get("checksumValue")
         })
         return _obj
 

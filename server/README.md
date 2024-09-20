@@ -63,7 +63,26 @@ poetry config virtualenvs.in-project true
 poetry install --no-root --with dev,test
 ```
 
-3. Launch the project:
+3. Create .env file from the template .env.template:
+```bash
+DS__DATABASE__PROTOCOL=neo4j
+DS__DATABASE__HOST=localhost
+DS__DATABASE__PORT=7687
+DS__DATABASE__NAME=neo4j
+DS__DATABASE__USERNAME=neo4j
+DS__DATABASE__PASSWORD=your_password
+
+DS__TEST_DATABASE__PROTOCOL=neo4j
+DS__TEST_DATABASE__HOST=localhost
+DS__TEST_DATABASE__PORT=7688
+DS__TEST_DATABASE__NAME=neo4j
+DS__TEST_DATABASE__USERNAME=neo4j
+DS__TEST_DATABASE__PASSWORD=your_password
+
+NEO4J_AUTH=neo4j/your_password
+```
+
+4. Launch the project:
 ```bash
 poetry run uvicorn app.main:app [--reload]
 ```
@@ -73,7 +92,7 @@ poetry shell
 uvicorn app.main:app
 ```
 
-4. Running tests:
+1. Run tests:
 ```bash
 poetry run pytest
 ```

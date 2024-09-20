@@ -1,13 +1,11 @@
-from typing import Generic, TypeVar
-
 from abc import ABC, abstractmethod
 
-T = TypeVar("T")
+from neomodel import AsyncNodeSet
 
 
-class IQuery(Generic[T], ABC):
+class IQuery(ABC):
     """Interface for implementing repository queries"""
 
     @abstractmethod
-    def apply(self, query: T) -> T:
+    def apply(self, query: AsyncNodeSet) -> AsyncNodeSet:
         ...

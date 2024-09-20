@@ -1,6 +1,13 @@
-from app.core.entities.tests import factories as entities_factories
+from app.core.tests import factories as entities_factories
 
-from ..catalog import DataService, Dataset, DatasetForm, DatasetImportForm, Distribution
+from ..catalog import (
+    Checksum,
+    DataService,
+    Dataset,
+    DatasetForm,
+    DatasetImportForm,
+    Distribution,
+)
 from ..person import Person
 from .factories import (
     DataServiceFactory,
@@ -12,13 +19,13 @@ from .factories import (
 
 
 class TestDataService:
-    def test_to_entity(self):
+    def test_to_entity(self) -> None:
         data_service = DataServiceFactory.build()
         entity = data_service.to_entity()
 
         assert entity.endpoint_url == data_service.endpoint_url
 
-    def test_from_entity(self):
+    def test_from_entity(self) -> None:
         entity = entities_factories.DataServiceFactory.build()
         data_service = DataService.from_entity(entity)
 
@@ -26,31 +33,31 @@ class TestDataService:
 
 
 class TestDistribution:
-    def test_to_entity(self):
+    def test_to_entity(self) -> None:
         distribution = DistributionFactory.build()
         entity = distribution.to_entity()
 
-        assert entity.bytesize == distribution.bytesize
-        assert entity.mimetype == distribution.mimetype
-        assert entity.checksum == distribution.checksum
+        assert entity.byte_size == distribution.byte_size
+        assert entity.media_type == distribution.media_type
+        assert entity.checksum == distribution.checksum.to_entity()
         assert entity.access_service == [
             i.to_entity() for i in distribution.access_service
         ]
 
-    def test_from_entity(self):
+    def test_from_entity(self) -> None:
         entity = entities_factories.DistributionFactory.build()
         distribution = Distribution.from_entity(entity)
 
-        assert distribution.bytesize == entity.bytesize
-        assert distribution.mimetype == entity.mimetype
-        assert distribution.checksum == entity.checksum
+        assert distribution.byte_size == entity.byte_size
+        assert distribution.media_type == entity.media_type
+        assert distribution.checksum == Checksum.from_entity(entity.checksum)
         assert distribution.access_service == [
             DataService.from_entity(i) for i in entity.access_service
         ]
 
 
 class TestDataset:
-    def test_to_entity(self):
+    def test_to_entity(self) -> None:
         dataset = DatasetFactory.build()
         entity = dataset.to_entity()
 
@@ -63,7 +70,7 @@ class TestDataset:
         assert entity.creator == dataset.creator.to_entity()
         assert entity.distribution == [i.to_entity() for i in dataset.distribution]
 
-    def test_from_entity(self):
+    def test_from_entity(self) -> None:
         entity = entities_factories.DatasetFactory.build()
         dataset = Dataset.from_entity(entity)
 
@@ -80,7 +87,7 @@ class TestDataset:
 
 
 class TestDatasetForm:
-    def test_to_entity(self):
+    def test_to_entity(self) -> None:
         dataset_form = DatasetFormFactory.build()
         entity = dataset_form.to_entity()
 
@@ -88,7 +95,7 @@ class TestDatasetForm:
         assert entity.theme == dataset_form.theme
         assert entity.distribution == [i.to_entity() for i in dataset_form.distribution]
 
-    def test_from_entity(self):
+    def test_from_entity(self) -> None:
         entity = entities_factories.DatasetInputFactory.build()
         dataset_form = DatasetForm.from_entity(entity)
 
@@ -100,7 +107,7 @@ class TestDatasetForm:
 
 
 class TestDatasetImportForm:
-    def test_to_entity(self):
+    def test_to_entity(self) -> None:
         import_form = DatasetImportFormFactory.build()
         entity = import_form.to_entity()
 
@@ -109,7 +116,7 @@ class TestDatasetImportForm:
         assert entity.theme == import_form.theme
         assert entity.distribution == [i.to_entity() for i in import_form.distribution]
 
-    def test_from_entity(self):
+    def test_from_entity(self) -> None:
         entity = entities_factories.DatasetImportFactory.build()
         import_form = DatasetImportForm.from_entity(entity)
 

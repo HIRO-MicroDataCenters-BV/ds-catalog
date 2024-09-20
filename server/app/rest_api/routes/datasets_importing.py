@@ -1,11 +1,14 @@
+from typing import Annotated
+
 from abc import ABC, abstractmethod
 
 from classy_fastapi import Routable, post
-from fastapi import Request, Response, status
+from fastapi import Depends, Request, Response, status
 
-from app.core.entities import catalog as catalog_entities
-from app.core.usecases import catalog as catalog_usecases
+from app.core import entities, usecases
+from app.core.context import Context
 
+from ..depends.user import get_user
 from ..serializers.catalog import Dataset, DatasetImportForm
 from ..tags import Tags
 
@@ -13,14 +16,14 @@ from ..tags import Tags
 class IDatasetsImportingUsecases(ABC):
     @abstractmethod
     async def import_data(
-        self, data: catalog_entities.DatasetImport
-    ) -> catalog_entities.Dataset:
+        self, data: entities.DatasetImport, context: Context
+    ) -> entities.Dataset:
         ...
 
 
 class DatasetsImportingUsecases(IDatasetsImportingUsecases):
     async def import_data(self, *args, **kwargs):
-        return await catalog_usecases.import_dataset(*args, **kwargs)
+        return await usecases.import_dataset(*args, **kwargs)
 
 
 class DatasetsImportingRoutes(Routable):
@@ -56,10 +59,13 @@ class DatasetsImportingRoutes(Routable):
         data: DatasetImportForm,
         request: Request,
         response: Response,
+        user: Annotated[entities.Person, Depends(get_user)],
     ) -> Dataset:
         """Import a dataset from the local catalog"""
         entity_input = data.to_entity()
-        entity_output = await self._usecases.import_data(entity_input)
+        entity_output = await self._usecases.import_data(
+            entity_input, context={"user": user}
+        )
         item_output = Dataset.from_entity(entity_output)
         response.headers["Location"] = str(
             request.url_for("get_dataset", id=entity_output.identifier)

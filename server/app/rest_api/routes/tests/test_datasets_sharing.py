@@ -4,8 +4,9 @@ from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from pydantic_core import Url
 
-from app.core.entities.tests.factories import DatasetFactory
 from app.core.exceptions import DatasetDoesNotExist
+from app.core.tests.factories import DatasetFactory
+from app.rest_api.depends.user import get_user
 from app.rest_api.serializers.catalog import Dataset, DatasetShareForm
 from app.rest_api.strings import DATASET_NOT_FOUND
 
@@ -42,7 +43,9 @@ class TestDatasetsSharingRoutes:
         assert response.text == item_output.model_dump_json(by_alias=True)
         assert "Location" in response.headers
         assert f"/datasets/{entity_output.identifier}/" in response.headers["Location"]
-        usecases.share.assert_called_once_with(dataset_id, marketplace_url)
+        usecases.share.assert_called_once_with(
+            dataset_id, marketplace_url, context={"user": get_user()}
+        )
 
     def test_share_dataset_if_dataset_not_found(self) -> None:
         marketplace_url = Url("https://example.com/import/")

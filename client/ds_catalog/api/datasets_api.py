@@ -23,7 +23,6 @@ from typing import List, Optional
 from typing_extensions import Annotated
 from ds_catalog.models.dataset import Dataset
 from ds_catalog.models.dataset_form import DatasetForm
-from ds_catalog.models.order_direction import OrderDirection
 from ds_catalog.models.paginated_result_dataset import PaginatedResultDataset
 
 from ds_catalog.api_client import ApiClient, RequestSerialized
@@ -852,18 +851,13 @@ class DatasetsApi:
         page: Optional[Annotated[int, Field(strict=True, ge=1)]] = None,
         page_size: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
         order_by: Optional[StrictStr] = None,
-        order_direction: Optional[OrderDirection] = None,
         search: Optional[StrictStr] = None,
         theme: Optional[List[StrictStr]] = None,
         is_local: Optional[StrictBool] = None,
         is_shared: Optional[StrictBool] = None,
-        creator__id: Optional[StrictStr] = None,
         issued: Optional[date] = None,
         issued__gte: Optional[date] = None,
         issued__lte: Optional[date] = None,
-        distribution__byte_size__gte: Optional[Annotated[int, Field(strict=True, ge=0)]] = None,
-        distribution__byte_size__lte: Optional[Annotated[int, Field(strict=True, ge=0)]] = None,
-        distribution__mime_type: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -887,8 +881,6 @@ class DatasetsApi:
         :type page_size: int
         :param order_by:
         :type order_by: str
-        :param order_direction:
-        :type order_direction: OrderDirection
         :param search:
         :type search: str
         :param theme:
@@ -897,20 +889,12 @@ class DatasetsApi:
         :type is_local: bool
         :param is_shared:
         :type is_shared: bool
-        :param creator__id:
-        :type creator__id: str
         :param issued:
         :type issued: date
         :param issued__gte:
         :type issued__gte: date
         :param issued__lte:
         :type issued__lte: date
-        :param distribution__byte_size__gte:
-        :type distribution__byte_size__gte: int
-        :param distribution__byte_size__lte:
-        :type distribution__byte_size__lte: int
-        :param distribution__mime_type:
-        :type distribution__mime_type: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -937,18 +921,13 @@ class DatasetsApi:
             page=page,
             page_size=page_size,
             order_by=order_by,
-            order_direction=order_direction,
             search=search,
             theme=theme,
             is_local=is_local,
             is_shared=is_shared,
-            creator__id=creator__id,
             issued=issued,
             issued__gte=issued__gte,
             issued__lte=issued__lte,
-            distribution__byte_size__gte=distribution__byte_size__gte,
-            distribution__byte_size__lte=distribution__byte_size__lte,
-            distribution__mime_type=distribution__mime_type,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -976,18 +955,13 @@ class DatasetsApi:
         page: Optional[Annotated[int, Field(strict=True, ge=1)]] = None,
         page_size: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
         order_by: Optional[StrictStr] = None,
-        order_direction: Optional[OrderDirection] = None,
         search: Optional[StrictStr] = None,
         theme: Optional[List[StrictStr]] = None,
         is_local: Optional[StrictBool] = None,
         is_shared: Optional[StrictBool] = None,
-        creator__id: Optional[StrictStr] = None,
         issued: Optional[date] = None,
         issued__gte: Optional[date] = None,
         issued__lte: Optional[date] = None,
-        distribution__byte_size__gte: Optional[Annotated[int, Field(strict=True, ge=0)]] = None,
-        distribution__byte_size__lte: Optional[Annotated[int, Field(strict=True, ge=0)]] = None,
-        distribution__mime_type: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1011,8 +985,6 @@ class DatasetsApi:
         :type page_size: int
         :param order_by:
         :type order_by: str
-        :param order_direction:
-        :type order_direction: OrderDirection
         :param search:
         :type search: str
         :param theme:
@@ -1021,20 +993,12 @@ class DatasetsApi:
         :type is_local: bool
         :param is_shared:
         :type is_shared: bool
-        :param creator__id:
-        :type creator__id: str
         :param issued:
         :type issued: date
         :param issued__gte:
         :type issued__gte: date
         :param issued__lte:
         :type issued__lte: date
-        :param distribution__byte_size__gte:
-        :type distribution__byte_size__gte: int
-        :param distribution__byte_size__lte:
-        :type distribution__byte_size__lte: int
-        :param distribution__mime_type:
-        :type distribution__mime_type: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1061,18 +1025,13 @@ class DatasetsApi:
             page=page,
             page_size=page_size,
             order_by=order_by,
-            order_direction=order_direction,
             search=search,
             theme=theme,
             is_local=is_local,
             is_shared=is_shared,
-            creator__id=creator__id,
             issued=issued,
             issued__gte=issued__gte,
             issued__lte=issued__lte,
-            distribution__byte_size__gte=distribution__byte_size__gte,
-            distribution__byte_size__lte=distribution__byte_size__lte,
-            distribution__mime_type=distribution__mime_type,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1100,18 +1059,13 @@ class DatasetsApi:
         page: Optional[Annotated[int, Field(strict=True, ge=1)]] = None,
         page_size: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
         order_by: Optional[StrictStr] = None,
-        order_direction: Optional[OrderDirection] = None,
         search: Optional[StrictStr] = None,
         theme: Optional[List[StrictStr]] = None,
         is_local: Optional[StrictBool] = None,
         is_shared: Optional[StrictBool] = None,
-        creator__id: Optional[StrictStr] = None,
         issued: Optional[date] = None,
         issued__gte: Optional[date] = None,
         issued__lte: Optional[date] = None,
-        distribution__byte_size__gte: Optional[Annotated[int, Field(strict=True, ge=0)]] = None,
-        distribution__byte_size__lte: Optional[Annotated[int, Field(strict=True, ge=0)]] = None,
-        distribution__mime_type: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1135,8 +1089,6 @@ class DatasetsApi:
         :type page_size: int
         :param order_by:
         :type order_by: str
-        :param order_direction:
-        :type order_direction: OrderDirection
         :param search:
         :type search: str
         :param theme:
@@ -1145,20 +1097,12 @@ class DatasetsApi:
         :type is_local: bool
         :param is_shared:
         :type is_shared: bool
-        :param creator__id:
-        :type creator__id: str
         :param issued:
         :type issued: date
         :param issued__gte:
         :type issued__gte: date
         :param issued__lte:
         :type issued__lte: date
-        :param distribution__byte_size__gte:
-        :type distribution__byte_size__gte: int
-        :param distribution__byte_size__lte:
-        :type distribution__byte_size__lte: int
-        :param distribution__mime_type:
-        :type distribution__mime_type: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1185,18 +1129,13 @@ class DatasetsApi:
             page=page,
             page_size=page_size,
             order_by=order_by,
-            order_direction=order_direction,
             search=search,
             theme=theme,
             is_local=is_local,
             is_shared=is_shared,
-            creator__id=creator__id,
             issued=issued,
             issued__gte=issued__gte,
             issued__lte=issued__lte,
-            distribution__byte_size__gte=distribution__byte_size__gte,
-            distribution__byte_size__lte=distribution__byte_size__lte,
-            distribution__mime_type=distribution__mime_type,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1219,18 +1158,13 @@ class DatasetsApi:
         page,
         page_size,
         order_by,
-        order_direction,
         search,
         theme,
         is_local,
         is_shared,
-        creator__id,
         issued,
         issued__gte,
         issued__lte,
-        distribution__byte_size__gte,
-        distribution__byte_size__lte,
-        distribution__mime_type,
         _request_auth,
         _content_type,
         _headers,
@@ -1264,10 +1198,6 @@ class DatasetsApi:
             
             _query_params.append(('orderBy', order_by))
             
-        if order_direction is not None:
-            
-            _query_params.append(('orderDirection', order_direction.value))
-            
         if search is not None:
             
             _query_params.append(('search', search))
@@ -1283,10 +1213,6 @@ class DatasetsApi:
         if is_shared is not None:
             
             _query_params.append(('isShared', is_shared))
-            
-        if creator__id is not None:
-            
-            _query_params.append(('creator__id', creator__id))
             
         if issued is not None:
             if isinstance(issued, date):
@@ -1326,18 +1252,6 @@ class DatasetsApi:
                 )
             else:
                 _query_params.append(('issued__lte', issued__lte))
-            
-        if distribution__byte_size__gte is not None:
-            
-            _query_params.append(('distribution__byteSize__gte', distribution__byte_size__gte))
-            
-        if distribution__byte_size__lte is not None:
-            
-            _query_params.append(('distribution__byteSize__lte', distribution__byte_size__lte))
-            
-        if distribution__mime_type is not None:
-            
-            _query_params.append(('distribution__mimeType', distribution__mime_type))
             
         # process the header parameters
         # process the form parameters

@@ -219,7 +219,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **get_datasets**
-> PaginatedResultDataset get_datasets(page=page, page_size=page_size, order_by=order_by, order_direction=order_direction, search=search, theme=theme, is_local=is_local, is_shared=is_shared, creator__id=creator__id, issued=issued, issued__gte=issued__gte, issued__lte=issued__lte, distribution__byte_size__gte=distribution__byte_size__gte, distribution__byte_size__lte=distribution__byte_size__lte, distribution__mime_type=distribution__mime_type)
+> PaginatedResultDataset get_datasets(page=page, page_size=page_size, order_by=order_by, search=search, theme=theme, is_local=is_local, is_shared=is_shared, issued=issued, issued__gte=issued__gte, issued__lte=issued__lte)
 
 Get Datasets
 
@@ -230,7 +230,6 @@ Get the datasets list
 
 ```python
 import ds_catalog
-from ds_catalog.models.order_direction import OrderDirection
 from ds_catalog.models.paginated_result_dataset import PaginatedResultDataset
 from ds_catalog.rest import ApiException
 from pprint import pprint
@@ -249,22 +248,17 @@ with ds_catalog.ApiClient(configuration) as api_client:
     page = 56 # int |  (optional)
     page_size = 56 # int |  (optional)
     order_by = '' # str |  (optional) (default to '')
-    order_direction = ds_catalog.OrderDirection() # OrderDirection |  (optional)
     search = '' # str |  (optional) (default to '')
     theme = ['theme_example'] # List[str] |  (optional)
     is_local = True # bool |  (optional)
     is_shared = True # bool |  (optional)
-    creator__id = '' # str |  (optional) (default to '')
     issued = '2013-10-20' # date |  (optional)
     issued__gte = '2013-10-20' # date |  (optional)
     issued__lte = '2013-10-20' # date |  (optional)
-    distribution__byte_size__gte = 56 # int |  (optional)
-    distribution__byte_size__lte = 56 # int |  (optional)
-    distribution__mime_type = '' # str |  (optional) (default to '')
 
     try:
         # Get Datasets
-        api_response = api_instance.get_datasets(page=page, page_size=page_size, order_by=order_by, order_direction=order_direction, search=search, theme=theme, is_local=is_local, is_shared=is_shared, creator__id=creator__id, issued=issued, issued__gte=issued__gte, issued__lte=issued__lte, distribution__byte_size__gte=distribution__byte_size__gte, distribution__byte_size__lte=distribution__byte_size__lte, distribution__mime_type=distribution__mime_type)
+        api_response = api_instance.get_datasets(page=page, page_size=page_size, order_by=order_by, search=search, theme=theme, is_local=is_local, is_shared=is_shared, issued=issued, issued__gte=issued__gte, issued__lte=issued__lte)
         print("The response of DatasetsApi->get_datasets:\n")
         pprint(api_response)
     except Exception as e:
@@ -281,18 +275,13 @@ Name | Type | Description  | Notes
  **page** | **int**|  | [optional] 
  **page_size** | **int**|  | [optional] 
  **order_by** | **str**|  | [optional] [default to &#39;&#39;]
- **order_direction** | [**OrderDirection**](.md)|  | [optional] 
  **search** | **str**|  | [optional] [default to &#39;&#39;]
  **theme** | [**List[str]**](str.md)|  | [optional] 
  **is_local** | **bool**|  | [optional] 
  **is_shared** | **bool**|  | [optional] 
- **creator__id** | **str**|  | [optional] [default to &#39;&#39;]
  **issued** | **date**|  | [optional] 
  **issued__gte** | **date**|  | [optional] 
  **issued__lte** | **date**|  | [optional] 
- **distribution__byte_size__gte** | **int**|  | [optional] 
- **distribution__byte_size__lte** | **int**|  | [optional] 
- **distribution__mime_type** | **str**|  | [optional] [default to &#39;&#39;]
 
 ### Return type
 

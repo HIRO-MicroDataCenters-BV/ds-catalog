@@ -2,42 +2,55 @@ from datetime import date
 
 from pydantic import AnyUrl, Field
 
-from app.core.entities import catalog as catalog_entities
+from app.core import entities
 
 from .base import BaseModel
 from .person import Person
-from .utils import entity_to_dict, model_to_dict
+
+
+class Checksum(BaseModel):
+    algorithm: str
+    checksum_value: str
+
+    def to_entity(self) -> entities.Checksum:
+        return entities.Checksum(**self.model_dump())
+
+    @classmethod
+    def from_entity(cls, entity: entities.Checksum) -> "Checksum":
+        return cls(**entity.model_dump())
 
 
 class DataService(BaseModel):
     endpoint_url: str
 
-    def to_entity(self) -> catalog_entities.DataService:
-        return catalog_entities.DataService(**model_to_dict(self))
+    def to_entity(self) -> entities.DataService:
+        return entities.DataService(**self.model_dump())
 
     @classmethod
-    def from_entity(cls, entity: catalog_entities.DataService) -> "DataService":
-        return cls(**entity_to_dict(entity))
+    def from_entity(cls, entity: entities.DataService) -> "DataService":
+        return cls(**entity.model_dump())
 
 
 class Distribution(BaseModel):
-    bytesize: int | None = Field(gt=0)
-    mimetype: str
-    checksum: str
+    byte_size: int | None = Field(gt=0)
+    media_type: str
+    checksum: Checksum
     access_service: list[DataService]
 
-    def to_entity(self) -> catalog_entities.Distribution:
-        fields = model_to_dict(self, exclude_fields=set(["access_service"]))
-        return catalog_entities.Distribution(
+    def to_entity(self) -> entities.Distribution:
+        fields = self.model_dump(exclude=set(["checksum", "access_service"]))
+        return entities.Distribution(
             **fields,
+            checksum=self.checksum.to_entity(),
             access_service=[service.to_entity() for service in self.access_service],
         )
 
     @classmethod
-    def from_entity(cls, entity: catalog_entities.Distribution) -> "Distribution":
-        fields = entity_to_dict(entity, exclude_fields=set(["access_service"]))
+    def from_entity(cls, entity: entities.Distribution) -> "Distribution":
+        fields = entity.model_dump(exclude=set(["checksum", "access_service"]))
         return cls(
             **fields,
+            checksum=Checksum.from_entity(entity.checksum),
             access_service=[DataService.from_entity(i) for i in entity.access_service],
         )
 
@@ -52,17 +65,17 @@ class Dataset(BaseModel):
     creator: Person
     distribution: list[Distribution]
 
-    def to_entity(self) -> catalog_entities.Dataset:
-        fields = model_to_dict(self, exclude_fields=set(["creator", "distribution"]))
-        return catalog_entities.Dataset(
+    def to_entity(self) -> entities.Dataset:
+        fields = self.model_dump(exclude=set(["creator", "distribution"]))
+        return entities.Dataset(
             **fields,
             creator=self.creator.to_entity(),
             distribution=[i.to_entity() for i in self.distribution],
         )
 
     @classmethod
-    def from_entity(cls, entity: catalog_entities.Dataset) -> "Dataset":
-        fields = entity_to_dict(entity, exclude_fields=set(["creator", "distribution"]))
+    def from_entity(cls, entity: entities.Dataset) -> "Dataset":
+        fields = entity.model_dump(exclude=set(["creator", "distribution"]))
         return cls(
             **fields,
             creator=Person.from_entity(entity.creator),
@@ -75,16 +88,16 @@ class DatasetForm(BaseModel):
     theme: list[str]
     distribution: list[Distribution]
 
-    def to_entity(self) -> catalog_entities.DatasetInput:
-        fields = model_to_dict(self, exclude_fields=set(["distribution"]))
-        return catalog_entities.DatasetInput(
+    def to_entity(self) -> entities.DatasetInput:
+        fields = self.model_dump(exclude=set(["distribution"]))
+        return entities.DatasetInput(
             **fields,
             distribution=[i.to_entity() for i in self.distribution],
         )
 
     @classmethod
-    def from_entity(cls, entity: catalog_entities.DatasetInput) -> "DatasetForm":
-        fields = entity_to_dict(entity, exclude_fields=set(["distribution"]))
+    def from_entity(cls, entity: entities.DatasetInput) -> "DatasetForm":
+        fields = entity.model_dump(exclude=set(["distribution"]))
         return cls(
             **fields,
             distribution=[Distribution.from_entity(i) for i in entity.distribution],
@@ -101,16 +114,16 @@ class DatasetImportForm(BaseModel):
     theme: list[str]
     distribution: list[Distribution]
 
-    def to_entity(self) -> catalog_entities.DatasetImport:
-        fields = model_to_dict(self, exclude_fields=set(["distribution"]))
-        return catalog_entities.DatasetImport(
+    def to_entity(self) -> entities.DatasetImport:
+        fields = self.model_dump(exclude=set(["distribution"]))
+        return entities.DatasetImport(
             **fields,
             distribution=[i.to_entity() for i in self.distribution],
         )
 
     @classmethod
-    def from_entity(cls, entity: catalog_entities.DatasetImport) -> "DatasetImportForm":
-        fields = entity_to_dict(entity, exclude_fields=set(["distribution"]))
+    def from_entity(cls, entity: entities.DatasetImport) -> "DatasetImportForm":
+        fields = entity.model_dump(exclude=set(["distribution"]))
         return cls(
             **fields,
             distribution=[Distribution.from_entity(i) for i in entity.distribution],
