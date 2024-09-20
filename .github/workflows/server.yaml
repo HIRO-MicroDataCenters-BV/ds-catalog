@@ -16,6 +16,8 @@ on:
 env:
   REGISTRY: ghcr.io
   DOCKER_IMAGE_NAME: hiro-microdatacenters-bv/ds-catalog
+  DB_USERNAME: neo4j
+  DB_PASSWORD: 12345
 
 jobs:
   test_server:
@@ -26,6 +28,13 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.12"]
+    services:
+      neo4j:
+        image: neo4j:5.22.0
+        env:
+          NEO4J_AUTH: "${{ env.DB_USERNAME }}/${{ env.DB_PASSWORD }}"
+          DS__TEST_DATABASE__USERNAME: "${{ env.DB_USERNAME }}"
+          DS__TEST_DATABASE__PASSWORD: "${{ env.DB_PASSWORD }}"
     steps:
       - uses: actions/checkout@v4
 
@@ -50,7 +59,10 @@ jobs:
           poetry run black . --check --diff
 
       - name: Run tests
-        run: poetry run pytest
+        run: |
+          export DS__TEST_DATABASE__USERNAME="${{ env.DB_USERNAME }}"
+          export DS__TEST_DATABASE__PASSWORD="${{ env.DB_PASSWORD }}"
+          poetry run pytest
 
       - name: Verify OpenAPI spec has been updated
         run: |
