@@ -60,6 +60,8 @@ jobs:
 
       - name: Run tests
         run: |
+          export DS__TEST_DATABASE__HOST=neo4j
+          export DS__TEST_DATABASE__PORT=7687
           export DS__TEST_DATABASE__USERNAME="${{ env.DB_USERNAME }}"
           export DS__TEST_DATABASE__PASSWORD="${{ env.DB_PASSWORD }}"
           poetry run pytest
