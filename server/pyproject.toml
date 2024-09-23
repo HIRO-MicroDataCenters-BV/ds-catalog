@@ -24,6 +24,7 @@ pydantic-settings = "^2.5.2"
 neomodel = "^5.3.2"
 pytz = "^2024.2"
 types-pytz = "^2024.2.0.20240913"
+aiohttp = "^3.10.5"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.12"

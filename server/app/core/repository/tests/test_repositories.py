@@ -60,6 +60,19 @@ class TestCatalogItemRepository:
             await catalog_item_repo.get(query)
 
     @mark_async_db_test
+    async def test_exists(self) -> None:
+        dataset_entity = DatasetFactory.build()
+
+        query = DatasetsFilterByIdQuery(id=dataset_entity.identifier)
+        result = await catalog_item_repo.exists(query)
+        assert result is False
+
+        await catalog_item_repo.create(dataset_entity)
+
+        result = await catalog_item_repo.exists(query)
+        assert result is True
+
+    @mark_async_db_test
     async def test_create(self) -> None:
         dataset_entity = DatasetFactory.build()
         dataset_entity = await catalog_item_repo.create(dataset_entity)

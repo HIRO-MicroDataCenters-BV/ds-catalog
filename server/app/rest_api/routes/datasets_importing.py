@@ -3,13 +3,14 @@ from typing import Annotated
 from abc import ABC, abstractmethod
 
 from classy_fastapi import Routable, post
-from fastapi import Depends, Request, Response, status
+from fastapi import Depends, HTTPException, Request, Response, status
 
-from app.core import entities, usecases
+from app.core import entities, exceptions, usecases
 from app.core.context import Context
 
 from ..depends.user import get_user
 from ..serializers.catalog import Dataset, DatasetImportForm
+from ..strings import DATASET_ALREDY_EXISTS
 from ..tags import Tags
 
 
@@ -62,10 +63,18 @@ class DatasetsImportingRoutes(Routable):
         user: Annotated[entities.Person, Depends(get_user)],
     ) -> Dataset:
         """Import a dataset from the local catalog"""
+
         entity_input = data.to_entity()
-        entity_output = await self._usecases.import_data(
-            entity_input, context={"user": user}
-        )
+
+        try:
+            entity_output = await self._usecases.import_data(
+                entity_input, context={"user": user}
+            )
+        except exceptions.DatasetAlredyExists:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail=DATASET_ALREDY_EXISTS
+            )
+
         item_output = Dataset.from_entity(entity_output)
         response.headers["Location"] = str(
             request.url_for("get_dataset", id=entity_output.identifier)

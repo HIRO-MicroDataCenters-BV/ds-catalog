@@ -1,19 +1,28 @@
+from datetime import date
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+from pydantic import AnyUrl
 
 from ..context import Context
-from ..entities import NewDataset
-from ..exceptions import DatasetDoesNotExist
+from ..entities import Dataset, DatasetImport, NewDataset
+from ..exceptions import DatasetAlredyExists, DatasetDoesNotExist
 from ..repository.queries import DatasetsFilterByIdQuery
 from ..usecases import (
     create_dataset,
     delete_dataset,
     get_dataset,
     get_datasets_list,
+    import_dataset,
+    share_dataset,
     update_dataset,
 )
-from .factories import DatasetFactory, DatasetInputFactory, PersonFactory
+from .factories import (
+    DatasetFactory,
+    DatasetImportFactory,
+    DatasetInputFactory,
+    PersonFactory,
+)
 
 
 @pytest.fixture
@@ -146,10 +155,67 @@ class TestDeleteDataset:
 
 
 class TestShareDataset:
-    # TODO: implement
-    ...
+    @pytest.mark.asyncio
+    async def test_common(self, context: Context) -> None:
+        id = "1"
+        marketplace_url = AnyUrl("http://example.com/1/")
+
+        exists = DatasetFactory.build(is_shared=False)
+        updated = DatasetFactory.build()
+        imported = DatasetFactory.build()
+
+        repo = Mock()
+        repo.get = AsyncMock(return_value=exists)
+        repo.update = AsyncMock(return_value=updated)
+
+        gateway = Mock()
+        gateway.share_dataset = AsyncMock(return_value=imported)
+
+        result = await share_dataset(id, marketplace_url, context, repo, gateway)
+
+        assert result == imported
+        gateway.share_dataset.assert_called_once_with(
+            DatasetImport(**exists.model_dump()),
+            marketplace_url,
+        )
+        repo.update.assert_called_once_with(
+            Dataset(
+                **exists.model_dump(exclude=set(["is_shared"])),
+                is_shared=True,
+            )
+        )
 
 
 class TestImportDataset:
-    # TODO: implement
-    ...
+    @pytest.mark.asyncio
+    async def test_common(self, context: Context) -> None:
+        data = DatasetImportFactory.build()
+        created = DatasetFactory.build()
+
+        repo = Mock()
+        repo.exists = AsyncMock(return_value=False)
+        repo.create = AsyncMock(return_value=created)
+
+        result = await import_dataset(data, context, repo)
+
+        assert result == created
+        repo.exists.assert_called_once_with(DatasetsFilterByIdQuery(data.identifier))
+        repo.create.assert_called_once_with(
+            Dataset(
+                **data.model_dump(),
+                is_local=False,
+                is_shared=False,
+                creator=context["user"],
+                issued=date.today(),
+            )
+        )
+
+    @pytest.mark.asyncio
+    async def test_if_exists(self, context: Context) -> None:
+        data = DatasetImportFactory.build()
+
+        repo = Mock()
+        repo.exists = AsyncMock(return_value=True)
+
+        with pytest.raises(DatasetAlredyExists):
+            await import_dataset(data, context, repo)
