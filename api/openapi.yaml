@@ -397,6 +397,26 @@ components:
       - creator
       - distribution
       title: Dataset
+      examples:
+      - creator:
+          id: 14eb400e-3ba3-4aed-a7b5-de030af3e411
+          name: John Smith
+        distribution:
+        - accessService:
+          - endpointUrl: http://domain.com/dataset1/
+          byteSize: 512
+          checksum:
+            algorithm: md5
+            checksumValue: 202cb962ac59075b964b07152d234b70
+          mediaType: text
+        identifier: 9c208553-4685-473b-bdcc-466f724baae1
+        is_local: true
+        is_shared: false
+        issued: '2024-01-01'
+        theme:
+        - theme1
+        - theme2
+        title: Dataset 1
     DatasetForm:
       properties:
         title:
@@ -418,6 +438,19 @@ components:
       - theme
       - distribution
       title: DatasetForm
+      examples:
+      - distribution:
+        - accessService:
+          - endpointUrl: http://domain.com/dataset1/
+          byteSize: 512
+          checksum:
+            algorithm: md5
+            checksumValue: 202cb962ac59075b964b07152d234b70
+          mediaType: text
+        theme:
+        - theme1
+        - theme2
+        title: Dataset 1
     DatasetImportForm:
       properties:
         identifier:
@@ -443,6 +476,20 @@ components:
       - theme
       - distribution
       title: DatasetImportForm
+      examples:
+      - distribution:
+        - accessService:
+          - endpointUrl: http://domain.com/dataset1/
+          byteSize: 512
+          checksum:
+            algorithm: md5
+            checksumValue: 202cb962ac59075b964b07152d234b70
+          mediaType: text
+        identifier: 9c208553-4685-473b-bdcc-466f724baae1
+        theme:
+        - theme1
+        - theme2
+        title: Dataset 1
     DatasetShareForm:
       properties:
         marketplaceUrl:

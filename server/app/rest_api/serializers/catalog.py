@@ -65,6 +65,38 @@ class Dataset(BaseModel):
     creator: Person
     distribution: list[Distribution]
 
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "identifier": "9c208553-4685-473b-bdcc-466f724baae1",
+                    "title": "Dataset 1",
+                    "is_local": True,
+                    "is_shared": False,
+                    "issued": "2024-01-01",
+                    "theme": ["theme1", "theme2"],
+                    "creator": {
+                        "id": "14eb400e-3ba3-4aed-a7b5-de030af3e411",
+                        "name": "John Smith",
+                    },
+                    "distribution": [
+                        {
+                            "byteSize": 512,
+                            "mediaType": "text",
+                            "checksum": {
+                                "algorithm": "md5",
+                                "checksumValue": "202cb962ac59075b964b07152d234b70",
+                            },
+                            "accessService": [
+                                {"endpointUrl": "http://domain.com/dataset1/"}
+                            ],
+                        }
+                    ],
+                }
+            ]
+        }
+    }
+
     def to_entity(self) -> entities.Dataset:
         fields = self.model_dump(exclude=set(["creator", "distribution"]))
         return entities.Dataset(
@@ -87,6 +119,30 @@ class DatasetForm(BaseModel):
     title: str
     theme: list[str]
     distribution: list[Distribution]
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "title": "Dataset 1",
+                    "theme": ["theme1", "theme2"],
+                    "distribution": [
+                        {
+                            "byteSize": 512,
+                            "mediaType": "text",
+                            "checksum": {
+                                "algorithm": "md5",
+                                "checksumValue": "202cb962ac59075b964b07152d234b70",
+                            },
+                            "accessService": [
+                                {"endpointUrl": "http://domain.com/dataset1/"}
+                            ],
+                        }
+                    ],
+                }
+            ]
+        }
+    }
 
     def to_entity(self) -> entities.DatasetInput:
         fields = self.model_dump(exclude=set(["distribution"]))
@@ -113,6 +169,31 @@ class DatasetImportForm(BaseModel):
     title: str
     theme: list[str]
     distribution: list[Distribution]
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "identifier": "9c208553-4685-473b-bdcc-466f724baae1",
+                    "title": "Dataset 1",
+                    "theme": ["theme1", "theme2"],
+                    "distribution": [
+                        {
+                            "byteSize": 512,
+                            "mediaType": "text",
+                            "checksum": {
+                                "algorithm": "md5",
+                                "checksumValue": "202cb962ac59075b964b07152d234b70",
+                            },
+                            "accessService": [
+                                {"endpointUrl": "http://domain.com/dataset1/"}
+                            ],
+                        }
+                    ],
+                }
+            ]
+        }
+    }
 
     def to_entity(self) -> entities.DatasetImport:
         fields = self.model_dump(exclude=set(["distribution"]))
