@@ -8,7 +8,7 @@ from pydantic import AnyUrl
 
 from app.core import entities, usecases
 from app.core.context import Context
-from app.core.exceptions import DatasetDoesNotExist
+from app.core.exceptions import DatasetDoesNotExist, DatasetSharingError
 
 from ..depends.user import get_user
 from ..serializers.catalog import Dataset, DatasetShareForm
@@ -70,7 +70,9 @@ class DatasetsSharingRoutes(Routable):
         user: Annotated[entities.Person, Depends(get_user)],
     ) -> Dataset:
         """Share the dataset to the marketplace"""
+
         marketplace_url = data.marketplace_url
+
         try:
             entity_output = await self._usecases.share(
                 id, marketplace_url, context={"user": user}
@@ -80,6 +82,11 @@ class DatasetsSharingRoutes(Routable):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=DATASET_NOT_FOUND,
             )
+        except DatasetSharingError as err:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail=str(err)
+            )
+
         item_output = Dataset.from_entity(entity_output)
         response.headers["Location"] = str(
             request.url_for("get_dataset", id=entity_output.identifier)

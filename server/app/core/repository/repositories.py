@@ -30,6 +30,10 @@ class IRepository(ABC, Generic[TEntity, TNewEntity]):
         ...
 
     @abstractmethod
+    async def exists(self, query: IQuery) -> bool:
+        ...
+
+    @abstractmethod
     async def create(self, data: TNewEntity) -> TEntity:
         ...
 
@@ -62,6 +66,13 @@ class CatalogItemRepository(ICatalogItemRepository):
             return await self._to_entity(node)
         except DatasetNode.DoesNotExist as err:
             raise DatasetDoesNotExist(err)
+
+    async def exists(self, query: IQuery) -> bool:
+        try:
+            await query.apply(DatasetNode.nodes).first()
+            return True
+        except DatasetNode.DoesNotExist:
+            return False
 
     async def create(self, dataset_entity: NewDataset) -> Dataset:
         with db.transaction:

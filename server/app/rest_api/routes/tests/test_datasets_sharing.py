@@ -4,7 +4,7 @@ from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from pydantic_core import Url
 
-from app.core.exceptions import DatasetDoesNotExist
+from app.core.exceptions import DatasetDoesNotExist, DatasetSharingError
 from app.core.tests.factories import DatasetFactory
 from app.rest_api.depends.user import get_user
 from app.rest_api.serializers.catalog import Dataset, DatasetShareForm
@@ -65,3 +65,21 @@ class TestDatasetsSharingRoutes:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json()["detail"] == DATASET_NOT_FOUND
+
+    def test_share_dataset_if_creation_error(self) -> None:
+        marketplace_url = Url("https://example.com/import/")
+
+        form_input = DatasetShareForm(marketplace_url=marketplace_url)
+
+        usecases = Mock()
+        usecases.share = AsyncMock(side_effect=DatasetSharingError)
+
+        routes = DatasetsSharingRoutes(usecases=usecases)
+
+        client = create_test_client(routes.router)
+        response = client.post(
+            "/datasets/1/share/",
+            json=jsonable_encoder(form_input.model_dump(by_alias=True)),
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST

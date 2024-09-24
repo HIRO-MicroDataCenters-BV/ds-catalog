@@ -3,9 +3,11 @@ from unittest.mock import AsyncMock, Mock
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
 
+from app.core.exceptions import DatasetAlredyExists
 from app.core.tests.factories import DatasetFactory, DatasetImportFactory
 from app.rest_api.depends.user import get_user
 from app.rest_api.serializers.catalog import Dataset, DatasetImportForm
+from app.rest_api.strings import DATASET_ALREDY_EXISTS
 
 from ..datasets import DatasetsRoutes
 from ..datasets_importing import DatasetsImportingRoutes
@@ -23,11 +25,11 @@ class TestDatasetsImportingRoutes:
         usecases.import_data = AsyncMock(return_value=entity_output)
 
         catalog_routes = DatasetsRoutes(usecases=Mock())
-        sharing_routes = DatasetsImportingRoutes(usecases=usecases)
+        importing_routes = DatasetsImportingRoutes(usecases=usecases)
 
         client = create_test_client(
             catalog_routes.router,
-            sharing_routes.router,
+            importing_routes.router,
         )
         response = client.post(
             "/datasets/import/",
@@ -41,3 +43,21 @@ class TestDatasetsImportingRoutes:
         usecases.import_data.assert_called_once_with(
             form_input.to_entity(), context={"user": get_user()}
         )
+
+    def test_import_dataset_if_alredy_exists(self) -> None:
+        entity_input = DatasetImportFactory.build()
+        form_input = DatasetImportForm.from_entity(entity_input)
+
+        usecases = Mock()
+        usecases.import_data = AsyncMock(side_effect=DatasetAlredyExists)
+
+        routes = DatasetsImportingRoutes(usecases=usecases)
+        client = create_test_client(routes.router)
+
+        response = client.post(
+            "/datasets/import/",
+            json=jsonable_encoder(form_input.model_dump(by_alias=True)),
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json()["detail"] == DATASET_ALREDY_EXISTS

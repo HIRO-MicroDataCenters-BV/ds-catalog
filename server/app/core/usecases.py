@@ -1,7 +1,11 @@
+from datetime import date
+
 from pydantic import AnyUrl
 
 from .context import Context
 from .entities import Dataset, DatasetImport, DatasetInput, NewDataset
+from .exceptions import DatasetAlredyExists
+from .gateways import IMarketplaceGateway, marketplace_gateway
 from .repository import ICatalogItemRepository, catalog_item_repo
 from .repository.queries import DatasetsFilterByIdQuery, IQuery
 
@@ -57,17 +61,32 @@ async def share_dataset(
     marketplace_url: AnyUrl,
     context: Context,
     repo: ICatalogItemRepository = REPO,
+    marketplace_gateway_: IMarketplaceGateway = marketplace_gateway,
 ) -> Dataset:
-    # TODO: Implement
-    from .tests.factories import DatasetFactory
+    local_dataset = await repo.get(DatasetsFilterByIdQuery(id))
 
-    return DatasetFactory.build()
+    dataset_import = DatasetImport(**local_dataset.model_dump())
+    imported_dataset = await marketplace_gateway_.share_dataset(
+        dataset_import, marketplace_url
+    )
+
+    local_dataset.is_shared = True
+    await repo.update(local_dataset)
+
+    return imported_dataset
 
 
 async def import_dataset(
     data: DatasetImport, context: Context, repo: ICatalogItemRepository = REPO
 ) -> Dataset:
-    # TODO: Implement
-    from .tests.factories import DatasetFactory
+    if await repo.exists(DatasetsFilterByIdQuery(data.identifier)):
+        raise DatasetAlredyExists()
 
-    return DatasetFactory.build()
+    dataset = Dataset(
+        **data.model_dump(),
+        is_local=False,
+        is_shared=False,
+        creator=context["user"],
+        issued=date.today(),
+    )
+    return await repo.create(dataset)
