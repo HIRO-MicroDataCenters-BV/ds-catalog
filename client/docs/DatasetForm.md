@@ -6,6 +6,9 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **title** | **str** |  | 
+**description** | **str** |  | 
+**keyword** | **List[str]** |  | 
+**license** | **str** |  | 
 **theme** | **List[str]** |  | 
 **distribution** | [**List[Distribution]**](Distribution.md) |  | 
 

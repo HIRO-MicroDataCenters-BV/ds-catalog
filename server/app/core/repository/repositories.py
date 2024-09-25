@@ -171,6 +171,9 @@ class CatalogItemRepository(ICatalogItemRepository):
         return Dataset(
             identifier=dataset_node.identifier,
             title=dataset_node.title,
+            description=dataset_node.description,
+            keyword=dataset_node.keyword,
+            license=dataset_node.license,
             is_local=dataset_node.is_local,
             is_shared=dataset_node.is_shared,
             issued=dataset_node.issued,

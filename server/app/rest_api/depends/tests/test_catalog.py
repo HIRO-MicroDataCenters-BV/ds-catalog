@@ -13,6 +13,7 @@ class TestDatasetsFilter:
         result = await datasets_filter()
         assert result == DatasetsFilterDTO(
             search="",
+            keyword=None,
             theme=None,
             is_local=None,
             is_shared=None,
@@ -26,6 +27,7 @@ class TestDatasetsFilter:
         now = datetime.now().date()
         result = await datasets_filter(
             search="test",
+            keyword=["keyword1", "keyword2"],
             theme=["theme1", "theme2"],
             is_local=True,
             is_shared=False,
@@ -35,6 +37,7 @@ class TestDatasetsFilter:
         )
         assert result == DatasetsFilterDTO(
             search="test",
+            keyword=["keyword1", "keyword2"],
             theme=["theme1", "theme2"],
             is_local=True,
             is_shared=False,

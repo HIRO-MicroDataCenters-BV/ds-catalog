@@ -80,6 +80,9 @@ class TestCatalogItemRepository:
         dataset_node = await catalog_item_repo._get_node(dataset_entity)
 
         assert dataset_node.title == dataset_entity.title
+        assert dataset_node.description == dataset_entity.description
+        assert dataset_node.keyword == dataset_entity.keyword
+        assert dataset_node.license == dataset_entity.license
         assert dataset_node.theme == dataset_entity.theme
         assert dataset_node.is_local == dataset_entity.is_local
         assert dataset_node.is_shared == dataset_entity.is_shared

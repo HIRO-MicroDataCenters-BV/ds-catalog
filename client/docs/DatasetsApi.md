@@ -219,7 +219,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **get_datasets**
-> PaginatedResultDataset get_datasets(page=page, page_size=page_size, order_by=order_by, search=search, theme=theme, is_local=is_local, is_shared=is_shared, issued=issued, issued__gte=issued__gte, issued__lte=issued__lte)
+> PaginatedResultDataset get_datasets(page=page, page_size=page_size, order_by=order_by, search=search, keyword=keyword, theme=theme, is_local=is_local, is_shared=is_shared, issued=issued, issued__gte=issued__gte, issued__lte=issued__lte)
 
 Get Datasets
 
@@ -249,6 +249,7 @@ with ds_catalog.ApiClient(configuration) as api_client:
     page_size = 56 # int |  (optional)
     order_by = '' # str |  (optional) (default to '')
     search = '' # str |  (optional) (default to '')
+    keyword = ['keyword_example'] # List[str] |  (optional)
     theme = ['theme_example'] # List[str] |  (optional)
     is_local = True # bool |  (optional)
     is_shared = True # bool |  (optional)
@@ -258,7 +259,7 @@ with ds_catalog.ApiClient(configuration) as api_client:
 
     try:
         # Get Datasets
-        api_response = api_instance.get_datasets(page=page, page_size=page_size, order_by=order_by, search=search, theme=theme, is_local=is_local, is_shared=is_shared, issued=issued, issued__gte=issued__gte, issued__lte=issued__lte)
+        api_response = api_instance.get_datasets(page=page, page_size=page_size, order_by=order_by, search=search, keyword=keyword, theme=theme, is_local=is_local, is_shared=is_shared, issued=issued, issued__gte=issued__gte, issued__lte=issued__lte)
         print("The response of DatasetsApi->get_datasets:\n")
         pprint(api_response)
     except Exception as e:
@@ -276,6 +277,7 @@ Name | Type | Description  | Notes
  **page_size** | **int**|  | [optional] 
  **order_by** | **str**|  | [optional] [default to &#39;&#39;]
  **search** | **str**|  | [optional] [default to &#39;&#39;]
+ **keyword** | [**List[str]**](str.md)|  | [optional] 
  **theme** | [**List[str]**](str.md)|  | [optional] 
  **is_local** | **bool**|  | [optional] 
  **is_shared** | **bool**|  | [optional] 

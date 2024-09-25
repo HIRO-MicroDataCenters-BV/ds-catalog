@@ -29,9 +29,12 @@ class DatasetForm(BaseModel):
     DatasetForm
     """ # noqa: E501
     title: StrictStr
+    description: StrictStr
+    keyword: List[StrictStr]
+    license: StrictStr
     theme: List[StrictStr]
     distribution: List[Distribution]
-    __properties: ClassVar[List[str]] = ["title", "theme", "distribution"]
+    __properties: ClassVar[List[str]] = ["title", "description", "keyword", "license", "theme", "distribution"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -92,6 +95,9 @@ class DatasetForm(BaseModel):
 
         _obj = cls.model_validate({
             "title": obj.get("title"),
+            "description": obj.get("description"),
+            "keyword": obj.get("keyword"),
+            "license": obj.get("license"),
             "theme": obj.get("theme"),
             "distribution": [Distribution.from_dict(_item) for _item in obj["distribution"]] if obj.get("distribution") is not None else None
         })

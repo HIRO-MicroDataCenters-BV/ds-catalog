@@ -84,7 +84,7 @@ NEO4J_AUTH=neo4j/your_password
 
 4. Launch the project:
 ```bash
-poetry run uvicorn app.main:app [--reload]
+poetry run uvicorn app.main:app --reload
 ```
 or do it in two steps:
 ```bash

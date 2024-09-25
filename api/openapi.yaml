@@ -75,6 +75,16 @@ paths:
           type: string
           default: ''
           title: Search
+      - name: keyword
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: array
+            items:
+              type: string
+          - type: 'null'
+          title: Keyword
       - name: theme
         in: query
         required: false
@@ -364,6 +374,17 @@ components:
         title:
           type: string
           title: Title
+        description:
+          type: string
+          title: Description
+        keyword:
+          items:
+            type: string
+          type: array
+          title: Keyword
+        license:
+          type: string
+          title: License
         isLocal:
           type: boolean
           title: Islocal
@@ -390,6 +411,9 @@ components:
       required:
       - identifier
       - title
+      - description
+      - keyword
+      - license
       - isLocal
       - isShared
       - issued
@@ -401,6 +425,7 @@ components:
       - creator:
           id: 14eb400e-3ba3-4aed-a7b5-de030af3e411
           name: John Smith
+        description: Some description
         distribution:
         - accessService:
           - endpointUrl: http://domain.com/dataset1/
@@ -413,6 +438,10 @@ components:
         is_local: true
         is_shared: false
         issued: '2024-01-01'
+        keyword:
+        - keyword1
+        - keyword2
+        license: http://domain.com/license/
         theme:
         - theme1
         - theme2
@@ -422,6 +451,17 @@ components:
         title:
           type: string
           title: Title
+        description:
+          type: string
+          title: Description
+        keyword:
+          items:
+            type: string
+          type: array
+          title: Keyword
+        license:
+          type: string
+          title: License
         theme:
           items:
             type: string
@@ -435,11 +475,15 @@ components:
       type: object
       required:
       - title
+      - description
+      - keyword
+      - license
       - theme
       - distribution
       title: DatasetForm
       examples:
-      - distribution:
+      - description: Some description
+        distribution:
         - accessService:
           - endpointUrl: http://domain.com/dataset1/
           byteSize: 512
@@ -447,6 +491,10 @@ components:
             algorithm: md5
             checksumValue: 202cb962ac59075b964b07152d234b70
           mediaType: text
+        keyword:
+        - keyword1
+        - keyword2
+        license: http://domain.com/license/
         theme:
         - theme1
         - theme2
@@ -459,6 +507,17 @@ components:
         title:
           type: string
           title: Title
+        description:
+          type: string
+          title: Description
+        keyword:
+          items:
+            type: string
+          type: array
+          title: Keyword
+        license:
+          type: string
+          title: License
         theme:
           items:
             type: string
@@ -473,11 +532,15 @@ components:
       required:
       - identifier
       - title
+      - description
+      - keyword
+      - license
       - theme
       - distribution
       title: DatasetImportForm
       examples:
-      - distribution:
+      - description: Some description
+        distribution:
         - accessService:
           - endpointUrl: http://domain.com/dataset1/
           byteSize: 512
@@ -486,6 +549,10 @@ components:
             checksumValue: 202cb962ac59075b964b07152d234b70
           mediaType: text
         identifier: 9c208553-4685-473b-bdcc-466f724baae1
+        keyword:
+        - keyword1
+        - keyword2
+        license: http://domain.com/license/
         theme:
         - theme1
         - theme2

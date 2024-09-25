@@ -30,9 +30,12 @@ class DatasetImportForm(BaseModel):
     """ # noqa: E501
     identifier: StrictStr
     title: StrictStr
+    description: StrictStr
+    keyword: List[StrictStr]
+    license: StrictStr
     theme: List[StrictStr]
     distribution: List[Distribution]
-    __properties: ClassVar[List[str]] = ["identifier", "title", "theme", "distribution"]
+    __properties: ClassVar[List[str]] = ["identifier", "title", "description", "keyword", "license", "theme", "distribution"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -94,6 +97,9 @@ class DatasetImportForm(BaseModel):
         _obj = cls.model_validate({
             "identifier": obj.get("identifier"),
             "title": obj.get("title"),
+            "description": obj.get("description"),
+            "keyword": obj.get("keyword"),
+            "license": obj.get("license"),
             "theme": obj.get("theme"),
             "distribution": [Distribution.from_dict(_item) for _item in obj["distribution"]] if obj.get("distribution") is not None else None
         })

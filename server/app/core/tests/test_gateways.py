@@ -21,6 +21,9 @@ class TestMarketplaceGateway:
             response_json = {
                 "identifier": "1",
                 "title": "Test dataset",
+                "description": "Test description",
+                "keyword": ["keyword1"],
+                "license": "http://domain.com/license/",
                 "isLocal": False,
                 "isShared": False,
                 "issued": "2024-01-01",

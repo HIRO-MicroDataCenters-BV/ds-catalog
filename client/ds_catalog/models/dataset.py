@@ -32,13 +32,16 @@ class Dataset(BaseModel):
     """ # noqa: E501
     identifier: StrictStr
     title: StrictStr
+    description: StrictStr
+    keyword: List[StrictStr]
+    license: StrictStr
     is_local: StrictBool = Field(alias="isLocal")
     is_shared: StrictBool = Field(alias="isShared")
     issued: date
     theme: List[StrictStr]
     creator: Person
     distribution: List[Distribution]
-    __properties: ClassVar[List[str]] = ["identifier", "title", "isLocal", "isShared", "issued", "theme", "creator", "distribution"]
+    __properties: ClassVar[List[str]] = ["identifier", "title", "description", "keyword", "license", "isLocal", "isShared", "issued", "theme", "creator", "distribution"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -103,6 +106,9 @@ class Dataset(BaseModel):
         _obj = cls.model_validate({
             "identifier": obj.get("identifier"),
             "title": obj.get("title"),
+            "description": obj.get("description"),
+            "keyword": obj.get("keyword"),
+            "license": obj.get("license"),
             "isLocal": obj.get("isLocal"),
             "isShared": obj.get("isShared"),
             "issued": obj.get("issued"),

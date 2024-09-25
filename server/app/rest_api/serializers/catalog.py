@@ -58,6 +58,9 @@ class Distribution(BaseModel):
 class Dataset(BaseModel):
     identifier: str
     title: str
+    description: str
+    keyword: list[str]
+    license: str
     is_local: bool
     is_shared: bool
     issued: date
@@ -71,6 +74,9 @@ class Dataset(BaseModel):
                 {
                     "identifier": "9c208553-4685-473b-bdcc-466f724baae1",
                     "title": "Dataset 1",
+                    "description": "Some description",
+                    "keyword": ["keyword1", "keyword2"],
+                    "license": "http://domain.com/license/",
                     "is_local": True,
                     "is_shared": False,
                     "issued": "2024-01-01",
@@ -117,6 +123,9 @@ class Dataset(BaseModel):
 
 class DatasetForm(BaseModel):
     title: str
+    description: str
+    keyword: list[str]
+    license: str
     theme: list[str]
     distribution: list[Distribution]
 
@@ -125,6 +134,9 @@ class DatasetForm(BaseModel):
             "examples": [
                 {
                     "title": "Dataset 1",
+                    "description": "Some description",
+                    "keyword": ["keyword1", "keyword2"],
+                    "license": "http://domain.com/license/",
                     "theme": ["theme1", "theme2"],
                     "distribution": [
                         {
@@ -167,6 +179,9 @@ class DatasetShareForm(BaseModel):
 class DatasetImportForm(BaseModel):
     identifier: str
     title: str
+    description: str
+    keyword: list[str]
+    license: str
     theme: list[str]
     distribution: list[Distribution]
 
@@ -176,6 +191,9 @@ class DatasetImportForm(BaseModel):
                 {
                     "identifier": "9c208553-4685-473b-bdcc-466f724baae1",
                     "title": "Dataset 1",
+                    "description": "Some description",
+                    "keyword": ["keyword1", "keyword2"],
+                    "license": "http://domain.com/license/",
                     "theme": ["theme1", "theme2"],
                     "distribution": [
                         {

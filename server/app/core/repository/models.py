@@ -61,6 +61,9 @@ class DatasetNode(AsyncStructuredNode):
 
     identifier = UniqueIdProperty()
     title = StringProperty(required=True, index=True)
+    description = StringProperty(required=True)
+    keyword = ArrayProperty(StringProperty(), required=True)
+    license = StringProperty(required=True)
     issued = DateProperty(index=True, default=lambda: datetime.now(pytz.utc).date())
     theme = ArrayProperty(StringProperty(), required=True, index=True)
     is_local = BooleanProperty(index=True)

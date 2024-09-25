@@ -63,6 +63,9 @@ class TestDataset:
 
         assert entity.identifier == dataset.identifier
         assert entity.title == dataset.title
+        assert entity.description == dataset.description
+        assert entity.keyword == dataset.keyword
+        assert entity.license == dataset.license
         assert entity.is_local == dataset.is_local
         assert entity.is_shared == dataset.is_shared
         assert entity.issued == dataset.issued
@@ -76,6 +79,9 @@ class TestDataset:
 
         assert dataset.identifier == entity.identifier
         assert dataset.title == entity.title
+        assert entity.description == dataset.description
+        assert entity.keyword == dataset.keyword
+        assert entity.license == dataset.license
         assert dataset.is_local == entity.is_local
         assert dataset.is_shared == entity.is_shared
         assert dataset.issued == entity.issued
@@ -92,6 +98,9 @@ class TestDatasetForm:
         entity = dataset_form.to_entity()
 
         assert entity.title == dataset_form.title
+        assert entity.description == dataset_form.description
+        assert entity.keyword == dataset_form.keyword
+        assert entity.license == dataset_form.license
         assert entity.theme == dataset_form.theme
         assert entity.distribution == [i.to_entity() for i in dataset_form.distribution]
 
@@ -100,6 +109,9 @@ class TestDatasetForm:
         dataset_form = DatasetForm.from_entity(entity)
 
         assert dataset_form.title == entity.title
+        assert dataset_form.description == entity.description
+        assert dataset_form.keyword == entity.keyword
+        assert dataset_form.license == entity.license
         assert dataset_form.theme == entity.theme
         assert dataset_form.distribution == [
             Distribution.from_entity(i) for i in entity.distribution
@@ -113,6 +125,9 @@ class TestDatasetImportForm:
 
         assert entity.identifier == import_form.identifier
         assert entity.title == import_form.title
+        assert entity.description == import_form.description
+        assert entity.keyword == import_form.keyword
+        assert entity.license == import_form.license
         assert entity.theme == import_form.theme
         assert entity.distribution == [i.to_entity() for i in import_form.distribution]
 
@@ -122,6 +137,9 @@ class TestDatasetImportForm:
 
         assert import_form.identifier == entity.identifier
         assert import_form.title == entity.title
+        assert import_form.description == entity.description
+        assert import_form.keyword == entity.keyword
+        assert import_form.license == entity.license
         assert import_form.theme == entity.theme
         assert import_form.distribution == [
             Distribution.from_entity(i) for i in entity.distribution

@@ -26,6 +26,9 @@ class Distribution(BaseModel):
 
 class DatasetInput(BaseModel):
     title: str
+    description: str
+    keyword: list[str]
+    license: str
     theme: list[str]
     distribution: list[Distribution]
 

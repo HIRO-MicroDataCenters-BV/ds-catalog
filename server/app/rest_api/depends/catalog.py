@@ -9,6 +9,7 @@ from app.core.repository.queries import DatasetsFilterDTO
 
 async def datasets_filter(
     search: Annotated[str, Query()] = "",
+    keyword: Annotated[list[str] | None, Query()] = None,
     theme: Annotated[list[str] | None, Query()] = None,
     is_local: Annotated[bool | None, Query(alias="isLocal")] = None,
     is_shared: Annotated[bool | None, Query(alias="isShared")] = None,
@@ -18,6 +19,7 @@ async def datasets_filter(
 ) -> DatasetsFilterDTO:
     return {
         "search": search,
+        "keyword": keyword,
         "theme": theme,
         "is_local": is_local,
         "is_shared": is_shared,
