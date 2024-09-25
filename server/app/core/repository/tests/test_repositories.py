@@ -15,7 +15,7 @@ from ..models import (
 )
 from ..queries.catalog import DatasetsFilterByIdQuery
 from ..queries.list import OrderQuery
-from ..repositories import catalog_item_repo
+from ..repositories import CatalogItemRepository
 from .helpers import clean_db, compare_sets_by_field, connect_db, mark_async_db_test
 
 
@@ -32,8 +32,15 @@ def clean_db_before_each_test() -> None:
 
 
 class TestCatalogItemRepository:
+    @pytest.fixture
+    def catalog_item_repo(self) -> CatalogItemRepository:
+        return CatalogItemRepository(
+            title="TestCatalog",
+            description="Test description",
+        )
+
     @mark_async_db_test
-    async def test_list(self) -> None:
+    async def test_list(self, catalog_item_repo: CatalogItemRepository) -> None:
         dataset_entities = DatasetFactory.batch(2)
         for dataset_entity in dataset_entities:
             await catalog_item_repo.create(dataset_entity)
@@ -44,7 +51,7 @@ class TestCatalogItemRepository:
         assert compare_sets_by_field(result, dataset_entities, "identifier")
 
     @mark_async_db_test
-    async def test_get(self) -> None:
+    async def test_get(self, catalog_item_repo: CatalogItemRepository) -> None:
         dataset_entity = DatasetFactory.build()
         dataset_entity = await catalog_item_repo.create(dataset_entity)
 
@@ -54,13 +61,15 @@ class TestCatalogItemRepository:
         assert result == dataset_entity
 
     @mark_async_db_test
-    async def test_get_if_not_exist(self) -> None:
+    async def test_get_if_not_exist(
+        self, catalog_item_repo: CatalogItemRepository
+    ) -> None:
         with pytest.raises(DatasetDoesNotExist):
             query = DatasetsFilterByIdQuery(id="123")
             await catalog_item_repo.get(query)
 
     @mark_async_db_test
-    async def test_exists(self) -> None:
+    async def test_exists(self, catalog_item_repo: CatalogItemRepository) -> None:
         dataset_entity = DatasetFactory.build()
 
         query = DatasetsFilterByIdQuery(id=dataset_entity.identifier)
@@ -74,6 +83,14 @@ class TestCatalogItemRepository:
 
     @mark_async_db_test
     async def test_create(self) -> None:
+        catalog_title = "TestCatalog"
+        catalog_description = "Test description"
+
+        catalog_item_repo = CatalogItemRepository(
+            title=catalog_title,
+            description=catalog_description,
+        )
+
         dataset_entity = DatasetFactory.build()
         dataset_entity = await catalog_item_repo.create(dataset_entity)
 
@@ -94,6 +111,8 @@ class TestCatalogItemRepository:
 
         catalog_node = await dataset_node.catalog.get_or_none()
         assert catalog_node is not None
+        assert catalog_node.title == catalog_title
+        assert catalog_node.description == catalog_description
         assert await catalog_node.creator.get() == creator_node
         assert await catalog_node.dataset.all() == [dataset_node]
         assert await catalog_node.service.all() == await dataset_node.services.all()
@@ -117,7 +136,7 @@ class TestCatalogItemRepository:
         assert service_node.endpoint_url == service_entity.endpoint_url
 
     @mark_async_db_test
-    async def test_update(self) -> None:
+    async def test_update(self, catalog_item_repo: CatalogItemRepository) -> None:
         exists_entity = await catalog_item_repo.create(DatasetFactory.build())
         await catalog_item_repo._get_node(exists_entity)
 
@@ -139,7 +158,7 @@ class TestCatalogItemRepository:
         assert await catalog_node.service.all() == await dataset_node.services.all()
 
     @mark_async_db_test
-    async def test_delete_node(self) -> None:
+    async def test_delete_node(self, catalog_item_repo: CatalogItemRepository) -> None:
         dataset_entity = DatasetFactory.build()
         dataset_entity = await catalog_item_repo.create(dataset_entity)
 

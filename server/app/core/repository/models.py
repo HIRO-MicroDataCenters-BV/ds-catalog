@@ -36,6 +36,8 @@ class CatalogNode(AsyncStructuredNode):
     __label__ = "Catalog"
 
     identifier = StringProperty(unique_index=True, required=True)
+    title = StringProperty(required=True, index=True)
+    description = StringProperty(required=True)
     creator = AsyncRelationshipTo(
         PersonNode,
         "CREATOR",

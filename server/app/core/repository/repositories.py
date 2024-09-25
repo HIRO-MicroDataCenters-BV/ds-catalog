@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 
 from neomodel import db
 
+from app.settings import get_settings
+
 from ..entities import Checksum, DataService, Dataset, Distribution, NewDataset, Person
 from ..exceptions import DatasetDoesNotExist
 from .models import (
@@ -51,6 +53,10 @@ class ICatalogItemRepository(IRepository[Dataset, NewDataset]):
 
 
 class CatalogItemRepository(ICatalogItemRepository):
+    def __init__(self, title: str, description: str) -> None:
+        self._titile = title
+        self._description = description
+
     async def list(self, query: IQuery) -> list[Dataset]:
         # TODO: Optimize nested queries to the database
         nodes = await query.apply(DatasetNode.nodes)
@@ -200,7 +206,14 @@ class CatalogItemRepository(ICatalogItemRepository):
         catalog = await CatalogNode.nodes.get_or_none(identifier=identifier)
         if catalog is not None:
             return catalog, False
-        return await CatalogNode(identifier=identifier).save(), True
+        return (
+            await CatalogNode(
+                identifier=identifier,
+                title=self._titile,
+                description=self._description,
+            ).save(),
+            True,
+        )
 
     async def _get_node(self, dataset_entity: Dataset) -> DatasetNode:
         try:
@@ -246,4 +259,8 @@ class CatalogItemRepository(ICatalogItemRepository):
             await dataset_node.distribution.connect(distribution_node)
 
 
-catalog_item_repo = CatalogItemRepository()
+settings = get_settings()
+catalog_item_repo = CatalogItemRepository(
+    title=settings.catalog.title,
+    description=settings.catalog.description,
+)
