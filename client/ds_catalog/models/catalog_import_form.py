@@ -18,32 +18,18 @@ import pprint
 import re  # noqa: F401
 import json
 
-from datetime import date
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr
+from pydantic import BaseModel, ConfigDict, StrictStr
 from typing import Any, ClassVar, Dict, List
-from ds_catalog.models.catalog import Catalog
-from ds_catalog.models.distribution import Distribution
-from ds_catalog.models.person import Person
 from typing import Optional, Set
 from typing_extensions import Self
 
-class Dataset(BaseModel):
+class CatalogImportForm(BaseModel):
     """
-    Dataset
+    CatalogImportForm
     """ # noqa: E501
-    identifier: StrictStr
     title: StrictStr
     description: StrictStr
-    keyword: List[StrictStr]
-    license: StrictStr
-    is_local: StrictBool = Field(alias="isLocal")
-    is_shared: StrictBool = Field(alias="isShared")
-    issued: date
-    theme: List[StrictStr]
-    catalog: Catalog
-    creator: Person
-    distribution: List[Distribution]
-    __properties: ClassVar[List[str]] = ["identifier", "title", "description", "keyword", "license", "isLocal", "isShared", "issued", "theme", "catalog", "creator", "distribution"]
+    __properties: ClassVar[List[str]] = ["title", "description"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -63,7 +49,7 @@ class Dataset(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of Dataset from a JSON string"""
+        """Create an instance of CatalogImportForm from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -84,24 +70,11 @@ class Dataset(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of catalog
-        if self.catalog:
-            _dict['catalog'] = self.catalog.to_dict()
-        # override the default output from pydantic by calling `to_dict()` of creator
-        if self.creator:
-            _dict['creator'] = self.creator.to_dict()
-        # override the default output from pydantic by calling `to_dict()` of each item in distribution (list)
-        _items = []
-        if self.distribution:
-            for _item_distribution in self.distribution:
-                if _item_distribution:
-                    _items.append(_item_distribution.to_dict())
-            _dict['distribution'] = _items
         return _dict
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of Dataset from a dict"""
+        """Create an instance of CatalogImportForm from a dict"""
         if obj is None:
             return None
 
@@ -109,18 +82,8 @@ class Dataset(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "identifier": obj.get("identifier"),
             "title": obj.get("title"),
-            "description": obj.get("description"),
-            "keyword": obj.get("keyword"),
-            "license": obj.get("license"),
-            "isLocal": obj.get("isLocal"),
-            "isShared": obj.get("isShared"),
-            "issued": obj.get("issued"),
-            "theme": obj.get("theme"),
-            "catalog": Catalog.from_dict(obj["catalog"]) if obj.get("catalog") is not None else None,
-            "creator": Person.from_dict(obj["creator"]) if obj.get("creator") is not None else None,
-            "distribution": [Distribution.from_dict(_item) for _item in obj["distribution"]] if obj.get("distribution") is not None else None
+            "description": obj.get("description")
         })
         return _obj
 

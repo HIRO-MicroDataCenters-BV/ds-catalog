@@ -65,6 +65,8 @@ poetry install --no-root --with dev,test
 
 3. Create .env file from the template .env.template:
 ```bash
+NEO4J_AUTH=neo4j/your_password
+
 DS__DATABASE__PROTOCOL=neo4j
 DS__DATABASE__HOST=localhost
 DS__DATABASE__PORT=7687
@@ -79,12 +81,13 @@ DS__TEST_DATABASE__NAME=neo4j
 DS__TEST_DATABASE__USERNAME=neo4j
 DS__TEST_DATABASE__PASSWORD=your_password
 
-NEO4J_AUTH=neo4j/your_password
+DS__CATALOG__TITLE="Local catalog"
+DS__CATALOG__DESCRIPTION="My local catalog"
 ```
 
 4. Launch the project:
 ```bash
-poetry run uvicorn app.main:app [--reload]
+poetry run uvicorn app.main:app --reload
 ```
 or do it in two steps:
 ```bash

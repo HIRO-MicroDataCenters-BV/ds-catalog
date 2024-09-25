@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 from pydantic import AnyUrl
 
-from ..context import Context
-from ..entities import Dataset, DatasetImport, NewDataset
+from ..context import Context, CreateDatasetContext
+from ..entities import Catalog, Dataset, DatasetImport, NewDataset
 from ..exceptions import DatasetAlredyExists, DatasetDoesNotExist
 from ..repository.queries import DatasetsFilterByIdQuery
 from ..usecases import (
@@ -75,15 +75,28 @@ class TestGetDataset:
 
 class TestCreateDataset:
     @pytest.mark.asyncio
-    async def test_common(self, context: Context) -> None:
+    async def test_common(self) -> None:
+        catalog_title = "Test catalog"
+        catalog_description = "Test catalog description"
+
+        context = CreateDatasetContext(
+            user=PersonFactory.build(),
+            catalog_title=catalog_title,
+            catalog_description=catalog_description,
+        )
+
         input = DatasetInputFactory.build()
         output = DatasetFactory.build()
-
         updated = NewDataset(
             **input.model_dump(),
             is_local=True,
             is_shared=False,
             creator=context["user"],
+            catalog=Catalog(
+                identifier=context["user"].id,
+                title=catalog_title,
+                description=catalog_description,
+            ),
         )
 
         repo = Mock()
@@ -202,11 +215,15 @@ class TestImportDataset:
         repo.exists.assert_called_once_with(DatasetsFilterByIdQuery(data.identifier))
         repo.create.assert_called_once_with(
             Dataset(
-                **data.model_dump(),
+                **data.model_dump(exclude=set(["catalog"])),
                 is_local=False,
                 is_shared=False,
-                creator=context["user"],
                 issued=date.today(),
+                creator=context["user"],
+                catalog=Catalog(
+                    **data.catalog.model_dump(),
+                    identifier=context["user"].id,
+                ),
             )
         )
 

@@ -137,6 +137,8 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [Catalog](docs/Catalog.md)
+ - [CatalogImportForm](docs/CatalogImportForm.md)
  - [Checksum](docs/Checksum.md)
  - [DataService](docs/DataService.md)
  - [Dataset](docs/Dataset.md)

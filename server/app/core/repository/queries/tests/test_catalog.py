@@ -23,6 +23,7 @@ from ..catalog import (
     DatasetsIssuedGteQuery,
     DatasetsIssuedLteQuery,
     DatasetsIssuedQuery,
+    DatasetsKeywordQuery,
     DatasetsSearchQuery,
     DatasetsThemeQuery,
 )
@@ -58,14 +59,34 @@ class TestDatasetsSearchQuery:
         term = "test term"
 
         entity1 = DatasetFactory.build(title=f"some text {term} some text")
-        entity2 = DatasetFactory.build()
+        entity2 = DatasetFactory.build(description=f"another text with {term}")
+        entity3 = DatasetFactory.build()
 
-        await create_dataset_nodes([entity1, entity2])
+        await create_dataset_nodes([entity1, entity2, entity3])
 
         query = DatasetsSearchQuery(term)
         result = await query.apply(DatasetNode.nodes).all()
 
-        assert compare_sets_by_field(result, [entity1], "identifier")
+        assert compare_sets_by_field(result, [entity1, entity2], "identifier")
+
+
+class TestDatasetsKeywordQuery:
+    @mark_async_db_test
+    async def test_common(self) -> None:
+        keyword1 = "keyword1"
+        keyword2 = "keyword2"
+
+        entity1 = DatasetFactory.build(keyword=[keyword1, keyword2])
+        entity2 = DatasetFactory.build(keyword=[keyword1])
+        entity3 = DatasetFactory.build(keyword=[keyword2, "some keyword"])
+        entity4 = DatasetFactory.build()
+
+        await create_dataset_nodes([entity1, entity2, entity3, entity4])
+
+        query = DatasetsKeywordQuery([keyword1, keyword2])
+        result = await query.apply(DatasetNode.nodes).all()
+
+        assert compare_sets_by_field(result, [entity1, entity2, entity3], "identifier")
 
 
 class TestDatasetsThemeQuery:
@@ -170,12 +191,14 @@ class TestDatasetsFilterQuery:
     async def test_common(self) -> None:
         title = "term"
         theme = ["theme"]
+        keyword = ["keyword"]
         is_local = True
         is_shared = False
         issued = date(2024, 1, 1)
 
         entity1 = DatasetFactory.build(
             title=title,
+            keyword=keyword,
             theme=theme,
             is_local=is_local,
             is_shared=is_shared,
@@ -187,6 +210,7 @@ class TestDatasetsFilterQuery:
 
         dto = DatasetsFilterDTO(
             search=title,
+            keyword=keyword,
             theme=theme,
             is_local=is_local,
             is_shared=is_shared,
@@ -208,6 +232,7 @@ class TestDatasetsFilterQuery:
 
         dto = DatasetsFilterDTO(
             search="",
+            keyword=None,
             theme=None,
             is_local=None,
             is_shared=None,

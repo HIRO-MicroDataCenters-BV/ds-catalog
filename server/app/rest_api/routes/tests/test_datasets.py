@@ -9,8 +9,16 @@ from app.rest_api.serializers.catalog import Dataset, DatasetForm
 from app.rest_api.serializers.common import PaginatedResult
 from app.rest_api.strings import DATASET_NOT_FOUND
 
-from ..datasets import DatasetsRoutes
+from ..datasets import DatasetsRoutes, IDatasetsUsecases
 from .helpers import create_test_client
+
+
+def dataset_routes_fabric(usecases: IDatasetsUsecases) -> DatasetsRoutes:
+    return DatasetsRoutes(
+        usecases=usecases,
+        local_catalog_title="Test catalog",
+        local_catalog_description="Test catalog description",
+    )
 
 
 class TestDatasetsRoutes:
@@ -28,7 +36,7 @@ class TestDatasetsRoutes:
         usecases = Mock()
         usecases.list = AsyncMock(return_value=entities_output)
 
-        routes = DatasetsRoutes(usecases=usecases)
+        routes = dataset_routes_fabric(usecases)
 
         client = create_test_client(routes.router)
         response = client.get(
@@ -53,7 +61,7 @@ class TestDatasetsRoutes:
         usecases = Mock()
         usecases.get = AsyncMock(return_value=entity_output)
 
-        routes = DatasetsRoutes(usecases=usecases)
+        routes = dataset_routes_fabric(usecases)
 
         client = create_test_client(routes.router)
         response = client.get(f"/datasets/{entity_output.identifier}/")
@@ -68,7 +76,7 @@ class TestDatasetsRoutes:
         usecases = Mock()
         usecases.get = AsyncMock(side_effect=DatasetDoesNotExist)
 
-        routes = DatasetsRoutes(usecases=usecases)
+        routes = dataset_routes_fabric(usecases)
 
         client = create_test_client(routes.router)
         response = client.get("/datasets/1/")
@@ -77,6 +85,9 @@ class TestDatasetsRoutes:
         assert response.json()["detail"] == DATASET_NOT_FOUND
 
     def test_create_dataset(self) -> None:
+        catalog_title = "Test catalog"
+        catalog_description = "Test catalog description"
+
         entity_input = DatasetInputFactory.build()
         entity_output = DatasetFactory.build()
         item_input = DatasetForm.from_entity(entity_input)
@@ -85,7 +96,11 @@ class TestDatasetsRoutes:
         usecases = Mock()
         usecases.create = AsyncMock(return_value=entity_output)
 
-        routes = DatasetsRoutes(usecases=usecases)
+        routes = DatasetsRoutes(
+            usecases=usecases,
+            local_catalog_title=catalog_title,
+            local_catalog_description=catalog_description,
+        )
 
         client = create_test_client(routes.router)
         response = client.post(
@@ -98,7 +113,12 @@ class TestDatasetsRoutes:
         assert "Location" in response.headers
         assert f"/datasets/{entity_output.identifier}" in response.headers["Location"]
         usecases.create.assert_called_once_with(
-            item_input.to_entity(), context={"user": get_user()}
+            item_input.to_entity(),
+            context={
+                "user": get_user(),
+                "catalog_title": catalog_title,
+                "catalog_description": catalog_description,
+            },
         )
 
     def test_update_dataset(self) -> None:
@@ -111,7 +131,7 @@ class TestDatasetsRoutes:
         usecases = Mock()
         usecases.update = AsyncMock(return_value=entity_output)
 
-        routes = DatasetsRoutes(usecases=usecases)
+        routes = dataset_routes_fabric(usecases)
 
         client = create_test_client(routes.router)
         response = client.patch(
@@ -132,7 +152,7 @@ class TestDatasetsRoutes:
         usecases = Mock()
         usecases.update = AsyncMock(side_effect=DatasetDoesNotExist)
 
-        routes = DatasetsRoutes(usecases=usecases)
+        routes = dataset_routes_fabric(usecases)
 
         client = create_test_client(routes.router)
         response = client.patch(
@@ -149,7 +169,7 @@ class TestDatasetsRoutes:
         usecases = Mock()
         usecases.delete = AsyncMock()
 
-        routes = DatasetsRoutes(usecases=usecases)
+        routes = dataset_routes_fabric(usecases)
 
         client = create_test_client(routes.router)
         response = client.delete(f"/datasets/{id}/")
@@ -161,7 +181,7 @@ class TestDatasetsRoutes:
         usecases = Mock()
         usecases.delete = AsyncMock(side_effect=DatasetDoesNotExist)
 
-        routes = DatasetsRoutes(usecases=usecases)
+        routes = dataset_routes_fabric(usecases)
 
         client = create_test_client(routes.router)
         response = client.delete("/datasets/1/")

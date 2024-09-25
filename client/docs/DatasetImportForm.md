@@ -7,7 +7,11 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **identifier** | **str** |  | 
 **title** | **str** |  | 
+**description** | **str** |  | 
+**keyword** | **List[str]** |  | 
+**license** | **str** |  | 
 **theme** | **List[str]** |  | 
+**catalog** | [**CatalogImportForm**](CatalogImportForm.md) |  | 
 **distribution** | [**List[Distribution]**](Distribution.md) |  | 
 
 ## Example

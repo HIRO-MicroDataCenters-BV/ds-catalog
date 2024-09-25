@@ -11,6 +11,11 @@ class Database(BaseModel):
     password: str = "neo4j"
 
 
+class Catalog(BaseModel):
+    title: str = "Local catalog"
+    description: str = ""
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -23,6 +28,8 @@ class Settings(BaseSettings):
 
     database: Database = Database()
     test_database: Database = Database()
+
+    catalog: Catalog = Catalog()
 
 
 def get_settings() -> Settings:

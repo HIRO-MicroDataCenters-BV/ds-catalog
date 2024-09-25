@@ -3,7 +3,7 @@ from typing import TypedDict
 from dataclasses import dataclass, fields
 from datetime import date
 
-from neomodel import AsyncNodeSet
+from neomodel import AsyncNodeSet, Q
 
 from .interface import IQuery
 
@@ -21,7 +21,17 @@ class DatasetsSearchQuery(IQuery):
     term: str
 
     def apply(self, query: AsyncNodeSet) -> AsyncNodeSet:
-        return query.filter(title__icontains=self.term)
+        return query.filter(
+            Q(title__icontains=self.term) | Q(description__icontains=self.term)
+        )
+
+
+@dataclass
+class DatasetsKeywordQuery(IQuery):
+    keyword: list[str]
+
+    def apply(self, query: AsyncNodeSet) -> AsyncNodeSet:
+        return query.filter(keyword__in=self.keyword)
 
 
 @dataclass
@@ -74,6 +84,7 @@ class DatasetsIssuedLteQuery(IQuery):
 
 class DatasetsFilterDTO(TypedDict):
     search: str
+    keyword: list[str] | None
     theme: list[str] | None
     is_local: bool | None
     is_shared: bool | None
@@ -85,6 +96,7 @@ class DatasetsFilterDTO(TypedDict):
 @dataclass
 class DatasetsFilterQuery(IQuery):
     search: str
+    keyword: list[str] | None
     theme: list[str] | None
     is_local: bool | None
     is_shared: bool | None
@@ -94,6 +106,7 @@ class DatasetsFilterQuery(IQuery):
 
     query_map = {
         "search": DatasetsSearchQuery,
+        "keyword": DatasetsKeywordQuery,
         "theme": DatasetsThemeQuery,
         "is_local": DatasetsIsLocalQuery,
         "is_shared": DatasetsIsSharedQuery,

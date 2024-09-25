@@ -852,6 +852,7 @@ class DatasetsApi:
         page_size: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
         order_by: Optional[StrictStr] = None,
         search: Optional[StrictStr] = None,
+        keyword: Optional[List[StrictStr]] = None,
         theme: Optional[List[StrictStr]] = None,
         is_local: Optional[StrictBool] = None,
         is_shared: Optional[StrictBool] = None,
@@ -883,6 +884,8 @@ class DatasetsApi:
         :type order_by: str
         :param search:
         :type search: str
+        :param keyword:
+        :type keyword: List[str]
         :param theme:
         :type theme: List[str]
         :param is_local:
@@ -922,6 +925,7 @@ class DatasetsApi:
             page_size=page_size,
             order_by=order_by,
             search=search,
+            keyword=keyword,
             theme=theme,
             is_local=is_local,
             is_shared=is_shared,
@@ -956,6 +960,7 @@ class DatasetsApi:
         page_size: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
         order_by: Optional[StrictStr] = None,
         search: Optional[StrictStr] = None,
+        keyword: Optional[List[StrictStr]] = None,
         theme: Optional[List[StrictStr]] = None,
         is_local: Optional[StrictBool] = None,
         is_shared: Optional[StrictBool] = None,
@@ -987,6 +992,8 @@ class DatasetsApi:
         :type order_by: str
         :param search:
         :type search: str
+        :param keyword:
+        :type keyword: List[str]
         :param theme:
         :type theme: List[str]
         :param is_local:
@@ -1026,6 +1033,7 @@ class DatasetsApi:
             page_size=page_size,
             order_by=order_by,
             search=search,
+            keyword=keyword,
             theme=theme,
             is_local=is_local,
             is_shared=is_shared,
@@ -1060,6 +1068,7 @@ class DatasetsApi:
         page_size: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
         order_by: Optional[StrictStr] = None,
         search: Optional[StrictStr] = None,
+        keyword: Optional[List[StrictStr]] = None,
         theme: Optional[List[StrictStr]] = None,
         is_local: Optional[StrictBool] = None,
         is_shared: Optional[StrictBool] = None,
@@ -1091,6 +1100,8 @@ class DatasetsApi:
         :type order_by: str
         :param search:
         :type search: str
+        :param keyword:
+        :type keyword: List[str]
         :param theme:
         :type theme: List[str]
         :param is_local:
@@ -1130,6 +1141,7 @@ class DatasetsApi:
             page_size=page_size,
             order_by=order_by,
             search=search,
+            keyword=keyword,
             theme=theme,
             is_local=is_local,
             is_shared=is_shared,
@@ -1159,6 +1171,7 @@ class DatasetsApi:
         page_size,
         order_by,
         search,
+        keyword,
         theme,
         is_local,
         is_shared,
@@ -1174,6 +1187,7 @@ class DatasetsApi:
         _host = None
 
         _collection_formats: Dict[str, str] = {
+            'keyword': 'multi',
             'theme': 'multi',
         }
 
@@ -1201,6 +1215,10 @@ class DatasetsApi:
         if search is not None:
             
             _query_params.append(('search', search))
+            
+        if keyword is not None:
+            
+            _query_params.append(('keyword', keyword))
             
         if theme is not None:
             

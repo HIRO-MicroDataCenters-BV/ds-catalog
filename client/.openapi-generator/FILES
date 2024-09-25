@@ -1,4 +1,6 @@
 README.md
+docs/Catalog.md
+docs/CatalogImportForm.md
 docs/Checksum.md
 docs/DataService.md
 docs/Dataset.md
@@ -27,6 +29,8 @@ ds_catalog/api_response.py
 ds_catalog/configuration.py
 ds_catalog/exceptions.py
 ds_catalog/models/__init__.py
+ds_catalog/models/catalog.py
+ds_catalog/models/catalog_import_form.py
 ds_catalog/models/checksum.py
 ds_catalog/models/data_service.py
 ds_catalog/models/dataset.py

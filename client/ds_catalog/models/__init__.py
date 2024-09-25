@@ -15,6 +15,8 @@
 
 
 # import models into model package
+from ds_catalog.models.catalog import Catalog
+from ds_catalog.models.catalog_import_form import CatalogImportForm
 from ds_catalog.models.checksum import Checksum
 from ds_catalog.models.data_service import DataService
 from ds_catalog.models.dataset import Dataset

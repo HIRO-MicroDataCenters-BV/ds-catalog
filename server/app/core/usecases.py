@@ -2,8 +2,8 @@ from datetime import date
 
 from pydantic import AnyUrl
 
-from .context import Context
-from .entities import Dataset, DatasetImport, DatasetInput, NewDataset
+from .context import Context, CreateDatasetContext
+from .entities import Catalog, Dataset, DatasetImport, DatasetInput, NewDataset
 from .exceptions import DatasetAlredyExists
 from .gateways import IMarketplaceGateway, marketplace_gateway
 from .repository import ICatalogItemRepository, catalog_item_repo
@@ -25,13 +25,20 @@ async def get_dataset(
 
 
 async def create_dataset(
-    data: DatasetInput, context: Context, repo: ICatalogItemRepository = REPO
+    data: DatasetInput,
+    context: CreateDatasetContext,
+    repo: ICatalogItemRepository = REPO,
 ) -> Dataset:
     dataset = NewDataset(
         **data.model_dump(),
         is_local=True,
         is_shared=False,
         creator=context["user"],
+        catalog=Catalog(
+            identifier=context["user"].id,
+            title=context["catalog_title"],
+            description=context["catalog_description"],
+        ),
     )
     return await repo.create(dataset)
 
@@ -40,7 +47,7 @@ async def update_dataset(
     id: str, data: DatasetInput, context: Context, repo: ICatalogItemRepository = REPO
 ) -> Dataset:
     dataset = await repo.get(DatasetsFilterByIdQuery(id))
-    dataset = dataset.model_validate(
+    dataset = Dataset.model_validate(
         {
             **dataset.model_dump(),
             **data.model_dump(exclude_unset=True, exclude_defaults=True),
@@ -81,12 +88,15 @@ async def import_dataset(
 ) -> Dataset:
     if await repo.exists(DatasetsFilterByIdQuery(data.identifier)):
         raise DatasetAlredyExists()
-
     dataset = Dataset(
-        **data.model_dump(),
+        **data.model_dump(exclude=set(["catalog"])),
         is_local=False,
         is_shared=False,
-        creator=context["user"],
         issued=date.today(),
+        creator=context["user"],
+        catalog=Catalog(
+            **data.catalog.model_dump(),
+            identifier=context["user"].id,
+        ),
     )
     return await repo.create(dataset)
