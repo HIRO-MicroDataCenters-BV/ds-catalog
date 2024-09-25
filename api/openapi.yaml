@@ -344,6 +344,36 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
+    Catalog:
+      properties:
+        identifier:
+          type: string
+          title: Identifier
+        title:
+          type: string
+          title: Title
+        description:
+          type: string
+          title: Description
+      type: object
+      required:
+      - identifier
+      - title
+      - description
+      title: Catalog
+    CatalogImportForm:
+      properties:
+        title:
+          type: string
+          title: Title
+        description:
+          type: string
+          title: Description
+      type: object
+      required:
+      - title
+      - description
+      title: CatalogImportForm
     Checksum:
       properties:
         algorithm:
@@ -400,6 +430,8 @@ components:
             type: string
           type: array
           title: Theme
+        catalog:
+          $ref: '#/components/schemas/Catalog'
         creator:
           $ref: '#/components/schemas/Person'
         distribution:
@@ -418,11 +450,16 @@ components:
       - isShared
       - issued
       - theme
+      - catalog
       - creator
       - distribution
       title: Dataset
       examples:
-      - creator:
+      - catalog:
+          description: Some description
+          identifier: 9c208553-4685-473b-bdcc-466f724baae1
+          title: Dataset 1
+        creator:
           id: 14eb400e-3ba3-4aed-a7b5-de030af3e411
           name: John Smith
         description: Some description
@@ -523,6 +560,8 @@ components:
             type: string
           type: array
           title: Theme
+        catalog:
+          $ref: '#/components/schemas/CatalogImportForm'
         distribution:
           items:
             $ref: '#/components/schemas/Distribution'
@@ -536,10 +575,14 @@ components:
       - keyword
       - license
       - theme
+      - catalog
       - distribution
       title: DatasetImportForm
       examples:
-      - description: Some description
+      - catalog:
+          description: Some description
+          title: Dataset 1
+        description: Some description
         distribution:
         - accessService:
           - endpointUrl: http://domain.com/dataset1/

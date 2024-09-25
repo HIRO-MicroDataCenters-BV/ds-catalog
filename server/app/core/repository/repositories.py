@@ -4,9 +4,15 @@ from abc import ABC, abstractmethod
 
 from neomodel import db
 
-from app.settings import get_settings
-
-from ..entities import Checksum, DataService, Dataset, Distribution, NewDataset, Person
+from ..entities import (
+    Catalog,
+    Checksum,
+    DataService,
+    Dataset,
+    Distribution,
+    NewDataset,
+    Person,
+)
 from ..exceptions import DatasetDoesNotExist
 from .models import (
     CatalogNode,
@@ -53,10 +59,6 @@ class ICatalogItemRepository(IRepository[Dataset, NewDataset]):
 
 
 class CatalogItemRepository(ICatalogItemRepository):
-    def __init__(self, title: str, description: str) -> None:
-        self._titile = title
-        self._description = description
-
     async def list(self, query: IQuery) -> list[Dataset]:
         # TODO: Optimize nested queries to the database
         nodes = await query.apply(DatasetNode.nodes)
@@ -84,7 +86,7 @@ class CatalogItemRepository(ICatalogItemRepository):
         with db.transaction:
             dataset_node = DatasetNode()
             dataset_fields = dataset_entity.model_dump(
-                exclude=set(["creator", "distribution"])
+                exclude=set(["catalog", "creator", "distribution"])
             )
             for field_name, value in dataset_fields.items():
                 setattr(dataset_node, field_name, value)
@@ -94,10 +96,10 @@ class CatalogItemRepository(ICatalogItemRepository):
             creator_node, _ = await self._get_or_create_person(creator_entity)
             await dataset_node.creator.connect(creator_node)
 
-            catalog_node, is_created = await self._get_or_create_catalog(creator_entity)
+            catalog_entity = dataset_entity.catalog
+            catalog_node, is_created = await self._get_or_create_catalog(catalog_entity)
             if is_created:
                 await catalog_node.creator.connect(creator_node)
-
             await catalog_node.dataset.connect(dataset_node)
 
             await self._create_related_nodes(dataset_entity, dataset_node, catalog_node)
@@ -109,7 +111,7 @@ class CatalogItemRepository(ICatalogItemRepository):
             dataset_node = await self._get_node(dataset_entity)
 
             dataset_fields = dataset_entity.model_dump(
-                exclude=set(["creator", "distribution"])
+                exclude=set(["catalog", "creator", "distribution"])
             )
             for field_name, value in dataset_fields.items():
                 setattr(dataset_node, field_name, value)
@@ -121,7 +123,8 @@ class CatalogItemRepository(ICatalogItemRepository):
             if current_creator != creator_node:
                 await dataset_node.creator.reconnect(current_creator, creator_node)
 
-            catalog_node, is_created = await self._get_or_create_catalog(creator_entity)
+            catalog_entity = dataset_entity.catalog
+            catalog_node, is_created = await self._get_or_create_catalog(catalog_entity)
             if is_created:
                 await catalog_node.creator.connect(creator_node)
 
@@ -143,6 +146,13 @@ class CatalogItemRepository(ICatalogItemRepository):
 
     async def _to_entity(self, dataset_node: DatasetNode) -> Dataset:
         # TODO: Optimize nested queries to the database
+
+        catalog_node = await dataset_node.catalog.get()
+        catalog_entity = Catalog(
+            identifier=catalog_node.identifier,
+            title=catalog_node.title,
+            description=catalog_node.description,
+        )
 
         creator_node = await dataset_node.creator.get()
         creator_entity = Person(
@@ -184,6 +194,7 @@ class CatalogItemRepository(ICatalogItemRepository):
             is_shared=dataset_node.is_shared,
             issued=dataset_node.issued,
             theme=dataset_node.theme,
+            catalog=catalog_entity,
             creator=creator_entity,
             distribution=distribution_entities,
         )
@@ -201,17 +212,16 @@ class CatalogItemRepository(ICatalogItemRepository):
             ).save()
         return person_node, is_created
 
-    async def _get_or_create_catalog(self, creator: Person) -> tuple[CatalogNode, bool]:
-        identifier = f"{creator.id}_catalog"
-        catalog = await CatalogNode.nodes.get_or_none(identifier=identifier)
+    async def _get_or_create_catalog(
+        self, catalog_entity: Catalog
+    ) -> tuple[CatalogNode, bool]:
+        catalog = await CatalogNode.nodes.get_or_none(
+            identifier=catalog_entity.identifier
+        )
         if catalog is not None:
             return catalog, False
         return (
-            await CatalogNode(
-                identifier=identifier,
-                title=self._titile,
-                description=self._description,
-            ).save(),
+            await CatalogNode(**catalog_entity.model_dump()).save(),
             True,
         )
 
@@ -259,8 +269,4 @@ class CatalogItemRepository(ICatalogItemRepository):
             await dataset_node.distribution.connect(distribution_node)
 
 
-settings = get_settings()
-catalog_item_repo = CatalogItemRepository(
-    title=settings.catalog.title,
-    description=settings.catalog.description,
-)
+catalog_item_repo = CatalogItemRepository()

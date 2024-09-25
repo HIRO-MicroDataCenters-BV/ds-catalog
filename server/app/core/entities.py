@@ -8,6 +8,15 @@ class Person(BaseModel):
     name: str
 
 
+class CatalogImport(BaseModel):
+    title: str
+    description: str
+
+
+class Catalog(CatalogImport):
+    identifier: str
+
+
 class Checksum(BaseModel):
     algorithm: str
     checksum_value: str
@@ -37,12 +46,15 @@ class NewDataset(DatasetInput):
     is_local: bool
     is_shared: bool
     creator: Person
+    catalog: Catalog
 
 
 class Dataset(NewDataset):
     identifier: str
     issued: date
+    catalog: Catalog
 
 
 class DatasetImport(DatasetInput):
     identifier: str
+    catalog: CatalogImport

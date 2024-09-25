@@ -6,7 +6,7 @@ from classy_fastapi import Routable, delete, get, patch, post
 from fastapi import Depends, HTTPException, Request, Response, status
 
 from app.core import entities, usecases
-from app.core.context import Context
+from app.core.context import Context, CreateDatasetContext
 from app.core.exceptions import DatasetDoesNotExist
 from app.core.repository.queries import (
     CompositeQuery,
@@ -18,6 +18,7 @@ from app.core.repository.queries import (
     PaginatorQuery,
     PaginatorQueryDTO,
 )
+from app.settings import get_settings
 
 from ..depends.catalog import datasets_filter
 from ..depends.list import order_parameters, paginator_parameters
@@ -49,7 +50,7 @@ class IDatasetsUsecases(ABC):
     async def create(
         self,
         data: entities.DatasetInput,
-        context: Context,
+        context: CreateDatasetContext,
     ) -> entities.Dataset:
         ...
 
@@ -91,8 +92,20 @@ class DatasetsUsecases(IDatasetsUsecases):
 class DatasetsRoutes(Routable):
     _usecases: IDatasetsUsecases
 
-    def __init__(self, usecases: IDatasetsUsecases) -> None:
+    _local_catalog_title: str
+    _local_catalog_description: str
+
+    def __init__(
+        self,
+        usecases: IDatasetsUsecases,
+        local_catalog_title: str,
+        local_catalog_description: str,
+    ) -> None:
         self._usecases = usecases
+
+        self._local_catalog_title = local_catalog_title
+        self._local_catalog_description = local_catalog_description
+
         super().__init__()
 
     @get(
@@ -186,7 +199,11 @@ class DatasetsRoutes(Routable):
         input_entity = item.to_entity()
         output_entity = await self._usecases.create(
             input_entity,
-            context={"user": user},
+            context={
+                "user": user,
+                "catalog_title": self._local_catalog_title,
+                "catalog_description": self._local_catalog_description,
+            },
         )
         output_item = Dataset.from_entity(output_entity)
         response.headers["Location"] = str(
@@ -247,4 +264,9 @@ class DatasetsRoutes(Routable):
             )
 
 
-routes = DatasetsRoutes(usecases=DatasetsUsecases())
+settings = get_settings()
+routes = DatasetsRoutes(
+    usecases=DatasetsUsecases(),
+    local_catalog_title=settings.catalog.title,
+    local_catalog_description=settings.catalog.description,
+)

@@ -34,10 +34,7 @@ def clean_db_before_each_test() -> None:
 class TestCatalogItemRepository:
     @pytest.fixture
     def catalog_item_repo(self) -> CatalogItemRepository:
-        return CatalogItemRepository(
-            title="TestCatalog",
-            description="Test description",
-        )
+        return CatalogItemRepository()
 
     @mark_async_db_test
     async def test_list(self, catalog_item_repo: CatalogItemRepository) -> None:
@@ -82,15 +79,7 @@ class TestCatalogItemRepository:
         assert result is True
 
     @mark_async_db_test
-    async def test_create(self) -> None:
-        catalog_title = "TestCatalog"
-        catalog_description = "Test description"
-
-        catalog_item_repo = CatalogItemRepository(
-            title=catalog_title,
-            description=catalog_description,
-        )
-
+    async def test_create(self, catalog_item_repo: CatalogItemRepository) -> None:
         dataset_entity = DatasetFactory.build()
         dataset_entity = await catalog_item_repo.create(dataset_entity)
 
@@ -111,8 +100,9 @@ class TestCatalogItemRepository:
 
         catalog_node = await dataset_node.catalog.get_or_none()
         assert catalog_node is not None
-        assert catalog_node.title == catalog_title
-        assert catalog_node.description == catalog_description
+        assert catalog_node.identifier == dataset_entity.catalog.identifier
+        assert catalog_node.title == dataset_entity.catalog.title
+        assert catalog_node.description == dataset_entity.catalog.description
         assert await catalog_node.creator.get() == creator_node
         assert await catalog_node.dataset.all() == [dataset_node]
         assert await catalog_node.service.all() == await dataset_node.services.all()

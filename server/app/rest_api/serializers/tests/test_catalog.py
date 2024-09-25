@@ -1,6 +1,8 @@
 from app.core.tests import factories as entities_factories
 
 from ..catalog import (
+    Catalog,
+    CatalogImportForm,
     Checksum,
     DataService,
     Dataset,
@@ -10,12 +12,48 @@ from ..catalog import (
 )
 from ..person import Person
 from .factories import (
+    CatalogFactory,
+    CatalogImportFormFactory,
     DataServiceFactory,
     DatasetFactory,
     DatasetFormFactory,
     DatasetImportFormFactory,
     DistributionFactory,
 )
+
+
+class TestCatalog:
+    def test_to_entity(self) -> None:
+        catalog = CatalogFactory.build()
+        entity = catalog.to_entity()
+
+        assert entity.identifier == catalog.identifier
+        assert entity.title == catalog.title
+        assert entity.description == catalog.description
+
+    def test_from_entity(self) -> None:
+        entity = entities_factories.CatalogFactory.build()
+        catalog = Catalog.from_entity(entity)
+
+        assert entity.identifier == catalog.identifier
+        assert entity.title == catalog.title
+        assert entity.description == catalog.description
+
+
+class TestCatalogImportForm:
+    def test_to_entity(self) -> None:
+        catalog_import_form = CatalogImportFormFactory.build()
+        entity = catalog_import_form.to_entity()
+
+        assert entity.title == catalog_import_form.title
+        assert entity.description == catalog_import_form.description
+
+    def test_from_entity(self) -> None:
+        entity = entities_factories.CatalogImportFactory.build()
+        catalog_import_form = CatalogImportForm.from_entity(entity)
+
+        assert entity.title == catalog_import_form.title
+        assert entity.description == catalog_import_form.description
 
 
 class TestDataService:
@@ -70,6 +108,7 @@ class TestDataset:
         assert entity.is_shared == dataset.is_shared
         assert entity.issued == dataset.issued
         assert entity.theme == dataset.theme
+        assert entity.catalog == dataset.catalog.to_entity()
         assert entity.creator == dataset.creator.to_entity()
         assert entity.distribution == [i.to_entity() for i in dataset.distribution]
 
@@ -86,6 +125,7 @@ class TestDataset:
         assert dataset.is_shared == entity.is_shared
         assert dataset.issued == entity.issued
         assert dataset.theme == entity.theme
+        assert dataset.catalog == Catalog.from_entity(entity.catalog)
         assert dataset.creator == Person.from_entity(entity.creator)
         assert dataset.distribution == [
             Distribution.from_entity(i) for i in entity.distribution
@@ -129,6 +169,7 @@ class TestDatasetImportForm:
         assert entity.keyword == import_form.keyword
         assert entity.license == import_form.license
         assert entity.theme == import_form.theme
+        assert entity.catalog == import_form.catalog.to_entity()
         assert entity.distribution == [i.to_entity() for i in import_form.distribution]
 
     def test_from_entity(self) -> None:
@@ -141,6 +182,7 @@ class TestDatasetImportForm:
         assert import_form.keyword == entity.keyword
         assert import_form.license == entity.license
         assert import_form.theme == entity.theme
+        assert import_form.catalog == CatalogImportForm.from_entity(entity.catalog)
         assert import_form.distribution == [
             Distribution.from_entity(i) for i in entity.distribution
         ]

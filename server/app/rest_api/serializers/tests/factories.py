@@ -2,6 +2,8 @@ from polyfactory import Use
 from polyfactory.factories.pydantic_factory import ModelFactory
 
 from ..catalog import (
+    Catalog,
+    CatalogImportForm,
     Checksum,
     DataService,
     Dataset,
@@ -15,6 +17,14 @@ from ..person import Person
 
 class PersonFactory(ModelFactory[Person]):
     __model__ = Person
+
+
+class CatalogFactory(ModelFactory[Catalog]):
+    __model__ = Catalog
+
+
+class CatalogImportFormFactory(ModelFactory[CatalogImportForm]):
+    __model__ = CatalogImportForm
 
 
 class ChecksumFactory(ModelFactory[Checksum]):
@@ -35,6 +45,7 @@ class DistributionFactory(ModelFactory[Distribution]):
 class DatasetFactory(ModelFactory[Dataset]):
     __model__ = Dataset
 
+    catalog = CatalogFactory
     creator = PersonFactory
     distribution = Use(DistributionFactory.batch, size=1)
 
@@ -52,4 +63,5 @@ class DatasetShareFormFactory(ModelFactory[DatasetShareForm]):
 class DatasetImportFormFactory(ModelFactory[DatasetImportForm]):
     __model__ = DatasetImportForm
 
+    catalog = CatalogImportFormFactory
     distribution = Use(DistributionFactory.batch, size=1)

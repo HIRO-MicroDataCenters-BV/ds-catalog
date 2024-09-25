@@ -28,6 +28,11 @@ class TestMarketplaceGateway:
                 "isShared": False,
                 "issued": "2024-01-01",
                 "theme": ["theme1"],
+                "catalog": {
+                    "identifier": "9c208553-4685-473b-bdcc-466f724baae1",
+                    "title": "Dataset 1",
+                    "description": "Some description",
+                },
                 "creator": {
                     "id": "14eb400e-3ba3-4aed-a7b5-de030af3e411",
                     "name": "John Smith",

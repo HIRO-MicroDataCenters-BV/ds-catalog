@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **keyword** | **List[str]** |  | 
 **license** | **str** |  | 
 **theme** | **List[str]** |  | 
+**catalog** | [**CatalogImportForm**](CatalogImportForm.md) |  | 
 **distribution** | [**List[Distribution]**](Distribution.md) |  | 
 
 ## Example

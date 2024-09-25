@@ -20,6 +20,7 @@ import json
 
 from pydantic import BaseModel, ConfigDict, StrictStr
 from typing import Any, ClassVar, Dict, List
+from ds_catalog.models.catalog_import_form import CatalogImportForm
 from ds_catalog.models.distribution import Distribution
 from typing import Optional, Set
 from typing_extensions import Self
@@ -34,8 +35,9 @@ class DatasetImportForm(BaseModel):
     keyword: List[StrictStr]
     license: StrictStr
     theme: List[StrictStr]
+    catalog: CatalogImportForm
     distribution: List[Distribution]
-    __properties: ClassVar[List[str]] = ["identifier", "title", "description", "keyword", "license", "theme", "distribution"]
+    __properties: ClassVar[List[str]] = ["identifier", "title", "description", "keyword", "license", "theme", "catalog", "distribution"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -76,6 +78,9 @@ class DatasetImportForm(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
+        # override the default output from pydantic by calling `to_dict()` of catalog
+        if self.catalog:
+            _dict['catalog'] = self.catalog.to_dict()
         # override the default output from pydantic by calling `to_dict()` of each item in distribution (list)
         _items = []
         if self.distribution:
@@ -101,6 +106,7 @@ class DatasetImportForm(BaseModel):
             "keyword": obj.get("keyword"),
             "license": obj.get("license"),
             "theme": obj.get("theme"),
+            "catalog": CatalogImportForm.from_dict(obj["catalog"]) if obj.get("catalog") is not None else None,
             "distribution": [Distribution.from_dict(_item) for _item in obj["distribution"]] if obj.get("distribution") is not None else None
         })
         return _obj

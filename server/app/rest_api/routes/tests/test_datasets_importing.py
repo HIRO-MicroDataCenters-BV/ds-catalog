@@ -24,7 +24,11 @@ class TestDatasetsImportingRoutes:
         usecases = Mock()
         usecases.import_data = AsyncMock(return_value=entity_output)
 
-        catalog_routes = DatasetsRoutes(usecases=Mock())
+        catalog_routes = DatasetsRoutes(
+            usecases=Mock(),
+            local_catalog_title="Test catalog",
+            local_catalog_description="Test catalog description",
+        )
         importing_routes = DatasetsImportingRoutes(usecases=usecases)
 
         client = create_test_client(
