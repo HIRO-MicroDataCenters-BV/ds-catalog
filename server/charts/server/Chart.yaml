@@ -2,5 +2,11 @@ apiVersion: v2
 name: ds-catalog
 description: Data Space Catalog
 type: application
-version: ""
-appVersion: ""
+version: "0.0.0"
+appVersion: "0.0.0"
+
+dependencies:
+- name: neo4j
+  version: "5.22.0"
+  repository: https://helm.neo4j.com/neo4j
+  condition: neo4j.enabled
