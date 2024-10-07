@@ -45,3 +45,4 @@ venv
 
 volumes
 .env
+charts/**/**.tgz

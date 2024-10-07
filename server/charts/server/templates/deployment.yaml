@@ -44,6 +44,28 @@ spec:
             {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: DS__CATALOG__TITLE
+              value: {{ .Values.catalog.title }}
+            - name: DS__CATALOG__DESCRIPTION
+              value: {{ .Values.catalog.description }}
+            - name: DS__DATABASE__HOST
+              value: {{.Release.Name}}.{{.Release.Namespace}}.svc.cluster.local
+            - name: DS__DATABASE__USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-secrets
+                  key: username
+            - name: DS__DATABASE__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-secrets
+                  key: password
+            - name: NEO4J_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-secrets
+                  key: NEO4J_AUTH
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
