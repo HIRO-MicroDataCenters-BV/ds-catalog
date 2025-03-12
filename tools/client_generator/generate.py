@@ -81,7 +81,7 @@ def generate_openapi(
         f"{CONFIG_PATH}:/config.json",
     ]
     generator_args = [
-        "openapitools/openapi-generator-cli:v7.3.0",
+        "openapitools/openapi-generator-cli:v7.8.0",
         "generate",
         "-g",
         "python",

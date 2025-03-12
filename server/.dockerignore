@@ -42,3 +42,7 @@ venv
 
 # Release
 .dist
+
+volumes
+.env
+charts/**/**.tgz

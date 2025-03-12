@@ -14,11 +14,17 @@ homepage = "https://github.com/HIRO-MicroDataCenters-BV/ds-catalog"
 packages = [{include = "*", from="app"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.12"
 fastapi = "^0.109"
 uvicorn = "^0.26"
 classy-fastapi = "^0.6.1"
 prometheus-fastapi-instrumentator = "^6.1.0"
+polyfactory = "^2.16.2"
+pydantic-settings = "^2.5.2"
+neomodel = "^5.3.2"
+pytz = "^2024.2"
+types-pytz = "^2024.2.0.20240913"
+aiohttp = "^3.10.5"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.12"
@@ -30,7 +36,8 @@ pyyaml = "^6.0.1"
 types-pyyaml = "^6.0.12.12"
 
 [tool.poetry.group.test.dependencies]
-pytest = "^7.4"
+pytest-asyncio = "^0.24.0"
+pytest = "^8.2"
 pytest-mock = "^3.12.0"
 httpx = "^0.26"
 tox = "^4.13.0"
@@ -89,6 +96,7 @@ warn_unused_ignores = true
 # Directories that are not visited by pytest collector:
 norecursedirs =["hooks", "*.egg", ".eggs", "dist", "build", "docs", ".tox", ".git", "__pycache__"]
 doctest_optionflags = ["NUMBER", "NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL"]
+asyncio_default_fixture_loop_scope = "function"
 
 # Extra options:
 addopts = [

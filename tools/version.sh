@@ -91,8 +91,8 @@ patch_helm_chart() {
 
   sed -i "s#repository: \"\"#repository: \"$DOCKER_IMAGE_NAME\"#" "${CHART_PATH}/values.yaml"
   sed -i "s#tag: \"\"#tag: \"$DOCKER_IMAGE_TAG\"#" "${CHART_PATH}/values.yaml"
-  sed -i "s#version: \"\"#version: \"$VERSION_CHART\"#" "${CHART_PATH}/Chart.yaml"
-  sed -i "s#appVersion: \"\"#appVersion: \"$VERSION_CHART\"#" "${CHART_PATH}/Chart.yaml"
+  sed -i "s#version: \"0.0.0\"#version: \"$VERSION_CHART\"#" "${CHART_PATH}/Chart.yaml"
+  sed -i "s#appVersion: \"0.0.0\"#appVersion: \"$VERSION_CHART\"#" "${CHART_PATH}/Chart.yaml"
 }
 
 main() {

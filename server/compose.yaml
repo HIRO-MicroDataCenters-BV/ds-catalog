@@ -1,5 +1,0 @@
-services:
-  catalog:
-    build: .
-    ports:
-      - "8001:80"

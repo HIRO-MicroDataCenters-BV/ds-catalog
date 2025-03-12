@@ -22,73 +22,179 @@ paths:
           content:
             application/json:
               schema: {}
-  /:
+  /health-check/:
     get:
-      summary: Example endpoint
-      description: Example endpoint that returns test data
-      operationId: example__get
+      summary: Health check
+      description: Returns a 200 status code if the service is up and running
+      operationId: health_check
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ExampleResponse'
-  /item/:
+                $ref: '#/components/schemas/HealthCheck'
+  /datasets/:
     get:
       tags:
-      - items
-      summary: Read all items
-      description: Read all items from the storage
-      operationId: items__read_all
+      - Datasets
+      summary: Get Datasets
+      description: Get the datasets list
+      operationId: get_datasets
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+          title: Page
+      - name: pageSize
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+            maximum: 100
+            minimum: 1
+          - type: 'null'
+          title: Pagesize
+      - name: orderBy
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Orderby
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: keyword
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: array
+            items:
+              type: string
+          - type: 'null'
+          title: Keyword
+      - name: theme
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: array
+            items:
+              type: string
+          - type: 'null'
+          title: Theme
+      - name: isLocal
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Islocal
+      - name: isShared
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Isshared
+      - name: issued
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Issued
+      - name: issued__gte
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Issued  Gte
+      - name: issued__lte
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Issued  Lte
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                items:
-                  $ref: '#/components/schemas/Item'
-                type: array
-                title: Response Items  Read All
+                $ref: '#/components/schemas/PaginatedResult_Dataset_'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
     post:
       tags:
-      - items
-      summary: Create an item
-      description: Create a new item in the storage
-      operationId: items__create
+      - Datasets
+      summary: Create Dataset
+      description: Create a dataset
+      operationId: create_dataset
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Item'
-        required: true
+              $ref: '#/components/schemas/DatasetForm'
       responses:
         '201':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Item'
+                $ref: '#/components/schemas/Dataset'
+          headers:
+            Location:
+              description: The URL of the newly created resource
+              schema:
+                type: string
+                format: uri
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /item/{id}/:
+  /datasets/{id}/:
     get:
       tags:
-      - items
-      summary: Read an item
-      description: Read item from the storage
-      operationId: items__read_item
+      - Datasets
+      summary: Get Dataset
+      description: Get the dataset
+      operationId: get_dataset
       parameters:
       - name: id
         in: path
         required: true
         schema:
-          type: integer
+          type: string
           title: Id
       responses:
         '200':
@@ -96,39 +202,43 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Item'
+                $ref: '#/components/schemas/Dataset'
+        '404':
+          description: Dataset not found
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-    put:
+    patch:
       tags:
-      - items
-      summary: Update an item
-      description: Update an item in the storage
-      operationId: items__update_item
+      - Datasets
+      summary: Update Dataset
+      description: Update the dataset
+      operationId: update_dataset
       parameters:
       - name: id
         in: path
         required: true
         schema:
-          type: integer
+          type: string
           title: Id
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Item'
+              $ref: '#/components/schemas/DatasetForm'
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Item'
+                $ref: '#/components/schemas/Dataset'
+        '404':
+          description: Dataset not found
         '422':
           description: Validation Error
           content:
@@ -137,20 +247,95 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
     delete:
       tags:
-      - items
-      summary: Delete an item
-      description: Delete an item from the storage
-      operationId: items__delete_item
+      - Datasets
+      summary: Delete Dataset
+      description: Delete the dataset
+      operationId: delete_dataset
       parameters:
       - name: id
         in: path
         required: true
         schema:
-          type: integer
+          type: string
           title: Id
       responses:
         '204':
           description: Successful Response
+        '404':
+          description: Dataset not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /datasets/{id}/share/:
+    post:
+      tags:
+      - Sharing
+      summary: Share Dataset
+      description: Share the dataset to the marketplace
+      operationId: share_dataset
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DatasetShareForm'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dataset'
+          headers:
+            Location:
+              description: The URL of the newly created resource
+              schema:
+                type: string
+                format: uri
+        '404':
+          description: Dataset not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /datasets/import/:
+    post:
+      tags:
+      - Importing
+      summary: Import Dataset
+      description: Import a dataset from the local catalog
+      operationId: import_dataset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DatasetImportForm'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          headers:
+            Location:
+              description: The URL of the newly created resource
+              schema:
+                type: string
+                format: uri
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dataset'
         '422':
           description: Validation Error
           content:
@@ -159,18 +344,298 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
-    ExampleResponse:
+    Catalog:
       properties:
-        value:
+        identifier:
           type: string
-          title: Value
+          title: Identifier
+        title:
+          type: string
+          title: Title
+        description:
+          type: string
+          title: Description
       type: object
       required:
-      - value
-      title: ExampleResponse
-      description: Example data
+      - identifier
+      - title
+      - description
+      title: Catalog
+    CatalogImportForm:
+      properties:
+        title:
+          type: string
+          title: Title
+        description:
+          type: string
+          title: Description
+      type: object
+      required:
+      - title
+      - description
+      title: CatalogImportForm
+    Checksum:
+      properties:
+        algorithm:
+          type: string
+          title: Algorithm
+        checksumValue:
+          type: string
+          title: Checksumvalue
+      type: object
+      required:
+      - algorithm
+      - checksumValue
+      title: Checksum
+    DataService:
+      properties:
+        endpointUrl:
+          type: string
+          title: Endpointurl
+      type: object
+      required:
+      - endpointUrl
+      title: DataService
+    Dataset:
+      properties:
+        identifier:
+          type: string
+          title: Identifier
+        title:
+          type: string
+          title: Title
+        description:
+          type: string
+          title: Description
+        keyword:
+          items:
+            type: string
+          type: array
+          title: Keyword
+        license:
+          type: string
+          title: License
+        isLocal:
+          type: boolean
+          title: Islocal
+        isShared:
+          type: boolean
+          title: Isshared
+        issued:
+          type: string
+          format: date
+          title: Issued
+        theme:
+          items:
+            type: string
+          type: array
+          title: Theme
+        catalog:
+          $ref: '#/components/schemas/Catalog'
+        creator:
+          $ref: '#/components/schemas/Person'
+        distribution:
+          items:
+            $ref: '#/components/schemas/Distribution'
+          type: array
+          title: Distribution
+      type: object
+      required:
+      - identifier
+      - title
+      - description
+      - keyword
+      - license
+      - isLocal
+      - isShared
+      - issued
+      - theme
+      - catalog
+      - creator
+      - distribution
+      title: Dataset
       examples:
-      - value: test value
+      - catalog:
+          description: Some description
+          identifier: 9c208553-4685-473b-bdcc-466f724baae1
+          title: Dataset 1
+        creator:
+          id: 14eb400e-3ba3-4aed-a7b5-de030af3e411
+          name: John Smith
+        description: Some description
+        distribution:
+        - accessService:
+          - endpointUrl: http://domain.com/dataset1/
+          byteSize: 512
+          checksum:
+            algorithm: md5
+            checksumValue: 202cb962ac59075b964b07152d234b70
+          mediaType: text
+        identifier: 9c208553-4685-473b-bdcc-466f724baae1
+        is_local: true
+        is_shared: false
+        issued: '2024-01-01'
+        keyword:
+        - keyword1
+        - keyword2
+        license: http://domain.com/license/
+        theme:
+        - theme1
+        - theme2
+        title: Dataset 1
+    DatasetForm:
+      properties:
+        title:
+          type: string
+          title: Title
+        description:
+          type: string
+          title: Description
+        keyword:
+          items:
+            type: string
+          type: array
+          title: Keyword
+        license:
+          type: string
+          title: License
+        theme:
+          items:
+            type: string
+          type: array
+          title: Theme
+        distribution:
+          items:
+            $ref: '#/components/schemas/Distribution'
+          type: array
+          title: Distribution
+      type: object
+      required:
+      - title
+      - description
+      - keyword
+      - license
+      - theme
+      - distribution
+      title: DatasetForm
+      examples:
+      - description: Some description
+        distribution:
+        - accessService:
+          - endpointUrl: http://domain.com/dataset1/
+          byteSize: 512
+          checksum:
+            algorithm: md5
+            checksumValue: 202cb962ac59075b964b07152d234b70
+          mediaType: text
+        keyword:
+        - keyword1
+        - keyword2
+        license: http://domain.com/license/
+        theme:
+        - theme1
+        - theme2
+        title: Dataset 1
+    DatasetImportForm:
+      properties:
+        identifier:
+          type: string
+          title: Identifier
+        title:
+          type: string
+          title: Title
+        description:
+          type: string
+          title: Description
+        keyword:
+          items:
+            type: string
+          type: array
+          title: Keyword
+        license:
+          type: string
+          title: License
+        theme:
+          items:
+            type: string
+          type: array
+          title: Theme
+        catalog:
+          $ref: '#/components/schemas/CatalogImportForm'
+        distribution:
+          items:
+            $ref: '#/components/schemas/Distribution'
+          type: array
+          title: Distribution
+      type: object
+      required:
+      - identifier
+      - title
+      - description
+      - keyword
+      - license
+      - theme
+      - catalog
+      - distribution
+      title: DatasetImportForm
+      examples:
+      - catalog:
+          description: Some description
+          title: Dataset 1
+        description: Some description
+        distribution:
+        - accessService:
+          - endpointUrl: http://domain.com/dataset1/
+          byteSize: 512
+          checksum:
+            algorithm: md5
+            checksumValue: 202cb962ac59075b964b07152d234b70
+          mediaType: text
+        identifier: 9c208553-4685-473b-bdcc-466f724baae1
+        keyword:
+        - keyword1
+        - keyword2
+        license: http://domain.com/license/
+        theme:
+        - theme1
+        - theme2
+        title: Dataset 1
+    DatasetShareForm:
+      properties:
+        marketplaceUrl:
+          type: string
+          minLength: 1
+          format: uri
+          title: Marketplaceurl
+      type: object
+      required:
+      - marketplaceUrl
+      title: DatasetShareForm
+    Distribution:
+      properties:
+        byteSize:
+          anyOf:
+          - type: integer
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Bytesize
+        mediaType:
+          type: string
+          title: Mediatype
+        checksum:
+          $ref: '#/components/schemas/Checksum'
+        accessService:
+          items:
+            $ref: '#/components/schemas/DataService'
+          type: array
+          title: Accessservice
+      type: object
+      required:
+      - byteSize
+      - mediaType
+      - checksum
+      - accessService
+      title: Distribution
     HTTPValidationError:
       properties:
         detail:
@@ -180,10 +645,47 @@ components:
           title: Detail
       type: object
       title: HTTPValidationError
-    Item:
+    HealthCheck:
+      properties:
+        status:
+          type: string
+          title: Status
+          examples:
+          - OK
+      type: object
+      required:
+      - status
+      title: HealthCheck
+    PaginatedResult_Dataset_:
+      properties:
+        page:
+          type: integer
+          minimum: 1.0
+          title: Page
+          examples:
+          - 1
+        size:
+          type: integer
+          maximum: 100.0
+          minimum: 1.0
+          title: Size
+          examples:
+          - 100
+        items:
+          items:
+            $ref: '#/components/schemas/Dataset'
+          type: array
+          title: Items
+      type: object
+      required:
+      - page
+      - size
+      - items
+      title: PaginatedResult[Dataset]
+    Person:
       properties:
         id:
-          type: integer
+          type: string
           title: Id
         name:
           type: string
@@ -192,10 +694,7 @@ components:
       required:
       - id
       - name
-      title: Item
-      examples:
-      - id: 1
-        name: test name
+      title: Person
     ValidationError:
       properties:
         loc:
