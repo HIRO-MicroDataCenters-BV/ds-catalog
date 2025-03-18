@@ -1,8 +1,7 @@
 openapi: 3.1.0
 info:
-  title: Data Space Catalog
-  description: The service provides a REST API for managing and sharing catalog data.
-    Interacts with connector services to obtain information about data products.
+  title: Data Space Catalog Service
+  description: The service provides a REST API for managing and sharing catalog items.
   contact:
     name: HIRO-MicroDataCenters
     email: all-hiro@hiro-microdatacenters.nl

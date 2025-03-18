@@ -25,7 +25,7 @@ repos:
       - id: mypy
         name: mypy
         files: ^server/
-        entry: poetry --directory server run mypy --config-file=server/pyproject.toml
+        entry: poetry --directory server run mypy
         language: system
         types: [python]
 
@@ -70,7 +70,7 @@ repos:
     hooks:
       - id: generate_client
         name: generate client
-        entry: poetry --directory server run python ./tools/client_generator/generate.py --file ./api/openapi.yaml
+        entry: poetry --directory server run python ./tools/client_generator/generate.py ./api/openapi.yaml
         language: system
         types: [python]
         pass_filenames: false

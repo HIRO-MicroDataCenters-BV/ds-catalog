@@ -30,11 +30,10 @@ class CustomFastAPI(FastAPI):
         if self.openapi_schema:
             return self.openapi_schema
         openapi_schema = get_openapi(
-            title="Data Space Catalog",
+            title="Data Space Catalog Service",
             version="0.1.1",
             description="The service provides a REST API for managing and "
-            "sharing catalog data. Interacts with connector services to "
-            "obtain information about data products.",
+            "sharing catalog items.",
             contact={
                 "name": "HIRO-MicroDataCenters",
                 "email": "all-hiro@hiro-microdatacenters.nl",

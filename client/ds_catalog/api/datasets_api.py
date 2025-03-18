@@ -1,9 +1,9 @@
 # coding: utf-8
 
 """
-    Data Space Catalog
+    Data Space Catalog Service
 
-    The service provides a REST API for managing and sharing catalog data. Interacts with connector services to obtain information about data products.
+    The service provides a REST API for managing and sharing catalog items.
 
     The version of the OpenAPI document: 0.1.1
     Contact: all-hiro@hiro-microdatacenters.nl
