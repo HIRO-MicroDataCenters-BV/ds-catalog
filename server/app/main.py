@@ -1,21 +1,18 @@
-from typing import Any, Dict
+from typing import Any, AsyncGenerator, Dict
+
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from app.rest_api.routes import (
-    datasets,
-    datasets_importing,
-    datasets_sharing,
-    health_check,
-)
+from app.rest_api.routes import catalog, datasets, health_check, sharing
 
-from .database import initialize_graph_db_connection
+from .database import Neo4jDatabase
 from .settings import get_settings
 
 settings = get_settings()
-initialize_graph_db_connection(
+db = Neo4jDatabase(
     protocol=settings.database.protocol,
     host=settings.database.host,
     port=settings.database.port,
@@ -49,13 +46,18 @@ class CustomFastAPI(FastAPI):
         return self.openapi_schema
 
 
-app = CustomFastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    await db.connect()
+    yield
+    await db.close()
 
 
+app = CustomFastAPI(lifespan=lifespan)
 Instrumentator().instrument(app).expose(app)
 
 
 app.include_router(health_check.routes.router)
+app.include_router(catalog.routes.router)
 app.include_router(datasets.routes.router)
-app.include_router(datasets_sharing.routes.router)
-app.include_router(datasets_importing.routes.router)
+app.include_router(sharing.routes.router)

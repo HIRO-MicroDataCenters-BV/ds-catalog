@@ -98,16 +98,16 @@ configuration = ds_catalog.Configuration(
 # Enter a context with an instance of the API client
 with ds_catalog.ApiClient(configuration) as api_client:
     # Create an instance of the API class
-    api_instance = ds_catalog.DatasetsApi(api_client)
-    dataset_form = ds_catalog.DatasetForm() # DatasetForm | 
+    api_instance = ds_catalog.CatalogApi(api_client)
+    catalog_filters = ds_catalog.CatalogFilters() # CatalogFilters | 
 
     try:
-        # Create Dataset
-        api_response = api_instance.create_dataset(dataset_form)
-        print("The response of DatasetsApi->create_dataset:\n")
+        # Get Local Catalog
+        api_response = api_instance.get_catalog(catalog_filters)
+        print("The response of CatalogApi->get_catalog:\n")
         pprint(api_response)
     except ApiException as e:
-        print("Exception when calling DatasetsApi->create_dataset: %s\n" % e)
+        print("Exception when calling CatalogApi->get_catalog: %s\n" % e)
 
 ```
 
@@ -117,32 +117,22 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*DatasetsApi* | [**create_dataset**](docs/DatasetsApi.md#create_dataset) | **POST** /datasets/ | Create Dataset
+*CatalogApi* | [**get_catalog**](docs/CatalogApi.md#get_catalog) | **POST** /catalog/ | Get Local Catalog
 *DatasetsApi* | [**delete_dataset**](docs/DatasetsApi.md#delete_dataset) | **DELETE** /datasets/{id}/ | Delete Dataset
 *DatasetsApi* | [**get_dataset**](docs/DatasetsApi.md#get_dataset) | **GET** /datasets/{id}/ | Get Dataset
-*DatasetsApi* | [**get_datasets**](docs/DatasetsApi.md#get_datasets) | **GET** /datasets/ | Get Datasets
-*DatasetsApi* | [**update_dataset**](docs/DatasetsApi.md#update_dataset) | **PATCH** /datasets/{id}/ | Update Dataset
-*ImportingApi* | [**import_dataset**](docs/ImportingApi.md#import_dataset) | **POST** /datasets/import/ | Import Dataset
+*DatasetsApi* | [**save_dataset**](docs/DatasetsApi.md#save_dataset) | **POST** /datasets/ | Save Dataset
 *SharingApi* | [**share_dataset**](docs/SharingApi.md#share_dataset) | **POST** /datasets/{id}/share/ | Share Dataset
+*SharingApi* | [**unshare_dataset**](docs/SharingApi.md#unshare_dataset) | **POST** /datasets/{id}/unshare/ | Unhare Dataset
 *DefaultApi* | [**health_check**](docs/DefaultApi.md#health_check) | **GET** /health-check/ | Health check
 *DefaultApi* | [**metrics_metrics_get**](docs/DefaultApi.md#metrics_metrics_get) | **GET** /metrics | Metrics
 
 
 ## Documentation For Models
 
- - [Catalog](docs/Catalog.md)
- - [CatalogImportForm](docs/CatalogImportForm.md)
- - [Checksum](docs/Checksum.md)
- - [DataService](docs/DataService.md)
+ - [CatalogFilters](docs/CatalogFilters.md)
  - [Dataset](docs/Dataset.md)
- - [DatasetForm](docs/DatasetForm.md)
- - [DatasetImportForm](docs/DatasetImportForm.md)
- - [DatasetShareForm](docs/DatasetShareForm.md)
- - [Distribution](docs/Distribution.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
  - [HealthCheck](docs/HealthCheck.md)
- - [PaginatedResultDataset](docs/PaginatedResultDataset.md)
- - [Person](docs/Person.md)
  - [ValidationError](docs/ValidationError.md)
  - [ValidationErrorLocInner](docs/ValidationErrorLocInner.md)
 

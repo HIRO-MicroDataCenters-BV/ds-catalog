@@ -5,18 +5,8 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**identifier** | **str** |  | 
-**title** | **str** |  | 
-**description** | **str** |  | 
-**keyword** | **List[str]** |  | 
-**license** | **str** |  | 
-**is_local** | **bool** |  | 
-**is_shared** | **bool** |  | 
-**issued** | **date** |  | 
-**theme** | **List[str]** |  | 
-**catalog** | [**Catalog**](Catalog.md) |  | 
-**creator** | [**Person**](Person.md) |  | 
-**distribution** | [**List[Distribution]**](Distribution.md) |  | 
+**context** | **object** |  | 
+**graph** | **object** |  | 
 
 ## Example
 

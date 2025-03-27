@@ -1,10 +1,18 @@
+class DatasetWasNotSaved(Exception):
+    ...
+
+
 class DatasetDoesNotExist(Exception):
     ...
 
 
-class DatasetAlredyExists(Exception):
+class MultipleDatasetsFound(Exception):
     ...
 
 
-class DatasetSharingError(Exception):
+class NodeDoesNotExist(Exception):
+    ...
+
+
+class MultipleNodesFound(Exception):
     ...
