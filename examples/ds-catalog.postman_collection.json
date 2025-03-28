@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"context\": {\r\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\r\n    \"dspace\": \"http://data-space.org/\",\r\n    \"med\": \"http://med.example.org/\"\r\n  },\r\n  \"filters\": [\r\n    {\r\n      \"dcat:dataset\": {\r\n        \"dspace:extraMetadata\": {\r\n          \"med:hasDiagnosis\": {\r\n            \"med:code__contains\": \"I10\"\r\n          },\r\n          \"type\": \"med:Diagnoses\"\r\n        }\r\n      }\r\n    }\r\n  ]\r\n}",
+							"raw": "{\r\n  \"@context\": {\r\n    \"@vocab\": \"http://data-space.org/\",\r\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\r\n    \"med\": \"http://med.example.org/\"\r\n  },\r\n  \"filters\": [\r\n    {\r\n      \"dcat:dataset\": {\r\n        \"extraMetadata\": {\r\n          \"@type\": \"med:Diagnoses\",\r\n          \"med:hasDiagnosis\": {\r\n            \"med:code\": {\r\n              \"operation\": \"contains\",\r\n              \"operationValue\": \"I10\"\r\n            }\r\n          }\r\n        }\r\n      }\r\n    }\r\n  ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"

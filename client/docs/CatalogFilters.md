@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**context** | **Dict[str, str]** |  | 
+**context** | **object** |  | 
 **filters** | **List[object]** |  | 
 
 ## Example

@@ -21,15 +21,17 @@ class Person(BaseModel):
 
 
 class CatalogFilters(BaseModel):
-    context: dict[str, str]
+    context: dict[str, Any] = Field(..., alias="@context")
     filters: list[dict[str, Any]]
 
     model_config = {
+        "populate_by_name": True,
+        "extra": "allow",
         "json_schema_extra": {
             "examples": [
                 catalog_filters_example,
             ],
-        }
+        },
     }
 
     def to_entity(self) -> Query:

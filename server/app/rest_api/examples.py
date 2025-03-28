@@ -314,17 +314,22 @@ catalog_example: dict[str, Any] = {
 }
 
 catalog_filters_example: dict[str, Any] = {
-    "context": {
+    "@context": {
+        "@vocab": "http://data-space.org/",
         "dcat": "http://www.w3.org/ns/dcat#",
-        "dspace": "http://data-space.org/",
         "med": "http://med.example.org/",
     },
     "filters": [
         {
             "dcat:dataset": {
-                "dspace:extraMetadata": {
-                    "type": "med:Diagnoses",
-                    "med:hasDiagnosis": {"med:code__contains": "I10"},
+                "extraMetadata": {
+                    "@type": "med:Diagnoses",
+                    "med:hasDiagnosis": {
+                        "med:code": {
+                            "operationValue": "I10",
+                            "operation": "contains",
+                        }
+                    },
                 }
             }
         }
