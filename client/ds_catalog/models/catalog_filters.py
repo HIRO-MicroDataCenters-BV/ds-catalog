@@ -19,7 +19,7 @@ import re  # noqa: F401
 import json
 
 from pydantic import BaseModel, ConfigDict, Field
-from typing import Any, ClassVar, Dict, List
+from typing import Any, ClassVar, Dict, List, Optional
 from typing import Optional, Set
 from typing_extensions import Self
 
@@ -27,8 +27,8 @@ class CatalogFilters(BaseModel):
     """
     CatalogFilters
     """ # noqa: E501
-    context: Dict[str, Any] = Field(alias="@context")
-    filters: List[Dict[str, Any]]
+    context: Optional[Dict[str, Any]] = Field(default=None, alias="@context")
+    filters: Optional[List[Dict[str, Any]]] = None
     additional_properties: Dict[str, Any] = {}
     __properties: ClassVar[List[str]] = ["@context", "filters"]
 

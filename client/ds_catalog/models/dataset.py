@@ -19,7 +19,7 @@ import re  # noqa: F401
 import json
 
 from pydantic import BaseModel, ConfigDict, Field
-from typing import Any, ClassVar, Dict, List
+from typing import Any, ClassVar, Dict, List, Optional
 from typing import Optional, Set
 from typing_extensions import Self
 
@@ -27,10 +27,9 @@ class Dataset(BaseModel):
     """
     Dataset
     """ # noqa: E501
-    context: Dict[str, Any] = Field(alias="@context")
-    graph: Dict[str, Any] = Field(alias="@graph")
+    context: Optional[Dict[str, Any]] = Field(default=None, alias="@context")
     additional_properties: Dict[str, Any] = {}
-    __properties: ClassVar[List[str]] = ["@context", "@graph"]
+    __properties: ClassVar[List[str]] = ["@context"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -90,8 +89,7 @@ class Dataset(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "@context": obj.get("@context"),
-            "@graph": obj.get("@graph")
+            "@context": obj.get("@context")
         })
         # store additional fields in additional_properties
         for _key in obj.keys():
