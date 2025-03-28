@@ -4,18 +4,39 @@
 Python 3.12+
 
 ## Installation
-1. If you don't have `Poetry` installed run:
+1. Config Neo4j:
+    ```sql
+    CALL n10s.graphconfig.init({
+        handleVocabUris: "SHORTEN",
+        handleRDFTypes: "LABELS_AND_NODES",
+        keepLangTag: true,
+        keepCustomDataTypes: true,
+        handleMultival: "ARRAY",
+        multivalPropList : ["http://www.w3.org/ns/dcat#theme", "http://purl.org/dc/terms/title"]
+    });
+
+    CALL n10s.nsprefixes.add("xsd", "http://www.w3.org/2001/XMLSchema#");
+    CALL n10s.nsprefixes.add("dcat", "http://www.w3.org/ns/dcat#");
+    CALL n10s.nsprefixes.add("dcatap", "http://data.europa.eu/r5r/");
+    CALL n10s.nsprefixes.add("dcterms", "http://purl.org/dc/terms/");
+    CALL n10s.nsprefixes.add("spdx", "http://spdx.org/rdf/terms#");
+    CALL n10s.nsprefixes.add("foaf", "http://xmlns.com/foaf/0.1/");
+    CALL n10s.nsprefixes.add("skos", "http://www.w3.org/2004/02/skos/core#");
+    CALL n10s.nsprefixes.add("dspace", "http://data-space.org/");
+    ```
+
+2. If you don't have `Poetry` installed run:
     ```bash
     pip install poetry
     ```
 
-2. Install dependencies:
+3. Install dependencies:
     ```bash
     poetry config virtualenvs.in-project true
     poetry install --no-root --with dev,test
     ```
 
-3. Create .env file from the template .env.template:
+4. Create .env file from the template .env.template:
     ```bash
     NEO4J_AUTH=neo4j/your_password
 
@@ -37,7 +58,7 @@ Python 3.12+
     DS__CATALOG__DESCRIPTION="My local catalog"
     ```
 
-4. Launch the project:
+5. Launch the project:
     ```bash
     poetry run uvicorn app.main:app --reload
     ```
@@ -47,14 +68,9 @@ Python 3.12+
     uvicorn app.main:app
     ```
 
-5. Run tests:
+6. Run tests:
     ```bash
     poetry run pytest
-    ```
-
-    You can test the application for multiple versions of Python. To do this, you need to install the required Python versions on your operating system, specify these versions in the tox.ini file, and then run the tests:
-    ```bash
-    poetry run tox
     ```
 
 ## Deployment on Kubernetes

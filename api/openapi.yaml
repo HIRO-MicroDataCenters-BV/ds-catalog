@@ -1,8 +1,7 @@
 openapi: 3.1.0
 info:
-  title: Data Space Catalog
-  description: The service provides a REST API for managing and sharing catalog data.
-    Interacts with connector services to obtain information about data products.
+  title: Data Space Catalog Service
+  description: The service provides a REST API for managing and sharing catalog items.
   contact:
     name: HIRO-MicroDataCenters
     email: all-hiro@hiro-microdatacenters.nl
@@ -34,148 +33,295 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthCheck'
-  /datasets/:
-    get:
+  /catalog/:
+    post:
       tags:
-      - Datasets
-      summary: Get Datasets
-      description: Get the datasets list
-      operationId: get_datasets
-      parameters:
-      - name: page
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: integer
-            minimum: 1
-          - type: 'null'
-          title: Page
-      - name: pageSize
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: integer
-            maximum: 100
-            minimum: 1
-          - type: 'null'
-          title: Pagesize
-      - name: orderBy
-        in: query
-        required: false
-        schema:
-          type: string
-          default: ''
-          title: Orderby
-      - name: search
-        in: query
-        required: false
-        schema:
-          type: string
-          default: ''
-          title: Search
-      - name: keyword
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: array
-            items:
-              type: string
-          - type: 'null'
-          title: Keyword
-      - name: theme
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: array
-            items:
-              type: string
-          - type: 'null'
-          title: Theme
-      - name: isLocal
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Islocal
-      - name: isShared
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Isshared
-      - name: issued
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: string
-            format: date
-          - type: 'null'
-          title: Issued
-      - name: issued__gte
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: string
-            format: date
-          - type: 'null'
-          title: Issued  Gte
-      - name: issued__lte
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: string
-            format: date
-          - type: 'null'
-          title: Issued  Lte
+      - Catalog
+      summary: Get Local Catalog
+      description: "Get the local catalog with dataset list.\n\nThe request accepts\
+        \ filters as a JSON object in the body.\n\n### Format:\nFilters are structured\
+        \ as nested JSON objects. Each filter defines the path\nto the field with\
+        \ optional operators or language annotations.\n\n```json\n{\n  \"context\"\
+        : {\n    \"<namespace>\": \"<namespaceURL>\",\n    ...\n  }\n  \"filters\"\
+        : [\n    {\n      [\"type\": \"<namespace:Class>\",]\n      \"<namespace:attribute>[@<lang>][__operator]\"\
+        : <value> | <nestedObject>\n    },\n    ...\n  ]\n}\n```\n\n### Supported\
+        \ operators:\n- `__gte`, `__lte` \u2014 range filtering\n- `__in` \u2014 list\
+        \ filtering\n- `__contains` \u2014 substring search\n\n### Example:\n```json\n\
+        {\n  \"context\": {\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\n    \"\
+        dspace\": \"http://data-space.org/\",\n    \"med\": \"http://med.example.org/\"\
+        \n  },\n  \"filters\": [\n    {\n      \"dcat:dataset\": {\n        \"dspace:extraMetadata\"\
+        : {\n          \"type\": \"med:Diagnoses\",\n          \"med:hasDiagnosis\"\
+        : {\n            \"med:code__contains\": \"I10\"\n          }\n        }\n\
+        \      }\n    }\n  ]\n}\n```\n\n### More filter examples:\n- ```json\n  {\
+        \ \"dcat:dataset\": { \"dcterms:title\": \"example\" } }\n  ```\n- ```json\n\
+        \  { \"dcat:dataset\": { \"dcterms:title@en\": \"example\" } }\n  ```\n- ```json\n\
+        \  { \"dcat:dataset\": { \"dcterms:title\": { \"@language\": \"en\" } } }\n\
+        \  ```\n- ```json\n  { \"dcat:dataset\": { \"dcterms:title\": { \"@value\"\
+        : \"example\" } } }\n  ```\n- ```json\n  { \"dcat:dataset\": { \"dcat:distribution\"\
+        : { \"dcat:format\": \"PDF\" } } }\n  ```\n- ```json\n  { \"dcat:dataset\"\
+        : { \"dspace:extraMetadata\": { \"med:sex\": \"M\" } } }\n  ```\n- ```json\n\
+        \  { \"dcat:dataset\": { \"dspace:extraMetadata\": { \"type\": \"med:Patient\"\
+        ,\n  \"med:sex\": \"M\" } } }\n  ```\n- ```json\n  { \"dcat:dataset\": { \"\
+        dspace:extraMetadata\": { \"med:weight\": 75 } } }\n  ```\n- ```json\n  {\
+        \ \"dcat:dataset\": { \"dspace:extraMetadata\": { \"med:weight\": {\n  \"\
+        @value\": 75 } } } }\n  ```\n- ```json\n  { \"dcat:dataset\": { \"dspace:extraMetadata\"\
+        : { \"med:weight\": {\n  \"@type\": \"xsd:integer\" } } } }\n  ```\n- ```json\n\
+        \  { \"dcat:dataset\": { \"dcterms:datePublished__gte\": \"2021-01-01\" }\
+        \ }\n  ```\n- ```json\n  { \"dcat:dataset\": { \"dcterms:datePublished__lte\"\
+        : \"2021-12-31\" } }\n  ```\n- ```json\n  { \"dcat:dataset\": { \"dspace:extraMetadata\"\
+        : { \"med:weight__gte\": 70 } } }\n  ```\n- ```json\n  { \"dcat:dataset\"\
+        : { \"dspace:extraMetadata\": { \"med:weight__lte\": 70 } } }\n  ```\n- ```json\n\
+        \  { \"dcat:dataset\": { \"dcat:keyword__in\": [\"science\", \"health\"] }\
+        \ }\n  ```\n- ```json\n  { \"dcat:dataset\": { \"dcterms:title@en__contains\"\
+        : \"example\" } }\n  ```"
+      operationId: get_catalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogFilters'
+        required: true
       responses:
         '200':
           description: Successful Response
           content:
-            application/json:
+            application/ld+json:
               schema:
-                $ref: '#/components/schemas/PaginatedResult_Dataset_'
+                type: string
+              example:
+                '@context':
+                  xsd: http://www.w3.org/2001/XMLSchema#
+                  dcat: http://www.w3.org/ns/dcat#
+                  dcatap: http://data.europa.eu/r5r/
+                  dcterms: http://purl.org/dc/terms/
+                  spdx: http://spdx.org/rdf/terms#
+                  foaf: http://xmlns.com/foaf/0.1/
+                  skos: http://www.w3.org/2004/02/skos/core#
+                  dspace: http://data-space.org/
+                '@graph':
+                  '@id': https://example.com/catalog/123
+                  '@type': dcat:Catalog
+                  dcterms:title:
+                  - '@language': en
+                    '@value': Sample Catalog
+                  dcterms:description:
+                  - '@language': en
+                    '@value': This is a sample catalog containing various datasets
+                      and services.
+                  dcterms:publisher:
+                    '@id': https://example.com/person/123
+                    '@type': foaf:Agent
+                    foaf:name: John Doe
+                  dcat:dataset:
+                  - '@id': https://example.com/dataset/789
+                    '@type': dcat:Dataset
+                    dcterms:identifier: abc-123-xyz
+                    dcterms:title:
+                    - '@language': en
+                      '@value': Sample Dataset Title
+                    - '@language': es
+                      '@value': "T\xEDtulo del conjunto de datos de ejemplo"
+                    dcterms:description:
+                    - '@language': en
+                      '@value': This dataset contains sample data for testing purposes.
+                    - '@language': es
+                      '@value': Este conjunto de datos contiene datos de ejemplo para
+                        fines de prueba.
+                    dcat:keyword:
+                    - sample
+                    - data
+                    dcterms:license: https://example.com/license/xyz
+                    dcat:theme:
+                    - '@id': http://eurovoc.europa.eu/100142
+                      '@type': skos:Concept
+                      skos:prefLabel:
+                      - '@value': Agriculture
+                        '@language': en
+                    - '@id': http://eurovoc.europa.eu/100141
+                      '@type': skos:Concept
+                      skos:prefLabel:
+                      - '@value': Health
+                        '@language': en
+                    dcat:distribution:
+                    - '@id': https://example.com/distribution/489
+                      '@type': dcat:Distribution
+                      dcterms:description:
+                      - '@language': en
+                        '@value': This is a sample distribution.
+                      dcat:byteSize:
+                        '@value': 1024
+                        '@type': xsd:decimal
+                      dcat:mediaType:
+                        '@id': https://www.iana.org/assignments/media-types/application/json
+                      dcat:format: JSON
+                      dcatap:availability:
+                      - '@id': http://data.europa.eu/r5r/AVAILABLE
+                      spdx:checksum:
+                        spdx:algorithm: SHA-256
+                        spdx:checksumValue: 3a7bd3e2360a3b5c1b2ef3b1a4e8f7a6
+                      dcat:accessURL:
+                        '@id': https://example.com/distribution/489/information
+                      dcat:accessService:
+                      - '@id': https://example.com/dataservice/456
+                        '@type': dcat:DataService
+                        dcterms:title:
+                        - '@language': en
+                          '@value': Sample Data Service
+                        dcat:endpointURL:
+                          '@id': https://example.com/dataservice/456/download
+                    dcat:inSeries:
+                      '@id': string
+                    dspace:extraMetadata:
+                    - '@id': https://example.com/metadata/1
+                      '@type': med:Patient
+                      med:height:
+                        '@value': '180'
+                        '@type': xsd:integer
+                      med:weight:
+                        '@value': '75'
+                        '@type': xsd:integer
+                      med:sex: M
+                      med:birthDate: '1990-05-20'
+                    - '@id': https://example.com/metadata/2
+                      '@type': med:Diagnoses
+                      med:hasDiagnosis:
+                      - '@id': https://example.com/diagnosis/1
+                        '@type': med:Diagnosis
+                        med:code: I10
+                        med:description: Essential (primary) hypertension
+                      - '@id': https://example.com/diagnosis/2
+                        '@type': med:Diagnosis
+                        med:code: E11
+                        med:description: Type 2 diabetes mellitus
+                    dcterms:issued: '2025-03-13'
+                    dcterms:publisher:
+                      '@id': https://example.com/person/123
+                      '@type': foaf:Agent
+                      foaf:name: John Doe
+                    dspace:isShared: true
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /datasets/:
     post:
       tags:
       - Datasets
-      summary: Create Dataset
-      description: Create a dataset
-      operationId: create_dataset
+      summary: Save Dataset
+      description: Create or update a dataset
+      operationId: save_dataset
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DatasetForm'
+              $ref: '#/components/schemas/Dataset'
+        required: true
       responses:
-        '201':
+        '200':
           description: Successful Response
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Dataset'
-          headers:
-            Location:
-              description: The URL of the newly created resource
+            application/ld+json:
               schema:
                 type: string
-                format: uri
+              example:
+                '@context':
+                  xsd: http://www.w3.org/2001/XMLSchema#
+                  dcat: http://www.w3.org/ns/dcat#
+                  dcatap: http://data.europa.eu/r5r/
+                  dcterms: http://purl.org/dc/terms/
+                  spdx: http://spdx.org/rdf/terms#
+                  foaf: http://xmlns.com/foaf/0.1/
+                  skos: http://www.w3.org/2004/02/skos/core#
+                  dspace: http://data-space.org/
+                '@graph':
+                  '@id': https://example.com/dataset/789
+                  '@type': dcat:Dataset
+                  dcterms:identifier: abc-123-xyz
+                  dcterms:title:
+                  - '@language': en
+                    '@value': Sample Dataset Title
+                  - '@language': es
+                    '@value': "T\xEDtulo del conjunto de datos de ejemplo"
+                  dcterms:description:
+                  - '@language': en
+                    '@value': This dataset contains sample data for testing purposes.
+                  - '@language': es
+                    '@value': Este conjunto de datos contiene datos de ejemplo para
+                      fines de prueba.
+                  dcat:keyword:
+                  - sample
+                  - data
+                  dcterms:license: https://example.com/license/xyz
+                  dcat:theme:
+                  - '@id': http://eurovoc.europa.eu/100142
+                    '@type': skos:Concept
+                    skos:prefLabel:
+                    - '@value': Agriculture
+                      '@language': en
+                  - '@id': http://eurovoc.europa.eu/100141
+                    '@type': skos:Concept
+                    skos:prefLabel:
+                    - '@value': Health
+                      '@language': en
+                  dcat:distribution:
+                  - '@id': https://example.com/distribution/489
+                    '@type': dcat:Distribution
+                    dcterms:description:
+                    - '@language': en
+                      '@value': This is a sample distribution.
+                    dcat:byteSize:
+                      '@value': 1024
+                      '@type': xsd:decimal
+                    dcat:mediaType:
+                      '@id': https://www.iana.org/assignments/media-types/application/json
+                    dcat:format: JSON
+                    dcatap:availability:
+                    - '@id': http://data.europa.eu/r5r/AVAILABLE
+                    spdx:checksum:
+                      spdx:algorithm: SHA-256
+                      spdx:checksumValue: 3a7bd3e2360a3b5c1b2ef3b1a4e8f7a6
+                    dcat:accessURL:
+                      '@id': https://example.com/distribution/489/information
+                    dcat:accessService:
+                    - '@id': https://example.com/dataservice/456
+                      '@type': dcat:DataService
+                      dcterms:title:
+                      - '@language': en
+                        '@value': Sample Data Service
+                      dcat:endpointURL:
+                        '@id': https://example.com/dataservice/456/download
+                  dcat:inSeries:
+                    '@id': string
+                  dspace:extraMetadata:
+                  - '@id': https://example.com/metadata/1
+                    '@type': med:Patient
+                    med:height:
+                      '@value': '180'
+                      '@type': xsd:integer
+                    med:weight:
+                      '@value': '75'
+                      '@type': xsd:integer
+                    med:sex: M
+                    med:birthDate: '1990-05-20'
+                  - '@id': https://example.com/metadata/2
+                    '@type': med:Diagnoses
+                    med:hasDiagnosis:
+                    - '@id': https://example.com/diagnosis/1
+                      '@type': med:Diagnosis
+                      med:code: I10
+                      med:description: Essential (primary) hypertension
+                    - '@id': https://example.com/diagnosis/2
+                      '@type': med:Diagnosis
+                      med:code: E11
+                      med:description: Type 2 diabetes mellitus
+                  dcterms:issued: '2025-03-13'
+                  dcterms:publisher:
+                    '@id': https://example.com/person/123
+                    '@type': foaf:Agent
+                    foaf:name: John Doe
+                  dspace:isShared: true
         '422':
           description: Validation Error
           content:
@@ -187,7 +333,7 @@ paths:
       tags:
       - Datasets
       summary: Get Dataset
-      description: Get the dataset
+      description: Get a dataset
       operationId: get_dataset
       parameters:
       - name: id
@@ -200,43 +346,106 @@ paths:
         '200':
           description: Successful Response
           content:
-            application/json:
+            application/ld+json:
               schema:
-                $ref: '#/components/schemas/Dataset'
-        '404':
-          description: Dataset not found
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-    patch:
-      tags:
-      - Datasets
-      summary: Update Dataset
-      description: Update the dataset
-      operationId: update_dataset
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Id
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DatasetForm'
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Dataset'
+                type: string
+              example:
+                '@context':
+                  xsd: http://www.w3.org/2001/XMLSchema#
+                  dcat: http://www.w3.org/ns/dcat#
+                  dcatap: http://data.europa.eu/r5r/
+                  dcterms: http://purl.org/dc/terms/
+                  spdx: http://spdx.org/rdf/terms#
+                  foaf: http://xmlns.com/foaf/0.1/
+                  skos: http://www.w3.org/2004/02/skos/core#
+                  dspace: http://data-space.org/
+                '@graph':
+                  '@id': https://example.com/dataset/789
+                  '@type': dcat:Dataset
+                  dcterms:identifier: abc-123-xyz
+                  dcterms:title:
+                  - '@language': en
+                    '@value': Sample Dataset Title
+                  - '@language': es
+                    '@value': "T\xEDtulo del conjunto de datos de ejemplo"
+                  dcterms:description:
+                  - '@language': en
+                    '@value': This dataset contains sample data for testing purposes.
+                  - '@language': es
+                    '@value': Este conjunto de datos contiene datos de ejemplo para
+                      fines de prueba.
+                  dcat:keyword:
+                  - sample
+                  - data
+                  dcterms:license: https://example.com/license/xyz
+                  dcat:theme:
+                  - '@id': http://eurovoc.europa.eu/100142
+                    '@type': skos:Concept
+                    skos:prefLabel:
+                    - '@value': Agriculture
+                      '@language': en
+                  - '@id': http://eurovoc.europa.eu/100141
+                    '@type': skos:Concept
+                    skos:prefLabel:
+                    - '@value': Health
+                      '@language': en
+                  dcat:distribution:
+                  - '@id': https://example.com/distribution/489
+                    '@type': dcat:Distribution
+                    dcterms:description:
+                    - '@language': en
+                      '@value': This is a sample distribution.
+                    dcat:byteSize:
+                      '@value': 1024
+                      '@type': xsd:decimal
+                    dcat:mediaType:
+                      '@id': https://www.iana.org/assignments/media-types/application/json
+                    dcat:format: JSON
+                    dcatap:availability:
+                    - '@id': http://data.europa.eu/r5r/AVAILABLE
+                    spdx:checksum:
+                      spdx:algorithm: SHA-256
+                      spdx:checksumValue: 3a7bd3e2360a3b5c1b2ef3b1a4e8f7a6
+                    dcat:accessURL:
+                      '@id': https://example.com/distribution/489/information
+                    dcat:accessService:
+                    - '@id': https://example.com/dataservice/456
+                      '@type': dcat:DataService
+                      dcterms:title:
+                      - '@language': en
+                        '@value': Sample Data Service
+                      dcat:endpointURL:
+                        '@id': https://example.com/dataservice/456/download
+                  dcat:inSeries:
+                    '@id': string
+                  dspace:extraMetadata:
+                  - '@id': https://example.com/metadata/1
+                    '@type': med:Patient
+                    med:height:
+                      '@value': '180'
+                      '@type': xsd:integer
+                    med:weight:
+                      '@value': '75'
+                      '@type': xsd:integer
+                    med:sex: M
+                    med:birthDate: '1990-05-20'
+                  - '@id': https://example.com/metadata/2
+                    '@type': med:Diagnoses
+                    med:hasDiagnosis:
+                    - '@id': https://example.com/diagnosis/1
+                      '@type': med:Diagnosis
+                      med:code: I10
+                      med:description: Essential (primary) hypertension
+                    - '@id': https://example.com/diagnosis/2
+                      '@type': med:Diagnosis
+                      med:code: E11
+                      med:description: Type 2 diabetes mellitus
+                  dcterms:issued: '2025-03-13'
+                  dcterms:publisher:
+                    '@id': https://example.com/person/123
+                    '@type': foaf:Agent
+                    foaf:name: John Doe
+                  dspace:isShared: true
         '404':
           description: Dataset not found
         '422':
@@ -249,7 +458,7 @@ paths:
       tags:
       - Datasets
       summary: Delete Dataset
-      description: Delete the dataset
+      description: Delete a dataset
       operationId: delete_dataset
       parameters:
       - name: id
@@ -274,7 +483,7 @@ paths:
       tags:
       - Sharing
       summary: Share Dataset
-      description: Share the dataset to the marketplace
+      description: Share a dataset
       operationId: share_dataset
       parameters:
       - name: id
@@ -283,25 +492,9 @@ paths:
         schema:
           type: string
           title: Id
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DatasetShareForm'
       responses:
-        '201':
+        '204':
           description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Dataset'
-          headers:
-            Location:
-              description: The URL of the newly created resource
-              schema:
-                type: string
-                format: uri
         '404':
           description: Dataset not found
         '422':
@@ -310,32 +503,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /datasets/import/:
+  /datasets/{id}/unshare/:
     post:
       tags:
-      - Importing
-      summary: Import Dataset
-      description: Import a dataset from the local catalog
-      operationId: import_dataset
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DatasetImportForm'
+      - Sharing
+      summary: Unhare Dataset
+      description: Unshare a dataset
+      operationId: unshare_dataset
+      parameters:
+      - name: id
+        in: path
         required: true
+        schema:
+          type: string
+          title: Id
       responses:
-        '201':
+        '204':
           description: Successful Response
-          headers:
-            Location:
-              description: The URL of the newly created resource
-              schema:
-                type: string
-                format: uri
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Dataset'
+        '404':
+          description: Dataset not found
         '422':
           description: Validation Error
           content:
@@ -344,298 +530,137 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
-    Catalog:
+    CatalogFilters:
       properties:
-        identifier:
-          type: string
-          title: Identifier
-        title:
-          type: string
-          title: Title
-        description:
-          type: string
-          title: Description
+        context:
+          additionalProperties:
+            type: string
+          type: object
+          title: Context
+        filters:
+          items:
+            type: object
+          type: array
+          title: Filters
       type: object
       required:
-      - identifier
-      - title
-      - description
-      title: Catalog
-    CatalogImportForm:
-      properties:
-        title:
-          type: string
-          title: Title
-        description:
-          type: string
-          title: Description
-      type: object
-      required:
-      - title
-      - description
-      title: CatalogImportForm
-    Checksum:
-      properties:
-        algorithm:
-          type: string
-          title: Algorithm
-        checksumValue:
-          type: string
-          title: Checksumvalue
-      type: object
-      required:
-      - algorithm
-      - checksumValue
-      title: Checksum
-    DataService:
-      properties:
-        endpointUrl:
-          type: string
-          title: Endpointurl
-      type: object
-      required:
-      - endpointUrl
-      title: DataService
+      - context
+      - filters
+      title: CatalogFilters
+      examples:
+      - context:
+          dcat: http://www.w3.org/ns/dcat#
+          dspace: http://data-space.org/
+          med: http://med.example.org/
+        filters:
+        - dcat:dataset:
+            dspace:extraMetadata:
+              med:hasDiagnosis:
+                med:code__contains: I10
+              type: med:Diagnoses
     Dataset:
       properties:
-        identifier:
-          type: string
-          title: Identifier
-        title:
-          type: string
-          title: Title
-        description:
-          type: string
-          title: Description
-        keyword:
-          items:
-            type: string
-          type: array
-          title: Keyword
-        license:
-          type: string
-          title: License
-        isLocal:
-          type: boolean
-          title: Islocal
-        isShared:
-          type: boolean
-          title: Isshared
-        issued:
-          type: string
-          format: date
-          title: Issued
-        theme:
-          items:
-            type: string
-          type: array
-          title: Theme
-        catalog:
-          $ref: '#/components/schemas/Catalog'
-        creator:
-          $ref: '#/components/schemas/Person'
-        distribution:
-          items:
-            $ref: '#/components/schemas/Distribution'
-          type: array
-          title: Distribution
+        '@context':
+          type: object
+          title: '@Context'
+        '@graph':
+          type: object
+          title: '@Graph'
+      additionalProperties: true
       type: object
       required:
-      - identifier
-      - title
-      - description
-      - keyword
-      - license
-      - isLocal
-      - isShared
-      - issued
-      - theme
-      - catalog
-      - creator
-      - distribution
+      - '@context'
+      - '@graph'
       title: Dataset
       examples:
-      - catalog:
-          description: Some description
-          identifier: 9c208553-4685-473b-bdcc-466f724baae1
-          title: Dataset 1
-        creator:
-          id: 14eb400e-3ba3-4aed-a7b5-de030af3e411
-          name: John Smith
-        description: Some description
-        distribution:
-        - accessService:
-          - endpointUrl: http://domain.com/dataset1/
-          byteSize: 512
-          checksum:
-            algorithm: md5
-            checksumValue: 202cb962ac59075b964b07152d234b70
-          mediaType: text
-        identifier: 9c208553-4685-473b-bdcc-466f724baae1
-        is_local: true
-        is_shared: false
-        issued: '2024-01-01'
-        keyword:
-        - keyword1
-        - keyword2
-        license: http://domain.com/license/
-        theme:
-        - theme1
-        - theme2
-        title: Dataset 1
-    DatasetForm:
-      properties:
-        title:
-          type: string
-          title: Title
-        description:
-          type: string
-          title: Description
-        keyword:
-          items:
-            type: string
-          type: array
-          title: Keyword
-        license:
-          type: string
-          title: License
-        theme:
-          items:
-            type: string
-          type: array
-          title: Theme
-        distribution:
-          items:
-            $ref: '#/components/schemas/Distribution'
-          type: array
-          title: Distribution
-      type: object
-      required:
-      - title
-      - description
-      - keyword
-      - license
-      - theme
-      - distribution
-      title: DatasetForm
-      examples:
-      - description: Some description
-        distribution:
-        - accessService:
-          - endpointUrl: http://domain.com/dataset1/
-          byteSize: 512
-          checksum:
-            algorithm: md5
-            checksumValue: 202cb962ac59075b964b07152d234b70
-          mediaType: text
-        keyword:
-        - keyword1
-        - keyword2
-        license: http://domain.com/license/
-        theme:
-        - theme1
-        - theme2
-        title: Dataset 1
-    DatasetImportForm:
-      properties:
-        identifier:
-          type: string
-          title: Identifier
-        title:
-          type: string
-          title: Title
-        description:
-          type: string
-          title: Description
-        keyword:
-          items:
-            type: string
-          type: array
-          title: Keyword
-        license:
-          type: string
-          title: License
-        theme:
-          items:
-            type: string
-          type: array
-          title: Theme
-        catalog:
-          $ref: '#/components/schemas/CatalogImportForm'
-        distribution:
-          items:
-            $ref: '#/components/schemas/Distribution'
-          type: array
-          title: Distribution
-      type: object
-      required:
-      - identifier
-      - title
-      - description
-      - keyword
-      - license
-      - theme
-      - catalog
-      - distribution
-      title: DatasetImportForm
-      examples:
-      - catalog:
-          description: Some description
-          title: Dataset 1
-        description: Some description
-        distribution:
-        - accessService:
-          - endpointUrl: http://domain.com/dataset1/
-          byteSize: 512
-          checksum:
-            algorithm: md5
-            checksumValue: 202cb962ac59075b964b07152d234b70
-          mediaType: text
-        identifier: 9c208553-4685-473b-bdcc-466f724baae1
-        keyword:
-        - keyword1
-        - keyword2
-        license: http://domain.com/license/
-        theme:
-        - theme1
-        - theme2
-        title: Dataset 1
-    DatasetShareForm:
-      properties:
-        marketplaceUrl:
-          type: string
-          minLength: 1
-          format: uri
-          title: Marketplaceurl
-      type: object
-      required:
-      - marketplaceUrl
-      title: DatasetShareForm
-    Distribution:
-      properties:
-        byteSize:
-          anyOf:
-          - type: integer
-            exclusiveMinimum: 0.0
-          - type: 'null'
-          title: Bytesize
-        mediaType:
-          type: string
-          title: Mediatype
-        checksum:
-          $ref: '#/components/schemas/Checksum'
-        accessService:
-          items:
-            $ref: '#/components/schemas/DataService'
-          type: array
-          title: Accessservice
-      type: object
-      required:
-      - byteSize
-      - mediaType
-      - checksum
-      - accessService
-      title: Distribution
+      - '@context':
+          dcat: http://www.w3.org/ns/dcat#
+          dcatap: http://data.europa.eu/r5r/
+          dcterms: http://purl.org/dc/terms/
+          dspace: http://data-space.org/
+          foaf: http://xmlns.com/foaf/0.1/
+          skos: http://www.w3.org/2004/02/skos/core#
+          spdx: http://spdx.org/rdf/terms#
+          xsd: http://www.w3.org/2001/XMLSchema#
+        '@graph':
+          '@id': https://example.com/dataset/789
+          '@type': dcat:Dataset
+          dcat:distribution:
+          - '@id': https://example.com/distribution/489
+            '@type': dcat:Distribution
+            dcat:accessService:
+            - '@id': https://example.com/dataservice/456
+              '@type': dcat:DataService
+              dcat:endpointURL:
+                '@id': https://example.com/dataservice/456/download
+              dcterms:title:
+              - '@language': en
+                '@value': Sample Data Service
+            dcat:accessURL:
+              '@id': https://example.com/distribution/489/information
+            dcat:byteSize:
+              '@type': xsd:decimal
+              '@value': 1024
+            dcat:format: JSON
+            dcat:mediaType:
+              '@id': https://www.iana.org/assignments/media-types/application/json
+            dcatap:availability:
+            - '@id': http://data.europa.eu/r5r/AVAILABLE
+            dcterms:description:
+            - '@language': en
+              '@value': This is a sample distribution.
+            spdx:checksum:
+              spdx:algorithm: SHA-256
+              spdx:checksumValue: 3a7bd3e2360a3b5c1b2ef3b1a4e8f7a6
+          dcat:keyword:
+          - sample
+          - data
+          dcat:theme:
+          - '@id': http://eurovoc.europa.eu/100142
+            '@type': skos:Concept
+            skos:prefLabel:
+            - '@language': en
+              '@value': Agriculture
+          - '@id': http://eurovoc.europa.eu/100141
+            '@type': skos:Concept
+            skos:prefLabel:
+            - '@language': en
+              '@value': Health
+          dcterms:description:
+          - '@language': en
+            '@value': This dataset contains sample data for testing purposes.
+          - '@language': es
+            '@value': Este conjunto de datos contiene datos de ejemplo para fines
+              de prueba.
+          dcterms:identifier: abc-123-xyz
+          dcterms:license: https://example.com/license/xyz
+          dcterms:title:
+          - '@language': en
+            '@value': Sample Dataset Title
+          - '@language': es
+            '@value': "T\xEDtulo del conjunto de datos de ejemplo"
+          dspace:extraMetadata:
+          - '@id': https://example.com/metadata/1
+            '@type': med:Patient
+            med:birthDate: '1990-05-20'
+            med:height:
+              '@type': xsd:integer
+              '@value': '180'
+            med:sex: M
+            med:weight:
+              '@type': xsd:integer
+              '@value': '75'
+          - '@id': https://example.com/metadata/2
+            '@type': med:Diagnoses
+            med:hasDiagnosis:
+            - '@id': https://example.com/diagnosis/1
+              '@type': med:Diagnosis
+              med:code: I10
+              med:description: Essential (primary) hypertension
+            - '@id': https://example.com/diagnosis/2
+              '@type': med:Diagnosis
+              med:code: E11
+              med:description: Type 2 diabetes mellitus
     HTTPValidationError:
       properties:
         detail:
@@ -656,45 +681,6 @@ components:
       required:
       - status
       title: HealthCheck
-    PaginatedResult_Dataset_:
-      properties:
-        page:
-          type: integer
-          minimum: 1.0
-          title: Page
-          examples:
-          - 1
-        size:
-          type: integer
-          maximum: 100.0
-          minimum: 1.0
-          title: Size
-          examples:
-          - 100
-        items:
-          items:
-            $ref: '#/components/schemas/Dataset'
-          type: array
-          title: Items
-      type: object
-      required:
-      - page
-      - size
-      - items
-      title: PaginatedResult[Dataset]
-    Person:
-      properties:
-        id:
-          type: string
-          title: Id
-        name:
-          type: string
-          title: Name
-      type: object
-      required:
-      - id
-      - name
-      title: Person
     ValidationError:
       properties:
         loc:

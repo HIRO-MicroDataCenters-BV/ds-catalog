@@ -1,9 +1,9 @@
 # coding: utf-8
 
 """
-    Data Space Catalog
+    Data Space Catalog Service
 
-    The service provides a REST API for managing and sharing catalog data. Interacts with connector services to obtain information about data products.
+    The service provides a REST API for managing and sharing catalog items.
 
     The version of the OpenAPI document: 0.1.1
     Contact: all-hiro@hiro-microdatacenters.nl
@@ -17,13 +17,8 @@ from pydantic import validate_call, Field, StrictFloat, StrictStr, StrictInt
 from typing import Any, Dict, List, Optional, Tuple, Union
 from typing_extensions import Annotated
 
-from datetime import date
-from pydantic import Field, StrictBool, StrictStr
-from typing import List, Optional
-from typing_extensions import Annotated
+from pydantic import StrictStr
 from ds_catalog.models.dataset import Dataset
-from ds_catalog.models.dataset_form import DatasetForm
-from ds_catalog.models.paginated_result_dataset import PaginatedResultDataset
 
 from ds_catalog.api_client import ApiClient, RequestSerialized
 from ds_catalog.api_response import ApiResponse
@@ -41,280 +36,6 @@ class DatasetsApi:
         if api_client is None:
             api_client = ApiClient.get_default()
         self.api_client = api_client
-
-
-    @validate_call
-    def create_dataset(
-        self,
-        dataset_form: DatasetForm,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> Dataset:
-        """Create Dataset
-
-        Create a dataset
-
-        :param dataset_form: (required)
-        :type dataset_form: DatasetForm
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._create_dataset_serialize(
-            dataset_form=dataset_form,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '201': "Dataset",
-            '422': "HTTPValidationError",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        ).data
-
-
-    @validate_call
-    def create_dataset_with_http_info(
-        self,
-        dataset_form: DatasetForm,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[Dataset]:
-        """Create Dataset
-
-        Create a dataset
-
-        :param dataset_form: (required)
-        :type dataset_form: DatasetForm
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._create_dataset_serialize(
-            dataset_form=dataset_form,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '201': "Dataset",
-            '422': "HTTPValidationError",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        )
-
-
-    @validate_call
-    def create_dataset_without_preload_content(
-        self,
-        dataset_form: DatasetForm,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> RESTResponseType:
-        """Create Dataset
-
-        Create a dataset
-
-        :param dataset_form: (required)
-        :type dataset_form: DatasetForm
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._create_dataset_serialize(
-            dataset_form=dataset_form,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '201': "Dataset",
-            '422': "HTTPValidationError",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        return response_data.response
-
-
-    def _create_dataset_serialize(
-        self,
-        dataset_form,
-        _request_auth,
-        _content_type,
-        _headers,
-        _host_index,
-    ) -> RequestSerialized:
-
-        _host = None
-
-        _collection_formats: Dict[str, str] = {
-        }
-
-        _path_params: Dict[str, str] = {}
-        _query_params: List[Tuple[str, str]] = []
-        _header_params: Dict[str, Optional[str]] = _headers or {}
-        _form_params: List[Tuple[str, str]] = []
-        _files: Dict[str, Union[str, bytes]] = {}
-        _body_params: Optional[bytes] = None
-
-        # process the path parameters
-        # process the query parameters
-        # process the header parameters
-        # process the form parameters
-        # process the body parameter
-        if dataset_form is not None:
-            _body_params = dataset_form
-
-
-        # set the HTTP header `Accept`
-        if 'Accept' not in _header_params:
-            _header_params['Accept'] = self.api_client.select_header_accept(
-                [
-                    'application/json'
-                ]
-            )
-
-        # set the HTTP header `Content-Type`
-        if _content_type:
-            _header_params['Content-Type'] = _content_type
-        else:
-            _default_content_type = (
-                self.api_client.select_header_content_type(
-                    [
-                        'application/json'
-                    ]
-                )
-            )
-            if _default_content_type is not None:
-                _header_params['Content-Type'] = _default_content_type
-
-        # authentication setting
-        _auth_settings: List[str] = [
-        ]
-
-        return self.api_client.param_serialize(
-            method='POST',
-            resource_path='/datasets/',
-            path_params=_path_params,
-            query_params=_query_params,
-            header_params=_header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
-            auth_settings=_auth_settings,
-            collection_formats=_collection_formats,
-            _host=_host,
-            _request_auth=_request_auth
-        )
-
-
 
 
     @validate_call
@@ -336,7 +57,7 @@ class DatasetsApi:
     ) -> None:
         """Delete Dataset
 
-        Delete the dataset
+        Delete a dataset
 
         :param id: (required)
         :type id: str
@@ -405,7 +126,7 @@ class DatasetsApi:
     ) -> ApiResponse[None]:
         """Delete Dataset
 
-        Delete the dataset
+        Delete a dataset
 
         :param id: (required)
         :type id: str
@@ -474,7 +195,7 @@ class DatasetsApi:
     ) -> RESTResponseType:
         """Delete Dataset
 
-        Delete the dataset
+        Delete a dataset
 
         :param id: (required)
         :type id: str
@@ -597,10 +318,10 @@ class DatasetsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> Dataset:
+    ) -> str:
         """Get Dataset
 
-        Get the dataset
+        Get a dataset
 
         :param id: (required)
         :type id: str
@@ -635,7 +356,7 @@ class DatasetsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "Dataset",
+            '200': "str",
             '404': None,
             '422': "HTTPValidationError",
         }
@@ -666,10 +387,10 @@ class DatasetsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[Dataset]:
+    ) -> ApiResponse[str]:
         """Get Dataset
 
-        Get the dataset
+        Get a dataset
 
         :param id: (required)
         :type id: str
@@ -704,7 +425,7 @@ class DatasetsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "Dataset",
+            '200': "str",
             '404': None,
             '422': "HTTPValidationError",
         }
@@ -738,7 +459,7 @@ class DatasetsApi:
     ) -> RESTResponseType:
         """Get Dataset
 
-        Get the dataset
+        Get a dataset
 
         :param id: (required)
         :type id: str
@@ -773,7 +494,7 @@ class DatasetsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "Dataset",
+            '200': "str",
             '404': None,
             '422': "HTTPValidationError",
         }
@@ -818,6 +539,7 @@ class DatasetsApi:
         if 'Accept' not in _header_params:
             _header_params['Accept'] = self.api_client.select_header_accept(
                 [
+                    'application/ld+json', 
                     'application/json'
                 ]
             )
@@ -846,19 +568,9 @@ class DatasetsApi:
 
 
     @validate_call
-    def get_datasets(
+    def save_dataset(
         self,
-        page: Optional[Annotated[int, Field(strict=True, ge=1)]] = None,
-        page_size: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
-        order_by: Optional[StrictStr] = None,
-        search: Optional[StrictStr] = None,
-        keyword: Optional[List[StrictStr]] = None,
-        theme: Optional[List[StrictStr]] = None,
-        is_local: Optional[StrictBool] = None,
-        is_shared: Optional[StrictBool] = None,
-        issued: Optional[date] = None,
-        issued__gte: Optional[date] = None,
-        issued__lte: Optional[date] = None,
+        dataset: Dataset,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -871,33 +583,13 @@ class DatasetsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> PaginatedResultDataset:
-        """Get Datasets
+    ) -> str:
+        """Save Dataset
 
-        Get the datasets list
+        Create or update a dataset
 
-        :param page:
-        :type page: int
-        :param page_size:
-        :type page_size: int
-        :param order_by:
-        :type order_by: str
-        :param search:
-        :type search: str
-        :param keyword:
-        :type keyword: List[str]
-        :param theme:
-        :type theme: List[str]
-        :param is_local:
-        :type is_local: bool
-        :param is_shared:
-        :type is_shared: bool
-        :param issued:
-        :type issued: date
-        :param issued__gte:
-        :type issued__gte: date
-        :param issued__lte:
-        :type issued__lte: date
+        :param dataset: (required)
+        :type dataset: Dataset
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -920,18 +612,8 @@ class DatasetsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._get_datasets_serialize(
-            page=page,
-            page_size=page_size,
-            order_by=order_by,
-            search=search,
-            keyword=keyword,
-            theme=theme,
-            is_local=is_local,
-            is_shared=is_shared,
-            issued=issued,
-            issued__gte=issued__gte,
-            issued__lte=issued__lte,
+        _param = self._save_dataset_serialize(
+            dataset=dataset,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -939,7 +621,7 @@ class DatasetsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "PaginatedResultDataset",
+            '200': "str",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -954,19 +636,9 @@ class DatasetsApi:
 
 
     @validate_call
-    def get_datasets_with_http_info(
+    def save_dataset_with_http_info(
         self,
-        page: Optional[Annotated[int, Field(strict=True, ge=1)]] = None,
-        page_size: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
-        order_by: Optional[StrictStr] = None,
-        search: Optional[StrictStr] = None,
-        keyword: Optional[List[StrictStr]] = None,
-        theme: Optional[List[StrictStr]] = None,
-        is_local: Optional[StrictBool] = None,
-        is_shared: Optional[StrictBool] = None,
-        issued: Optional[date] = None,
-        issued__gte: Optional[date] = None,
-        issued__lte: Optional[date] = None,
+        dataset: Dataset,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -979,33 +651,13 @@ class DatasetsApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[PaginatedResultDataset]:
-        """Get Datasets
+    ) -> ApiResponse[str]:
+        """Save Dataset
 
-        Get the datasets list
+        Create or update a dataset
 
-        :param page:
-        :type page: int
-        :param page_size:
-        :type page_size: int
-        :param order_by:
-        :type order_by: str
-        :param search:
-        :type search: str
-        :param keyword:
-        :type keyword: List[str]
-        :param theme:
-        :type theme: List[str]
-        :param is_local:
-        :type is_local: bool
-        :param is_shared:
-        :type is_shared: bool
-        :param issued:
-        :type issued: date
-        :param issued__gte:
-        :type issued__gte: date
-        :param issued__lte:
-        :type issued__lte: date
+        :param dataset: (required)
+        :type dataset: Dataset
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1028,18 +680,8 @@ class DatasetsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._get_datasets_serialize(
-            page=page,
-            page_size=page_size,
-            order_by=order_by,
-            search=search,
-            keyword=keyword,
-            theme=theme,
-            is_local=is_local,
-            is_shared=is_shared,
-            issued=issued,
-            issued__gte=issued__gte,
-            issued__lte=issued__lte,
+        _param = self._save_dataset_serialize(
+            dataset=dataset,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1047,7 +689,7 @@ class DatasetsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "PaginatedResultDataset",
+            '200': "str",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -1062,19 +704,9 @@ class DatasetsApi:
 
 
     @validate_call
-    def get_datasets_without_preload_content(
+    def save_dataset_without_preload_content(
         self,
-        page: Optional[Annotated[int, Field(strict=True, ge=1)]] = None,
-        page_size: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
-        order_by: Optional[StrictStr] = None,
-        search: Optional[StrictStr] = None,
-        keyword: Optional[List[StrictStr]] = None,
-        theme: Optional[List[StrictStr]] = None,
-        is_local: Optional[StrictBool] = None,
-        is_shared: Optional[StrictBool] = None,
-        issued: Optional[date] = None,
-        issued__gte: Optional[date] = None,
-        issued__lte: Optional[date] = None,
+        dataset: Dataset,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1088,32 +720,12 @@ class DatasetsApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Get Datasets
+        """Save Dataset
 
-        Get the datasets list
+        Create or update a dataset
 
-        :param page:
-        :type page: int
-        :param page_size:
-        :type page_size: int
-        :param order_by:
-        :type order_by: str
-        :param search:
-        :type search: str
-        :param keyword:
-        :type keyword: List[str]
-        :param theme:
-        :type theme: List[str]
-        :param is_local:
-        :type is_local: bool
-        :param is_shared:
-        :type is_shared: bool
-        :param issued:
-        :type issued: date
-        :param issued__gte:
-        :type issued__gte: date
-        :param issued__lte:
-        :type issued__lte: date
+        :param dataset: (required)
+        :type dataset: Dataset
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1136,18 +748,8 @@ class DatasetsApi:
         :return: Returns the result object.
         """ # noqa: E501
 
-        _param = self._get_datasets_serialize(
-            page=page,
-            page_size=page_size,
-            order_by=order_by,
-            search=search,
-            keyword=keyword,
-            theme=theme,
-            is_local=is_local,
-            is_shared=is_shared,
-            issued=issued,
-            issued__gte=issued__gte,
-            issued__lte=issued__lte,
+        _param = self._save_dataset_serialize(
+            dataset=dataset,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1155,7 +757,7 @@ class DatasetsApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "PaginatedResultDataset",
+            '200': "str",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -1165,367 +767,9 @@ class DatasetsApi:
         return response_data.response
 
 
-    def _get_datasets_serialize(
+    def _save_dataset_serialize(
         self,
-        page,
-        page_size,
-        order_by,
-        search,
-        keyword,
-        theme,
-        is_local,
-        is_shared,
-        issued,
-        issued__gte,
-        issued__lte,
-        _request_auth,
-        _content_type,
-        _headers,
-        _host_index,
-    ) -> RequestSerialized:
-
-        _host = None
-
-        _collection_formats: Dict[str, str] = {
-            'keyword': 'multi',
-            'theme': 'multi',
-        }
-
-        _path_params: Dict[str, str] = {}
-        _query_params: List[Tuple[str, str]] = []
-        _header_params: Dict[str, Optional[str]] = _headers or {}
-        _form_params: List[Tuple[str, str]] = []
-        _files: Dict[str, Union[str, bytes]] = {}
-        _body_params: Optional[bytes] = None
-
-        # process the path parameters
-        # process the query parameters
-        if page is not None:
-            
-            _query_params.append(('page', page))
-            
-        if page_size is not None:
-            
-            _query_params.append(('pageSize', page_size))
-            
-        if order_by is not None:
-            
-            _query_params.append(('orderBy', order_by))
-            
-        if search is not None:
-            
-            _query_params.append(('search', search))
-            
-        if keyword is not None:
-            
-            _query_params.append(('keyword', keyword))
-            
-        if theme is not None:
-            
-            _query_params.append(('theme', theme))
-            
-        if is_local is not None:
-            
-            _query_params.append(('isLocal', is_local))
-            
-        if is_shared is not None:
-            
-            _query_params.append(('isShared', is_shared))
-            
-        if issued is not None:
-            if isinstance(issued, date):
-                _query_params.append(
-                    (
-                        'issued',
-                        issued.strftime(
-                            self.api_client.configuration.date_format
-                        )
-                    )
-                )
-            else:
-                _query_params.append(('issued', issued))
-            
-        if issued__gte is not None:
-            if isinstance(issued__gte, date):
-                _query_params.append(
-                    (
-                        'issued__gte',
-                        issued__gte.strftime(
-                            self.api_client.configuration.date_format
-                        )
-                    )
-                )
-            else:
-                _query_params.append(('issued__gte', issued__gte))
-            
-        if issued__lte is not None:
-            if isinstance(issued__lte, date):
-                _query_params.append(
-                    (
-                        'issued__lte',
-                        issued__lte.strftime(
-                            self.api_client.configuration.date_format
-                        )
-                    )
-                )
-            else:
-                _query_params.append(('issued__lte', issued__lte))
-            
-        # process the header parameters
-        # process the form parameters
-        # process the body parameter
-
-
-        # set the HTTP header `Accept`
-        if 'Accept' not in _header_params:
-            _header_params['Accept'] = self.api_client.select_header_accept(
-                [
-                    'application/json'
-                ]
-            )
-
-
-        # authentication setting
-        _auth_settings: List[str] = [
-        ]
-
-        return self.api_client.param_serialize(
-            method='GET',
-            resource_path='/datasets/',
-            path_params=_path_params,
-            query_params=_query_params,
-            header_params=_header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
-            auth_settings=_auth_settings,
-            collection_formats=_collection_formats,
-            _host=_host,
-            _request_auth=_request_auth
-        )
-
-
-
-
-    @validate_call
-    def update_dataset(
-        self,
-        id: StrictStr,
-        dataset_form: DatasetForm,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> Dataset:
-        """Update Dataset
-
-        Update the dataset
-
-        :param id: (required)
-        :type id: str
-        :param dataset_form: (required)
-        :type dataset_form: DatasetForm
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._update_dataset_serialize(
-            id=id,
-            dataset_form=dataset_form,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "Dataset",
-            '404': None,
-            '422': "HTTPValidationError",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        ).data
-
-
-    @validate_call
-    def update_dataset_with_http_info(
-        self,
-        id: StrictStr,
-        dataset_form: DatasetForm,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[Dataset]:
-        """Update Dataset
-
-        Update the dataset
-
-        :param id: (required)
-        :type id: str
-        :param dataset_form: (required)
-        :type dataset_form: DatasetForm
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._update_dataset_serialize(
-            id=id,
-            dataset_form=dataset_form,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "Dataset",
-            '404': None,
-            '422': "HTTPValidationError",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        response_data.read()
-        return self.api_client.response_deserialize(
-            response_data=response_data,
-            response_types_map=_response_types_map,
-        )
-
-
-    @validate_call
-    def update_dataset_without_preload_content(
-        self,
-        id: StrictStr,
-        dataset_form: DatasetForm,
-        _request_timeout: Union[
-            None,
-            Annotated[StrictFloat, Field(gt=0)],
-            Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
-        ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> RESTResponseType:
-        """Update Dataset
-
-        Update the dataset
-
-        :param id: (required)
-        :type id: str
-        :param dataset_form: (required)
-        :type dataset_form: DatasetForm
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :type _request_timeout: int, tuple(int, int), optional
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the
-                              authentication in the spec for a single request.
-        :type _request_auth: dict, optional
-        :param _content_type: force content-type for the request.
-        :type _content_type: str, Optional
-        :param _headers: set to override the headers for a single
-                         request; this effectively ignores the headers
-                         in the spec for a single request.
-        :type _headers: dict, optional
-        :param _host_index: set to override the host_index for a single
-                            request; this effectively ignores the host_index
-                            in the spec for a single request.
-        :type _host_index: int, optional
-        :return: Returns the result object.
-        """ # noqa: E501
-
-        _param = self._update_dataset_serialize(
-            id=id,
-            dataset_form=dataset_form,
-            _request_auth=_request_auth,
-            _content_type=_content_type,
-            _headers=_headers,
-            _host_index=_host_index
-        )
-
-        _response_types_map: Dict[str, Optional[str]] = {
-            '200': "Dataset",
-            '404': None,
-            '422': "HTTPValidationError",
-        }
-        response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
-        )
-        return response_data.response
-
-
-    def _update_dataset_serialize(
-        self,
-        id,
-        dataset_form,
+        dataset,
         _request_auth,
         _content_type,
         _headers,
@@ -1545,20 +789,19 @@ class DatasetsApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
-        if id is not None:
-            _path_params['id'] = id
         # process the query parameters
         # process the header parameters
         # process the form parameters
         # process the body parameter
-        if dataset_form is not None:
-            _body_params = dataset_form
+        if dataset is not None:
+            _body_params = dataset
 
 
         # set the HTTP header `Accept`
         if 'Accept' not in _header_params:
             _header_params['Accept'] = self.api_client.select_header_accept(
                 [
+                    'application/ld+json', 
                     'application/json'
                 ]
             )
@@ -1582,8 +825,8 @@ class DatasetsApi:
         ]
 
         return self.api_client.param_serialize(
-            method='PATCH',
-            resource_path='/datasets/{id}/',
+            method='POST',
+            resource_path='/datasets/',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,

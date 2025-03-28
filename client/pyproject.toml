@@ -5,11 +5,11 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "ds_catalog"
 version = "0.1.1"
-description = "Client for Data Space Catalog"
+description = "Client for Data Space Catalog Service"
 authors = ["HIRO-MicroDataCenters <all-hiro@hiro-microdatacenters.nl>"]
 license = "MIT"
 readme = "README.md"
-keywords = ["OpenAPI", "OpenAPI-Generator", "Data Space Catalog"]
+keywords = ["OpenAPI", "OpenAPI-Generator", "Data Space Catalog Service"]
 include = ["ds_catalog/py.typed"]
 
 [tool.poetry.dependencies]
