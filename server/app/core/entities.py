@@ -19,6 +19,8 @@ class Person(TypedDict):
 
 class Graph:
     rdf_class: str
+    label: str
+
     context = {
         "xsd": str(XSD),
         "dcat": str(DCAT),
