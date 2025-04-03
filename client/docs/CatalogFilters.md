@@ -5,8 +5,8 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**context** | **Dict[str, str]** |  | 
-**filters** | **List[object]** |  | 
+**context** | **object** |  | [optional] 
+**filters** | **List[object]** |  | [optional] 
 
 ## Example
 

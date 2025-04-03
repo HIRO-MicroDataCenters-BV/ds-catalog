@@ -1,5 +1,8 @@
 from typing import Any, Self, TypedDict, cast
 
+import json
+
+from pyld import jsonld
 from rdflib import RDF
 from rdflib import Graph as RDFGraph
 from rdflib import Literal, URIRef
@@ -15,15 +18,16 @@ class Person(TypedDict):
 
 
 class Graph:
+    rdf_class: str
     context = {
-        "xsd": XSD,
-        "dcat": DCAT,
-        "dcatap": DCATAP,
-        "dcterms": DCTERMS,
-        "spdx": SPDX,
-        "foaf": FOAF,
-        "skos": SKOS,
-        "dspace": DSPACE,
+        "xsd": str(XSD),
+        "dcat": str(DCAT),
+        "dcatap": str(DCATAP),
+        "dcterms": str(DCTERMS),
+        "spdx": str(SPDX),
+        "foaf": str(FOAF),
+        "skos": str(SKOS),
+        "dspace": str(DSPACE),
     }
 
     def __init__(self, graph: RDFGraph | None = None) -> None:
@@ -39,7 +43,16 @@ class Graph:
         return instance
 
     def to_json_ld(self) -> str:
-        return self.graph.serialize(format="json-ld", indent=4)
+        if not self.rdf_class:
+            raise ValueError("Attribute rdf_class is not set for the graph")
+        frame = {
+            "@context": self.context,
+            "@type": self.rdf_class,
+        }
+        json_ld_str = self.graph.serialize(format="json-ld")
+        json_ld = json.loads(json_ld_str)
+        framed_json_ld = jsonld.frame(json_ld, frame)
+        return json.dumps(framed_json_ld, indent=4)
 
     def find_nodes_by_type(
         self, rdf_type: URIRef, unique: bool = False
@@ -92,8 +105,10 @@ class Graph:
 
 
 class Catalog(Graph):
+    rdf_class = "dcat:Catalog"
     label = "c"
 
 
 class Dataset(Graph):
+    rdf_class = "dcat:Dataset"
     label = "d"

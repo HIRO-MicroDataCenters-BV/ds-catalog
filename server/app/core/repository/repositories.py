@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
 from rdflib import DCAT, RDF
-from rdflib import Graph as RDFGraph
 
 from app.database import DatabaseDriver
 
@@ -72,7 +71,7 @@ class CatalogRepository(BaseRepository, ICatalogRepository):
 
 
 class DatasetsRepository(BaseRepository, IDatasetsRepository):
-    async def list(self, query: Query) -> list[Dataset]:
+    async def get(self, query: Query) -> Dataset:
         q = Query(
             match=[f"({Dataset.label}:dcat__Dataset)-[r*]-(related)"],
             where=['all(rel IN r WHERE type(rel) <> "rdf__type")'],
@@ -82,25 +81,14 @@ class DatasetsRepository(BaseRepository, IDatasetsRepository):
         query_str = q.build()
 
         graph = await self.neosemantics.export(query_str)
+
         if not graph:
-            return []
-
-        datasets = []
-        for dataset_uri in graph.subjects(RDF.type, DCAT.Dataset):
-            dataset_graph = RDFGraph()
-            for triple in graph.triples((dataset_uri, None, None)):
-                dataset_graph.add(triple)
-            datasets.append(Dataset(dataset_graph))
-
-        return datasets
-
-    async def get(self, query: Query) -> Dataset:
-        result = await self.list(query)
-        if not result:
             raise DatasetDoesNotExist("Dataset not found in the graph")
-        if len(result) > 1:
+
+        if len(list(graph.subjects(RDF.type, DCAT.Dataset))) > 1:
             raise MultipleDatasetsFound("Multiple datasets found in the graph")
-        return result[0]
+
+        return Dataset(graph)
 
     async def save(self, dataset: Dataset) -> None:
         result = await self.neosemantics.save(dataset.graph)

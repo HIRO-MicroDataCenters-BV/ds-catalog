@@ -5,8 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**context** | **object** |  | 
-**graph** | **object** |  | 
+**context** | **object** |  | [optional] 
 
 ## Example
 

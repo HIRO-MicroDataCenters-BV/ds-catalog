@@ -20,30 +20,28 @@ class Person(BaseModel):
         return entities.Person(id=self.id, name=self.name)
 
 
-class CatalogFilters(BaseModel):
-    context: dict[str, str]
-    filters: list[dict[str, Any]]
+class JsonLD(BaseModel):
+    context: dict[str, Any] = Field(None, alias="@context")
+
+    class Config:
+        populate_by_name = True
+        extra = "allow"
+
+
+class CatalogFilters(JsonLD):
+    filters: list[dict[str, Any]] = Field(None)
 
     model_config = {
         "json_schema_extra": {
             "examples": [
                 catalog_filters_example,
             ],
-        }
+        },
     }
 
     def to_entity(self) -> Query:
         # TODO: Implement transformation to Query
         return Query()
-
-
-class JsonLD(BaseModel):
-    context: dict[str, Any] = Field(..., alias="@context")
-    graph: dict[str, Any] = Field(..., alias="@graph")
-
-    class Config:
-        populate_by_name = True
-        extra = "allow"
 
 
 class Dataset(JsonLD):
