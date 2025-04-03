@@ -59,7 +59,7 @@ class CatalogRoutes(Routable):
             "<namespace>": "<namespaceURL>",
             ...
           }
-          "@type": "Filters"
+          "@type": "Filters",
           "filters": [
             {
               ["@type": "<[namespace:]Class>",]
@@ -86,6 +86,7 @@ class CatalogRoutes(Routable):
             "dcat": "http://www.w3.org/ns/dcat#",
             "med": "http://med.example.org/"
           },
+          "@type": "Filters",
           "filters": [
             {
               "dcat:dataset": {
