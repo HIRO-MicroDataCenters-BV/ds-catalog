@@ -12,6 +12,21 @@ entries:
     - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.1.1.tgz
     version: 0.1.1
   - apiVersion: v2
+    appVersion: 0.1.1-dev.62.feature-mvp1.722a715a
+    created: "2025-04-03T14:37:05.538132637Z"
+    dependencies:
+    - condition: neo4j.enabled
+      name: neo4j
+      repository: https://helm.neo4j.com/neo4j
+      version: 5.22.0
+    description: Data Space Catalog
+    digest: 5188c457b98cdb897d7caf240c0d4b81bfc513f86ccbddf83dc2a9fdf1f82867
+    name: ds-catalog
+    type: application
+    urls:
+    - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.1.1-dev.62.feature-mvp1.722a715a.tgz
+    version: 0.1.1-dev.62.feature-mvp1.722a715a
+  - apiVersion: v2
     appVersion: 0.1.1-dev.61.feature-mvp1.c3b5dc8d
     created: "2025-04-03T13:01:47.420007079Z"
     dependencies:
@@ -491,4 +506,4 @@ entries:
     urls:
     - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.1.0-dev.1.main.9da9e949.tgz
     version: 0.1.0-dev.1.main.9da9e949
-generated: "2025-04-03T14:36:58.140542151Z"
+generated: "2025-04-03T14:37:05.535299442Z"
