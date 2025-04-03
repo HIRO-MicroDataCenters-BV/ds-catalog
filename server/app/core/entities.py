@@ -2,7 +2,7 @@ from typing import Any, Self, TypedDict, cast
 
 import json
 
-from pyld import jsonld  # type: ignore
+from pyld import jsonld
 from rdflib import RDF
 from rdflib import Graph as RDFGraph
 from rdflib import Literal, URIRef
