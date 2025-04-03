@@ -1,6 +1,7 @@
 from typing import Any
 
 context_example: dict[str, Any] = {
+    "@vocab": "http://data-space.org/",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "dcat": "http://www.w3.org/ns/dcat#",
     "dcatap": "http://data.europa.eu/r5r/",
@@ -8,7 +9,6 @@ context_example: dict[str, Any] = {
     "spdx": "http://spdx.org/rdf/terms#",
     "foaf": "http://xmlns.com/foaf/0.1/",
     "skos": "http://www.w3.org/2004/02/skos/core#",
-    "dspace": "http://data-space.org/",
 }
 
 dataset_body_example: dict[str, Any] = {
@@ -107,7 +107,7 @@ dataset_body_example: dict[str, Any] = {
         }
     ],
     "dcat:inSeries": {"@id": "string"},
-    "dspace:extraMetadata": [
+    "extraMetadata": [
         {
             "@id": "https://example.com/metadata/1",
             "@type": "med:Patient",
@@ -147,7 +147,7 @@ dataset_body_example: dict[str, Any] = {
         "@type": "foaf:Agent",
         "foaf:name": "John Doe",
     },
-    "dspace:isShared": {"@type": "xsd:boolean", "@value": False},
+    "isShared": {"@type": "xsd:boolean", "@value": False},
 }
 
 dataset_example: dict[str, Any] = {
@@ -251,7 +251,7 @@ dataset_input_example: dict[str, Any] = {
             ],
         }
     ],
-    "dspace:extraMetadata": [
+    "extraMetadata": [
         {
             "@id": "https://example.com/metadata/1",
             "@type": "med:Patient",
@@ -313,6 +313,7 @@ catalog_filters_example: dict[str, Any] = {
         "dcat": "http://www.w3.org/ns/dcat#",
         "med": "http://med.example.org/",
     },
+    "@type": "Filters",
     "filters": [
         {
             "dcat:dataset": {

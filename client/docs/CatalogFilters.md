@@ -6,7 +6,6 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **context** | **object** |  | [optional] 
-**filters** | **List[object]** |  | [optional] 
 
 ## Example
 

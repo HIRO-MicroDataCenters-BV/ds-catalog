@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from rdflib.namespace import DCAT
 
 from .context import Context, CreateDatasetContext
-from .entities import Catalog, Dataset
+from .entities import Catalog, CatalogFilters, Dataset
 from .namespace import DSPACE
 from .repository import Repositories
 from .repository.queries import FilterDatasetByID, Query
@@ -24,7 +24,9 @@ class BaseUsecases(IUsecases):
 
 class ICatalogUsecases(IUsecases):
     @abstractmethod
-    async def get_local_catalog(self, query: Query, context: Context) -> Catalog:
+    async def get_local_catalog(
+        self, filters: CatalogFilters, context: Context
+    ) -> Catalog:
         ...
 
 
@@ -56,21 +58,20 @@ class IDatasetSharingUsecases(IUsecases):
 
 
 class CatalogUsecases(BaseUsecases, ICatalogUsecases):
-    async def get_local_catalog(self, query: Query, context: Context) -> Catalog:
+    async def get_local_catalog(
+        self, filters: CatalogFilters, context: Context
+    ) -> Catalog:
         """Get the local catalog"""
+        query = Query()  # TODO: Build the query based on the filters
         return await self.repositories.catalog.get(query)
 
 
 class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
     async def save(self, dataset: Dataset, context: CreateDatasetContext) -> Dataset:
         """Create or update a dataset"""
-
-        # TODO: Validate the data
-
         node = dataset.get_node_by_type(DCAT.Dataset)
         dataset.set_attribute(node, DSPACE.isShared, False)
         # TODO: Add attributes (creator, etc.) to the dataset
-
         await self.repositories.datasets.save(dataset)
         return dataset
 

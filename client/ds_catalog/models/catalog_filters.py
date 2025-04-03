@@ -28,9 +28,8 @@ class CatalogFilters(BaseModel):
     CatalogFilters
     """ # noqa: E501
     context: Optional[Dict[str, Any]] = Field(default=None, alias="@context")
-    filters: Optional[List[Dict[str, Any]]] = None
     additional_properties: Dict[str, Any] = {}
-    __properties: ClassVar[List[str]] = ["@context", "filters"]
+    __properties: ClassVar[List[str]] = ["@context"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -90,8 +89,7 @@ class CatalogFilters(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "@context": obj.get("@context"),
-            "filters": obj.get("filters")
+            "@context": obj.get("@context")
         })
         # store additional fields in additional_properties
         for _key in obj.keys():

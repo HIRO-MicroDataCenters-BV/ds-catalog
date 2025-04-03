@@ -20,8 +20,8 @@ class Person(TypedDict):
 class Graph:
     rdf_class: str
     label: str
-
     context = {
+        "@vocab": str(DSPACE),
         "xsd": str(XSD),
         "dcat": str(DCAT),
         "dcatap": str(DCATAP),
@@ -29,7 +29,6 @@ class Graph:
         "spdx": str(SPDX),
         "foaf": str(FOAF),
         "skos": str(SKOS),
-        "dspace": str(DSPACE),
     }
 
     def __init__(self, graph: RDFGraph | None = None) -> None:
@@ -37,6 +36,16 @@ class Graph:
 
         for prefix, uri in self.context.items():
             self.graph.bind(prefix, uri)
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        required_attrs = ["rdf_class", "label", "context"]
+        for attr in required_attrs:
+            if not hasattr(cls, attr):
+                raise TypeError(f"Class {cls.__name__} must have attribute {attr}")
+
+    def __str__(self) -> str:
+        return self.graph.serialize(format="json-ld", indent=4, context=self.context)
 
     @classmethod
     def from_json_ld(cls, json_ld: str) -> Self:
@@ -104,6 +113,11 @@ class Graph:
         else:
             obj = Literal(value)
         self.graph.add((subject, predicate, obj))
+
+
+class CatalogFilters(Graph):
+    rdf_class = "Filters"
+    label = "f"
 
 
 class Catalog(Graph):

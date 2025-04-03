@@ -261,8 +261,10 @@ class CatalogRoutes(Routable):
           ```
 
         """
-        query = filters.to_entity()
-        entity = await usecases.get_local_catalog(query, context={"user": user})
+        filters_entity = filters.to_entity()
+        entity = await usecases.get_local_catalog(
+            filters_entity, context={"user": user}
+        )
         return JSONLDResponse(entity)
 
 
