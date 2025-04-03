@@ -43,41 +43,42 @@ paths:
         \ as nested JSON-LD objects. Each filter defines the path\nto the field with\
         \ optional operators or language annotations.\n\n```json\n{\n  \"@context\"\
         : {\n    \"@vocab\": \"http://data-space.org/\",\n    \"<namespace>\": \"\
-        <namespaceURL>\",\n    ...\n  }\n  \"filters\": [\n    {\n      [\"@type\"\
-        : \"<[namespace:]Class>\",]\n      \"<[namespace:]attribute>[@<lang>]\": <nestedObject>\
-        \ | <value> | {\n        \"operation\": \"<operator>\",\n        \"operationValue\"\
-        : <value>\n      }\n    },\n    ...\n  ]\n}\n```\n\n### Supported operators:\n\
-        - `gte`, `lte` \u2014 range filtering\n- `in` \u2014 list filtering\n- `contains`\
-        \ \u2014 substring search\n\n### Example:\n```json\n{\n  \"@context\": {\n\
-        \    \"@vocab\": \"http://data-space.org/\",\n    \"dcat\": \"http://www.w3.org/ns/dcat#\"\
-        ,\n    \"med\": \"http://med.example.org/\"\n  },\n  \"filters\": [\n    {\n\
-        \      \"dcat:dataset\": {\n        \"extraMetadata\": {\n          \"@type\"\
-        : \"med:Diagnoses\",\n          \"med:hasDiagnosis\": {\n            \"med:code\"\
-        : {\n              \"operation\": \"contains\",\n              \"operationValue\"\
-        : \"I10\"\n            }\n          }\n        }\n      }\n    }\n  ]\n}\n\
-        ```\n\n### More filter examples:\n- ```json\n    {\n        \"dcat:dataset\"\
-        : {\n            \"dcterms:title\": \"example\"\n        }\n    }\n  ```\n\
-        - ```json\n    {\n        \"dcat:dataset\": {\n            \"dcterms:title@en\"\
-        : \"example\"\n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\"\
-        : {\n            \"dcterms:title\": {\n                \"@language\": \"en\"\
-        \n            }\n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\"\
-        : {\n            \"dcterms:title\": {\n                \"@value\": \"example\"\
-        \n            }\n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\"\
-        : {\n            \"dcat:distribution\": {\n                \"dcat:format\"\
-        : \"PDF\"\n            }\n        }\n    }\n  ```\n- ```json\n    {\n    \
-        \    \"dcat:dataset\": {\n            \"extraMetadata\": {\n             \
-        \   \"med:sex\": \"M\"\n            }\n        }\n    }\n  ```\n- ```json\n\
-        \    {\n        \"dcat:dataset\": {\n            \"extraMetadata\": {\n  \
-        \              \"@type\": \"med:Patient\",\n                \"med:sex\": \"\
-        M\"\n            }\n        }\n    }\n  ```\n- ```json\n    {\n        \"\
-        dcat:dataset\": {\n            \"extraMetadata\": {\n                \"med:weight\"\
-        : 75\n            }\n        }\n    }\n  ```\n- ```json\n    {\n        \"\
-        dcat:dataset\": {\n            \"extraMetadata\": {\n                \"med:weight\"\
-        : {\n                    \"@value\": 75\n                }\n            }\n\
+        <namespaceURL>\",\n    ...\n  }\n  \"@type\": \"Filters\"\n  \"filters\":\
+        \ [\n    {\n      [\"@type\": \"<[namespace:]Class>\",]\n      \"<[namespace:]attribute>[@<lang>]\"\
+        : <nestedObject> | <value> | {\n        \"operation\": \"<operator>\",\n \
+        \       \"operationValue\": <value>\n      }\n    },\n    ...\n  ]\n}\n```\n\
+        \n### Supported operators:\n- `gte`, `lte` \u2014 range filtering\n- `in`\
+        \ \u2014 list filtering\n- `contains` \u2014 substring search\n\n### Example:\n\
+        ```json\n{\n  \"@context\": {\n    \"@vocab\": \"http://data-space.org/\"\
+        ,\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\n    \"med\": \"http://med.example.org/\"\
+        \n  },\n  \"filters\": [\n    {\n      \"dcat:dataset\": {\n        \"extraMetadata\"\
+        : {\n          \"@type\": \"med:Diagnoses\",\n          \"med:hasDiagnosis\"\
+        : {\n            \"med:code\": {\n              \"operation\": \"contains\"\
+        ,\n              \"operationValue\": \"I10\"\n            }\n          }\n\
+        \        }\n      }\n    }\n  ]\n}\n```\n\n### More filter examples:\n- ```json\n\
+        \    {\n        \"dcat:dataset\": {\n            \"dcterms:title\": \"example\"\
+        \n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\": {\n\
+        \            \"dcterms:title@en\": \"example\"\n        }\n    }\n  ```\n\
+        - ```json\n    {\n        \"dcat:dataset\": {\n            \"dcterms:title\"\
+        : {\n                \"@language\": \"en\"\n            }\n        }\n   \
+        \ }\n  ```\n- ```json\n    {\n        \"dcat:dataset\": {\n            \"\
+        dcterms:title\": {\n                \"@value\": \"example\"\n            }\n\
         \        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\": {\n\
-        \            \"extraMetadata\": {\n                \"med:weight\": {\n   \
-        \                 \"@type\": \"xsd:integer\"\n                }\n        \
-        \    }\n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\"\
+        \            \"dcat:distribution\": {\n                \"dcat:format\": \"\
+        PDF\"\n            }\n        }\n    }\n  ```\n- ```json\n    {\n        \"\
+        dcat:dataset\": {\n            \"extraMetadata\": {\n                \"med:sex\"\
+        : \"M\"\n            }\n        }\n    }\n  ```\n- ```json\n    {\n      \
+        \  \"dcat:dataset\": {\n            \"extraMetadata\": {\n               \
+        \ \"@type\": \"med:Patient\",\n                \"med:sex\": \"M\"\n      \
+        \      }\n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\"\
+        : {\n            \"extraMetadata\": {\n                \"med:weight\": 75\n\
+        \            }\n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\"\
+        : {\n            \"extraMetadata\": {\n                \"med:weight\": {\n\
+        \                    \"@value\": 75\n                }\n            }\n  \
+        \      }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\": {\n  \
+        \          \"extraMetadata\": {\n                \"med:weight\": {\n     \
+        \               \"@type\": \"xsd:integer\"\n                }\n          \
+        \  }\n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\"\
         : {\n            \"dcterms:datePublished\": {\n                \"operationValue\"\
         : \"2021-01-01\",\n                \"operation\": \"gte\"\n            }\n\
         \        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\": {\n\

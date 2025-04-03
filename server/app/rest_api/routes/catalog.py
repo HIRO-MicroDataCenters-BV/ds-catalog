@@ -59,6 +59,7 @@ class CatalogRoutes(Routable):
             "<namespace>": "<namespaceURL>",
             ...
           }
+          "@type": "Filters"
           "filters": [
             {
               ["@type": "<[namespace:]Class>",]
