@@ -205,42 +205,44 @@ paths:
                       dcat:endpointURL:
                         '@id': https://example.com/dataservice/456/download
                   dcat:inSeries:
-                    '@id': string
+                    '@id': https://example.com/series/541
                   extraMetadata:
                   - '@id': https://example.com/metadata/1
-                    '@type': med:Patient
-                    med:birthDate:
+                    '@type': http://med-example.org/Patient
+                    http://med-example.org/birthDate:
                       '@type': xsd:string
                       '@value': '1990-05-20'
-                    med:height:
+                    http://med-example.org/height:
                       '@type': xsd:long
                       '@value': '180'
-                    med:sex:
+                    http://med-example.org/sex:
                       '@type': xsd:string
                       '@value': M
-                    med:weight:
+                    http://med-example.org/weight:
                       '@type': xsd:long
                       '@value': '75'
                   - '@id': https://example.com/metadata/2
-                    '@type': med:Diagnoses
-                    med:hasDiagnosis:
+                    '@type': http://med-example.org/Diagnoses
+                    http://med-example.org/hasDiagnosis:
                     - '@id': https://example.com/diagnosis/1
-                      '@type': med:Diagnosis
-                      med:code:
+                      '@type': http://med-example.org/Diagnosis
+                      http://med-example.org/code:
                         '@type': xsd:string
                         '@value': I10
-                      med:description:
+                      http://med-example.org/description:
                         '@type': xsd:string
                         '@value': Essential (primary) hypertension
                     - '@id': https://example.com/diagnosis/2
-                      '@type': med:Diagnosis
-                      med:code:
+                      '@type': http://med-example.org/Diagnosis
+                      http://med-example.org/code:
                         '@type': xsd:string
                         '@value': E11
-                      med:description:
+                      http://med-example.org/description:
                         '@type': xsd:string
                         '@value': Type 2 diabetes mellitus
-                  dcterms:issued: '2025-03-13'
+                  dcterms:issued:
+                    '@type': xsd:string
+                    '@value': '2025-03-13'
                   dcterms:publisher:
                     '@id': https://example.com/person/123
                     '@type': foaf:Agent
@@ -353,42 +355,44 @@ paths:
                     dcat:endpointURL:
                       '@id': https://example.com/dataservice/456/download
                 dcat:inSeries:
-                  '@id': string
+                  '@id': https://example.com/series/541
                 extraMetadata:
                 - '@id': https://example.com/metadata/1
-                  '@type': med:Patient
-                  med:birthDate:
+                  '@type': http://med-example.org/Patient
+                  http://med-example.org/birthDate:
                     '@type': xsd:string
                     '@value': '1990-05-20'
-                  med:height:
+                  http://med-example.org/height:
                     '@type': xsd:long
                     '@value': '180'
-                  med:sex:
+                  http://med-example.org/sex:
                     '@type': xsd:string
                     '@value': M
-                  med:weight:
+                  http://med-example.org/weight:
                     '@type': xsd:long
                     '@value': '75'
                 - '@id': https://example.com/metadata/2
-                  '@type': med:Diagnoses
-                  med:hasDiagnosis:
+                  '@type': http://med-example.org/Diagnoses
+                  http://med-example.org/hasDiagnosis:
                   - '@id': https://example.com/diagnosis/1
-                    '@type': med:Diagnosis
-                    med:code:
+                    '@type': http://med-example.org/Diagnosis
+                    http://med-example.org/code:
                       '@type': xsd:string
                       '@value': I10
-                    med:description:
+                    http://med-example.org/description:
                       '@type': xsd:string
                       '@value': Essential (primary) hypertension
                   - '@id': https://example.com/diagnosis/2
-                    '@type': med:Diagnosis
-                    med:code:
+                    '@type': http://med-example.org/Diagnosis
+                    http://med-example.org/code:
                       '@type': xsd:string
                       '@value': E11
-                    med:description:
+                    http://med-example.org/description:
                       '@type': xsd:string
                       '@value': Type 2 diabetes mellitus
-                dcterms:issued: '2025-03-13'
+                dcterms:issued:
+                  '@type': xsd:string
+                  '@value': '2025-03-13'
                 dcterms:publisher:
                   '@id': https://example.com/person/123
                   '@type': foaf:Agent
@@ -502,42 +506,44 @@ paths:
                     dcat:endpointURL:
                       '@id': https://example.com/dataservice/456/download
                 dcat:inSeries:
-                  '@id': string
+                  '@id': https://example.com/series/541
                 extraMetadata:
                 - '@id': https://example.com/metadata/1
-                  '@type': med:Patient
-                  med:birthDate:
+                  '@type': http://med-example.org/Patient
+                  http://med-example.org/birthDate:
                     '@type': xsd:string
                     '@value': '1990-05-20'
-                  med:height:
+                  http://med-example.org/height:
                     '@type': xsd:long
                     '@value': '180'
-                  med:sex:
+                  http://med-example.org/sex:
                     '@type': xsd:string
                     '@value': M
-                  med:weight:
+                  http://med-example.org/weight:
                     '@type': xsd:long
                     '@value': '75'
                 - '@id': https://example.com/metadata/2
-                  '@type': med:Diagnoses
-                  med:hasDiagnosis:
+                  '@type': http://med-example.org/Diagnoses
+                  http://med-example.org/hasDiagnosis:
                   - '@id': https://example.com/diagnosis/1
-                    '@type': med:Diagnosis
-                    med:code:
+                    '@type': http://med-example.org/Diagnosis
+                    http://med-example.org/code:
                       '@type': xsd:string
                       '@value': I10
-                    med:description:
+                    http://med-example.org/description:
                       '@type': xsd:string
                       '@value': Essential (primary) hypertension
                   - '@id': https://example.com/diagnosis/2
-                    '@type': med:Diagnosis
-                    med:code:
+                    '@type': http://med-example.org/Diagnosis
+                    http://med-example.org/code:
                       '@type': xsd:string
                       '@value': E11
-                    med:description:
+                    http://med-example.org/description:
                       '@type': xsd:string
                       '@value': Type 2 diabetes mellitus
-                dcterms:issued: '2025-03-13'
+                dcterms:issued:
+                  '@type': xsd:string
+                  '@value': '2025-03-13'
                 dcterms:publisher:
                   '@id': https://example.com/person/123
                   '@type': foaf:Agent
@@ -666,6 +672,7 @@ components:
           dcatap: http://data.europa.eu/r5r/
           dcterms: http://purl.org/dc/terms/
           foaf: http://xmlns.com/foaf/0.1/
+          med: http://med-example.org/
           skos: http://www.w3.org/2004/02/skos/core#
           spdx: http://spdx.org/rdf/terms#
           xsd: http://www.w3.org/2001/XMLSchema#
@@ -704,6 +711,8 @@ components:
             spdx:checksumValue:
               '@type': xsd:string
               '@value': 3a7bd3e2360a3b5c1b2ef3b1a4e8f7a6
+        dcat:inSeries:
+          '@id': https://example.com/series/541
         dcat:keyword:
         - '@type': xsd:string
           '@value': sample
