@@ -27,7 +27,7 @@ Python 3.12+
 
 2. If you don't have `Poetry` installed run:
     ```bash
-    pip install poetry
+    pip install poetry==2.1.2
     ```
 
 3. Install dependencies:

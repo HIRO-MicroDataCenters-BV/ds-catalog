@@ -43,22 +43,23 @@ paths:
         \ as nested JSON-LD objects. Each filter defines the path\nto the field with\
         \ optional operators or language annotations.\n\n```json\n{\n  \"@context\"\
         : {\n    \"@vocab\": \"http://data-space.org/\",\n    \"<namespace>\": \"\
-        <namespaceURL>\",\n    ...\n  }\n  \"filters\": [\n    {\n      [\"@type\"\
-        : \"<[namespace:]Class>\",]\n      \"<[namespace:]attribute>[@<lang>]\": <nestedObject>\
-        \ | <value> | {\n        \"operation\": \"<operator>\",\n        \"operationValue\"\
-        : <value>\n      }\n    },\n    ...\n  ]\n}\n```\n\n### Supported operators:\n\
-        - `gte`, `lte` \u2014 range filtering\n- `in` \u2014 list filtering\n- `contains`\
-        \ \u2014 substring search\n\n### Example:\n```json\n{\n  \"@context\": {\n\
-        \    \"@vocab\": \"http://data-space.org/\",\n    \"dcat\": \"http://www.w3.org/ns/dcat#\"\
-        ,\n    \"med\": \"http://med.example.org/\"\n  },\n  \"filters\": [\n    {\n\
-        \      \"dcat:dataset\": {\n        \"extraMetadata\": {\n          \"@type\"\
-        : \"med:Diagnoses\",\n          \"med:hasDiagnosis\": {\n            \"med:code\"\
-        : {\n              \"operation\": \"contains\",\n              \"operationValue\"\
-        : \"I10\"\n            }\n          }\n        }\n      }\n    }\n  ]\n}\n\
-        ```\n\n### More filter examples:\n- ```json\n    {\n        \"dcat:dataset\"\
-        : {\n            \"dcterms:title\": \"example\"\n        }\n    }\n  ```\n\
-        - ```json\n    {\n        \"dcat:dataset\": {\n            \"dcterms:title@en\"\
-        : \"example\"\n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\"\
+        <namespaceURL>\",\n    ...\n  }\n  \"@type\": \"Filters\",\n  \"filters\"\
+        : [\n    {\n      [\"@type\": \"<[namespace:]Class>\",]\n      \"<[namespace:]attribute>[@<lang>]\"\
+        : <nestedObject> | <value> | {\n        \"operation\": \"<operator>\",\n \
+        \       \"operationValue\": <value>\n      }\n    },\n    ...\n  ]\n}\n```\n\
+        \n### Supported operators:\n- `gte`, `lte` \u2014 range filtering\n- `in`\
+        \ \u2014 list filtering\n- `contains` \u2014 substring search\n\n### Example:\n\
+        ```json\n{\n  \"@context\": {\n    \"@vocab\": \"http://data-space.org/\"\
+        ,\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\n    \"med\": \"http://med.example.org/\"\
+        \n  },\n  \"@type\": \"Filters\",\n  \"filters\": [\n    {\n      \"dcat:dataset\"\
+        : {\n        \"extraMetadata\": {\n          \"@type\": \"med:Diagnoses\"\
+        ,\n          \"med:hasDiagnosis\": {\n            \"med:code\": {\n      \
+        \        \"operation\": \"contains\",\n              \"operationValue\": \"\
+        I10\"\n            }\n          }\n        }\n      }\n    }\n  ]\n}\n```\n\
+        \n### More filter examples:\n- ```json\n    {\n        \"dcat:dataset\": {\n\
+        \            \"dcterms:title\": \"example\"\n        }\n    }\n  ```\n- ```json\n\
+        \    {\n        \"dcat:dataset\": {\n            \"dcterms:title@en\": \"\
+        example\"\n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\"\
         : {\n            \"dcterms:title\": {\n                \"@language\": \"en\"\
         \n            }\n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\"\
         : {\n            \"dcterms:title\": {\n                \"@value\": \"example\"\
@@ -113,6 +114,7 @@ paths:
                 type: string
               example:
                 '@context':
+                  '@vocab': http://data-space.org/
                   xsd: http://www.w3.org/2001/XMLSchema#
                   dcat: http://www.w3.org/ns/dcat#
                   dcatap: http://data.europa.eu/r5r/
@@ -120,14 +122,13 @@ paths:
                   spdx: http://spdx.org/rdf/terms#
                   foaf: http://xmlns.com/foaf/0.1/
                   skos: http://www.w3.org/2004/02/skos/core#
-                  dspace: http://data-space.org/
                 '@id': https://example.com/catalog/123
                 '@type': dcat:Catalog
                 dcterms:title:
-                - '@language': en
+                  '@language': en
                   '@value': Sample Catalog
                 dcterms:description:
-                - '@language': en
+                  '@language': en
                   '@value': This is a sample catalog containing various datasets and
                     services.
                 dcterms:publisher:
@@ -137,7 +138,9 @@ paths:
                 dcat:dataset:
                 - '@id': https://example.com/dataset/789
                   '@type': dcat:Dataset
-                  dcterms:identifier: abc-123-xyz
+                  dcterms:identifier:
+                    '@type': xsd:string
+                    '@value': abc-123-xyz
                   dcterms:title:
                   - '@language': en
                     '@value': Sample Dataset Title
@@ -150,77 +153,101 @@ paths:
                     '@value': Este conjunto de datos contiene datos de ejemplo para
                       fines de prueba.
                   dcat:keyword:
-                  - sample
-                  - data
-                  dcterms:license: https://example.com/license/xyz
+                  - '@type': xsd:string
+                    '@value': sample
+                  - '@type': xsd:string
+                    '@value': data
+                  dcterms:license:
+                    '@type': xsd:string
+                    '@value': https://example.com/license/xyz
                   dcat:theme:
                   - '@id': http://eurovoc.europa.eu/100142
                     '@type': skos:Concept
                     skos:prefLabel:
-                    - '@value': Agriculture
+                      '@value': Agriculture
                       '@language': en
                   - '@id': http://eurovoc.europa.eu/100141
                     '@type': skos:Concept
                     skos:prefLabel:
-                    - '@value': Health
+                      '@value': Health
                       '@language': en
                   dcat:distribution:
                   - '@id': https://example.com/distribution/489
                     '@type': dcat:Distribution
                     dcterms:description:
-                    - '@language': en
+                      '@language': en
                       '@value': This is a sample distribution.
                     dcat:byteSize:
                       '@value': 1024
                       '@type': xsd:decimal
                     dcat:mediaType:
                       '@id': https://www.iana.org/assignments/media-types/application/json
-                    dcat:format: JSON
+                    dcat:format:
+                      '@type': xsd:string
+                      '@value': JSON
                     dcatap:availability:
                     - '@id': http://data.europa.eu/r5r/AVAILABLE
                     spdx:checksum:
-                      spdx:algorithm: SHA-256
-                      spdx:checksumValue: 3a7bd3e2360a3b5c1b2ef3b1a4e8f7a6
+                      spdx:algorithm:
+                        '@type': xsd:string
+                        '@value': SHA-256
+                      spdx:checksumValue:
+                        '@type': xsd:string
+                        '@value': 3a7bd3e2360a3b5c1b2ef3b1a4e8f7a6
                     dcat:accessURL:
                       '@id': https://example.com/distribution/489/information
                     dcat:accessService:
                     - '@id': https://example.com/dataservice/456
                       '@type': dcat:DataService
                       dcterms:title:
-                      - '@language': en
+                        '@language': en
                         '@value': Sample Data Service
                       dcat:endpointURL:
                         '@id': https://example.com/dataservice/456/download
                   dcat:inSeries:
                     '@id': string
-                  dspace:extraMetadata:
+                  extraMetadata:
                   - '@id': https://example.com/metadata/1
                     '@type': med:Patient
+                    med:birthDate:
+                      '@type': xsd:string
+                      '@value': '1990-05-20'
                     med:height:
+                      '@type': xsd:long
                       '@value': '180'
-                      '@type': xsd:integer
+                    med:sex:
+                      '@type': xsd:string
+                      '@value': M
                     med:weight:
+                      '@type': xsd:long
                       '@value': '75'
-                      '@type': xsd:integer
-                    med:sex: M
-                    med:birthDate: '1990-05-20'
                   - '@id': https://example.com/metadata/2
                     '@type': med:Diagnoses
                     med:hasDiagnosis:
                     - '@id': https://example.com/diagnosis/1
                       '@type': med:Diagnosis
-                      med:code: I10
-                      med:description: Essential (primary) hypertension
+                      med:code:
+                        '@type': xsd:string
+                        '@value': I10
+                      med:description:
+                        '@type': xsd:string
+                        '@value': Essential (primary) hypertension
                     - '@id': https://example.com/diagnosis/2
                       '@type': med:Diagnosis
-                      med:code: E11
-                      med:description: Type 2 diabetes mellitus
+                      med:code:
+                        '@type': xsd:string
+                        '@value': E11
+                      med:description:
+                        '@type': xsd:string
+                        '@value': Type 2 diabetes mellitus
                   dcterms:issued: '2025-03-13'
                   dcterms:publisher:
                     '@id': https://example.com/person/123
                     '@type': foaf:Agent
                     foaf:name: John Doe
-                  dspace:isShared: true
+                  isShared:
+                    '@type': xsd:boolean
+                    '@value': false
         '422':
           description: Validation Error
           content:
@@ -249,6 +276,7 @@ paths:
                 type: string
               example:
                 '@context':
+                  '@vocab': http://data-space.org/
                   xsd: http://www.w3.org/2001/XMLSchema#
                   dcat: http://www.w3.org/ns/dcat#
                   dcatap: http://data.europa.eu/r5r/
@@ -256,10 +284,11 @@ paths:
                   spdx: http://spdx.org/rdf/terms#
                   foaf: http://xmlns.com/foaf/0.1/
                   skos: http://www.w3.org/2004/02/skos/core#
-                  dspace: http://data-space.org/
                 '@id': https://example.com/dataset/789
                 '@type': dcat:Dataset
-                dcterms:identifier: abc-123-xyz
+                dcterms:identifier:
+                  '@type': xsd:string
+                  '@value': abc-123-xyz
                 dcterms:title:
                 - '@language': en
                   '@value': Sample Dataset Title
@@ -272,77 +301,101 @@ paths:
                   '@value': Este conjunto de datos contiene datos de ejemplo para
                     fines de prueba.
                 dcat:keyword:
-                - sample
-                - data
-                dcterms:license: https://example.com/license/xyz
+                - '@type': xsd:string
+                  '@value': sample
+                - '@type': xsd:string
+                  '@value': data
+                dcterms:license:
+                  '@type': xsd:string
+                  '@value': https://example.com/license/xyz
                 dcat:theme:
                 - '@id': http://eurovoc.europa.eu/100142
                   '@type': skos:Concept
                   skos:prefLabel:
-                  - '@value': Agriculture
+                    '@value': Agriculture
                     '@language': en
                 - '@id': http://eurovoc.europa.eu/100141
                   '@type': skos:Concept
                   skos:prefLabel:
-                  - '@value': Health
+                    '@value': Health
                     '@language': en
                 dcat:distribution:
                 - '@id': https://example.com/distribution/489
                   '@type': dcat:Distribution
                   dcterms:description:
-                  - '@language': en
+                    '@language': en
                     '@value': This is a sample distribution.
                   dcat:byteSize:
                     '@value': 1024
                     '@type': xsd:decimal
                   dcat:mediaType:
                     '@id': https://www.iana.org/assignments/media-types/application/json
-                  dcat:format: JSON
+                  dcat:format:
+                    '@type': xsd:string
+                    '@value': JSON
                   dcatap:availability:
                   - '@id': http://data.europa.eu/r5r/AVAILABLE
                   spdx:checksum:
-                    spdx:algorithm: SHA-256
-                    spdx:checksumValue: 3a7bd3e2360a3b5c1b2ef3b1a4e8f7a6
+                    spdx:algorithm:
+                      '@type': xsd:string
+                      '@value': SHA-256
+                    spdx:checksumValue:
+                      '@type': xsd:string
+                      '@value': 3a7bd3e2360a3b5c1b2ef3b1a4e8f7a6
                   dcat:accessURL:
                     '@id': https://example.com/distribution/489/information
                   dcat:accessService:
                   - '@id': https://example.com/dataservice/456
                     '@type': dcat:DataService
                     dcterms:title:
-                    - '@language': en
+                      '@language': en
                       '@value': Sample Data Service
                     dcat:endpointURL:
                       '@id': https://example.com/dataservice/456/download
                 dcat:inSeries:
                   '@id': string
-                dspace:extraMetadata:
+                extraMetadata:
                 - '@id': https://example.com/metadata/1
                   '@type': med:Patient
+                  med:birthDate:
+                    '@type': xsd:string
+                    '@value': '1990-05-20'
                   med:height:
+                    '@type': xsd:long
                     '@value': '180'
-                    '@type': xsd:integer
+                  med:sex:
+                    '@type': xsd:string
+                    '@value': M
                   med:weight:
+                    '@type': xsd:long
                     '@value': '75'
-                    '@type': xsd:integer
-                  med:sex: M
-                  med:birthDate: '1990-05-20'
                 - '@id': https://example.com/metadata/2
                   '@type': med:Diagnoses
                   med:hasDiagnosis:
                   - '@id': https://example.com/diagnosis/1
                     '@type': med:Diagnosis
-                    med:code: I10
-                    med:description: Essential (primary) hypertension
+                    med:code:
+                      '@type': xsd:string
+                      '@value': I10
+                    med:description:
+                      '@type': xsd:string
+                      '@value': Essential (primary) hypertension
                   - '@id': https://example.com/diagnosis/2
                     '@type': med:Diagnosis
-                    med:code: E11
-                    med:description: Type 2 diabetes mellitus
+                    med:code:
+                      '@type': xsd:string
+                      '@value': E11
+                    med:description:
+                      '@type': xsd:string
+                      '@value': Type 2 diabetes mellitus
                 dcterms:issued: '2025-03-13'
                 dcterms:publisher:
                   '@id': https://example.com/person/123
                   '@type': foaf:Agent
                   foaf:name: John Doe
-                dspace:isShared: true
+                isShared:
+                  '@type': xsd:boolean
+                  '@value': false
         '422':
           description: Validation Error
           content:
@@ -372,6 +425,7 @@ paths:
                 type: string
               example:
                 '@context':
+                  '@vocab': http://data-space.org/
                   xsd: http://www.w3.org/2001/XMLSchema#
                   dcat: http://www.w3.org/ns/dcat#
                   dcatap: http://data.europa.eu/r5r/
@@ -379,10 +433,11 @@ paths:
                   spdx: http://spdx.org/rdf/terms#
                   foaf: http://xmlns.com/foaf/0.1/
                   skos: http://www.w3.org/2004/02/skos/core#
-                  dspace: http://data-space.org/
                 '@id': https://example.com/dataset/789
                 '@type': dcat:Dataset
-                dcterms:identifier: abc-123-xyz
+                dcterms:identifier:
+                  '@type': xsd:string
+                  '@value': abc-123-xyz
                 dcterms:title:
                 - '@language': en
                   '@value': Sample Dataset Title
@@ -395,77 +450,101 @@ paths:
                   '@value': Este conjunto de datos contiene datos de ejemplo para
                     fines de prueba.
                 dcat:keyword:
-                - sample
-                - data
-                dcterms:license: https://example.com/license/xyz
+                - '@type': xsd:string
+                  '@value': sample
+                - '@type': xsd:string
+                  '@value': data
+                dcterms:license:
+                  '@type': xsd:string
+                  '@value': https://example.com/license/xyz
                 dcat:theme:
                 - '@id': http://eurovoc.europa.eu/100142
                   '@type': skos:Concept
                   skos:prefLabel:
-                  - '@value': Agriculture
+                    '@value': Agriculture
                     '@language': en
                 - '@id': http://eurovoc.europa.eu/100141
                   '@type': skos:Concept
                   skos:prefLabel:
-                  - '@value': Health
+                    '@value': Health
                     '@language': en
                 dcat:distribution:
                 - '@id': https://example.com/distribution/489
                   '@type': dcat:Distribution
                   dcterms:description:
-                  - '@language': en
+                    '@language': en
                     '@value': This is a sample distribution.
                   dcat:byteSize:
                     '@value': 1024
                     '@type': xsd:decimal
                   dcat:mediaType:
                     '@id': https://www.iana.org/assignments/media-types/application/json
-                  dcat:format: JSON
+                  dcat:format:
+                    '@type': xsd:string
+                    '@value': JSON
                   dcatap:availability:
                   - '@id': http://data.europa.eu/r5r/AVAILABLE
                   spdx:checksum:
-                    spdx:algorithm: SHA-256
-                    spdx:checksumValue: 3a7bd3e2360a3b5c1b2ef3b1a4e8f7a6
+                    spdx:algorithm:
+                      '@type': xsd:string
+                      '@value': SHA-256
+                    spdx:checksumValue:
+                      '@type': xsd:string
+                      '@value': 3a7bd3e2360a3b5c1b2ef3b1a4e8f7a6
                   dcat:accessURL:
                     '@id': https://example.com/distribution/489/information
                   dcat:accessService:
                   - '@id': https://example.com/dataservice/456
                     '@type': dcat:DataService
                     dcterms:title:
-                    - '@language': en
+                      '@language': en
                       '@value': Sample Data Service
                     dcat:endpointURL:
                       '@id': https://example.com/dataservice/456/download
                 dcat:inSeries:
                   '@id': string
-                dspace:extraMetadata:
+                extraMetadata:
                 - '@id': https://example.com/metadata/1
                   '@type': med:Patient
+                  med:birthDate:
+                    '@type': xsd:string
+                    '@value': '1990-05-20'
                   med:height:
+                    '@type': xsd:long
                     '@value': '180'
-                    '@type': xsd:integer
+                  med:sex:
+                    '@type': xsd:string
+                    '@value': M
                   med:weight:
+                    '@type': xsd:long
                     '@value': '75'
-                    '@type': xsd:integer
-                  med:sex: M
-                  med:birthDate: '1990-05-20'
                 - '@id': https://example.com/metadata/2
                   '@type': med:Diagnoses
                   med:hasDiagnosis:
                   - '@id': https://example.com/diagnosis/1
                     '@type': med:Diagnosis
-                    med:code: I10
-                    med:description: Essential (primary) hypertension
+                    med:code:
+                      '@type': xsd:string
+                      '@value': I10
+                    med:description:
+                      '@type': xsd:string
+                      '@value': Essential (primary) hypertension
                   - '@id': https://example.com/diagnosis/2
                     '@type': med:Diagnosis
-                    med:code: E11
-                    med:description: Type 2 diabetes mellitus
+                    med:code:
+                      '@type': xsd:string
+                      '@value': E11
+                    med:description:
+                      '@type': xsd:string
+                      '@value': Type 2 diabetes mellitus
                 dcterms:issued: '2025-03-13'
                 dcterms:publisher:
                   '@id': https://example.com/person/123
                   '@type': foaf:Agent
                   foaf:name: John Doe
-                dspace:isShared: true
+                isShared:
+                  '@type': xsd:boolean
+                  '@value': false
         '404':
           description: Dataset not found
         '422':
@@ -555,11 +634,6 @@ components:
         '@context':
           type: object
           title: '@Context'
-        filters:
-          items:
-            type: object
-          type: array
-          title: Filters
       additionalProperties: true
       type: object
       title: CatalogFilters
@@ -568,6 +642,7 @@ components:
           '@vocab': http://data-space.org/
           dcat: http://www.w3.org/ns/dcat#
           med: http://med.example.org/
+        '@type': Filters
         filters:
         - dcat:dataset:
             extraMetadata:
@@ -586,10 +661,10 @@ components:
       title: Dataset
       examples:
       - '@context':
+          '@vocab': http://data-space.org/
           dcat: http://www.w3.org/ns/dcat#
           dcatap: http://data.europa.eu/r5r/
           dcterms: http://purl.org/dc/terms/
-          dspace: http://data-space.org/
           foaf: http://xmlns.com/foaf/0.1/
           skos: http://www.w3.org/2004/02/skos/core#
           spdx: http://spdx.org/rdf/terms#
@@ -605,37 +680,45 @@ components:
             dcat:endpointURL:
               '@id': https://example.com/dataservice/456/download
             dcterms:title:
-            - '@language': en
+              '@language': en
               '@value': Sample Data Service
           dcat:accessURL:
             '@id': https://example.com/distribution/489/information
           dcat:byteSize:
             '@type': xsd:decimal
             '@value': 1024
-          dcat:format: JSON
+          dcat:format:
+            '@type': xsd:string
+            '@value': JSON
           dcat:mediaType:
             '@id': https://www.iana.org/assignments/media-types/application/json
           dcatap:availability:
           - '@id': http://data.europa.eu/r5r/AVAILABLE
           dcterms:description:
-          - '@language': en
+            '@language': en
             '@value': This is a sample distribution.
           spdx:checksum:
-            spdx:algorithm: SHA-256
-            spdx:checksumValue: 3a7bd3e2360a3b5c1b2ef3b1a4e8f7a6
+            spdx:algorithm:
+              '@type': xsd:string
+              '@value': SHA-256
+            spdx:checksumValue:
+              '@type': xsd:string
+              '@value': 3a7bd3e2360a3b5c1b2ef3b1a4e8f7a6
         dcat:keyword:
-        - sample
-        - data
+        - '@type': xsd:string
+          '@value': sample
+        - '@type': xsd:string
+          '@value': data
         dcat:theme:
         - '@id': http://eurovoc.europa.eu/100142
           '@type': skos:Concept
           skos:prefLabel:
-          - '@language': en
+            '@language': en
             '@value': Agriculture
         - '@id': http://eurovoc.europa.eu/100141
           '@type': skos:Concept
           skos:prefLabel:
-          - '@language': en
+            '@language': en
             '@value': Health
         dcterms:description:
         - '@language': en
@@ -643,35 +726,51 @@ components:
         - '@language': es
           '@value': Este conjunto de datos contiene datos de ejemplo para fines de
             prueba.
-        dcterms:identifier: abc-123-xyz
-        dcterms:license: https://example.com/license/xyz
+        dcterms:identifier:
+          '@type': xsd:string
+          '@value': abc-123-xyz
+        dcterms:license:
+          '@type': xsd:string
+          '@value': https://example.com/license/xyz
         dcterms:title:
         - '@language': en
           '@value': Sample Dataset Title
         - '@language': es
           '@value': "T\xEDtulo del conjunto de datos de ejemplo"
-        dspace:extraMetadata:
+        extraMetadata:
         - '@id': https://example.com/metadata/1
           '@type': med:Patient
-          med:birthDate: '1990-05-20'
+          med:birthDate:
+            '@type': xsd:string
+            '@value': '1990-05-20'
           med:height:
-            '@type': xsd:integer
+            '@type': xsd:long
             '@value': '180'
-          med:sex: M
+          med:sex:
+            '@type': xsd:string
+            '@value': M
           med:weight:
-            '@type': xsd:integer
+            '@type': xsd:long
             '@value': '75'
         - '@id': https://example.com/metadata/2
           '@type': med:Diagnoses
           med:hasDiagnosis:
           - '@id': https://example.com/diagnosis/1
             '@type': med:Diagnosis
-            med:code: I10
-            med:description: Essential (primary) hypertension
+            med:code:
+              '@type': xsd:string
+              '@value': I10
+            med:description:
+              '@type': xsd:string
+              '@value': Essential (primary) hypertension
           - '@id': https://example.com/diagnosis/2
             '@type': med:Diagnosis
-            med:code: E11
-            med:description: Type 2 diabetes mellitus
+            med:code:
+              '@type': xsd:string
+              '@value': E11
+            med:description:
+              '@type': xsd:string
+              '@value': Type 2 diabetes mellitus
     HTTPValidationError:
       properties:
         detail:

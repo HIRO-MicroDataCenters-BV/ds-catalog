@@ -25,7 +25,7 @@ repos:
       - id: mypy
         name: mypy
         files: ^server/
-        entry: poetry --directory server run mypy --config-file ./server/mypy.ini
+        entry: poetry --project server run mypy --config-file server/mypy.ini
         language: system
         types: [python]
 
@@ -34,7 +34,7 @@ repos:
       - id: isort
         name: isort
         files: ^server/
-        entry: poetry --directory server run isort
+        entry: poetry --project server run isort
         language: system
         types: [python]
 
@@ -43,7 +43,7 @@ repos:
       - id: flake8
         name: flake8
         files: ^server/
-        entry: poetry --directory server run flake8 --config ./server/.flake8
+        entry: poetry --project server run flake8 --config server/.flake8
         language: system
         types: [python]
 
@@ -52,7 +52,7 @@ repos:
       - id: black
         name: black
         files: ^server/
-        entry: poetry --directory server run black
+        entry: poetry --project server run black
         language: system
         types: [python]
 
@@ -60,7 +60,7 @@ repos:
     hooks:
       - id: openapi
         name: openapi
-        entry: poetry --directory server run python ./tools/extract_openapi.py app.main:app --app-dir ./server --out ./api/openapi.yaml --app_version_file ./VERSION
+        entry: poetry --project server run python ./tools/extract_openapi.py app.main:app --app-dir ./server --out ./api/openapi.yaml --app_version_file ./VERSION
         language: system
         types: [python]
         pass_filenames: false
@@ -70,7 +70,7 @@ repos:
     hooks:
       - id: generate_client
         name: generate client
-        entry: poetry --directory server run python ./tools/client_generator/generate.py ./api/openapi.yaml
+        entry: poetry --project server run python ./tools/client_generator/generate.py ./api/openapi.yaml
         language: system
         types: [python]
         pass_filenames: false
