@@ -4,7 +4,7 @@ from classy_fastapi import Routable, post
 from fastapi import Depends, HTTPException, status
 
 from app.core import entities, usecases
-from app.core.exceptions import DatasetDoesNotExist
+from app.core.exceptions import NodeDoesNotExist
 from app.core.repository import Repositories
 
 from ..depends import get_repositories, get_user
@@ -33,13 +33,13 @@ class DatasetSharingRoutes(Routable):
     async def share_dataset(
         self,
         id: str,
-        user: Annotated[entities.Person, Depends(get_user)],
+        user: Annotated[entities.User, Depends(get_user)],
         usecases: usecases.DatasetSharingUsecases = Depends(get_usecases),
     ) -> None:
         """Share a dataset"""
         try:
             await usecases.share(id, context={"user": user})
-        except DatasetDoesNotExist:
+        except NodeDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=DATASET_NOT_FOUND,
@@ -59,13 +59,13 @@ class DatasetSharingRoutes(Routable):
     async def unshare_dataset(
         self,
         id: str,
-        user: Annotated[entities.Person, Depends(get_user)],
+        user: Annotated[entities.User, Depends(get_user)],
         usecases: usecases.DatasetSharingUsecases = Depends(get_usecases),
     ) -> None:
         """Unshare a dataset"""
         try:
             await usecases.unshare(id, context={"user": user})
-        except DatasetDoesNotExist:
+        except NodeDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=DATASET_NOT_FOUND,

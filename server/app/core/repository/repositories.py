@@ -1,20 +1,30 @@
+from typing import Generic, TypeVar
+
 from abc import ABC, abstractmethod
 
-from rdflib import DCAT, RDF
+from rdflib import DCAT, FOAF, RDF
 
 from app.database import DatabaseDriver
 
-from ..entities import Catalog, Dataset
-from ..exceptions import DatasetDoesNotExist, DatasetWasNotSaved, MultipleDatasetsFound
+from ..entities import Catalog, Dataset, Graph, Person
+from ..exceptions import ErrorSavingData, MultipleNodesFound, NodeDoesNotExist
+from ..namespace import DSPACE
 from .neosemantics import Neosemantics
 from .queries import Query
 
 # --- Interfaces ---
 
 
-class IRepository(ABC):
+T = TypeVar("T", bound=Graph)
+
+
+class IRepository(ABC, Generic[T]):
     @abstractmethod
     def __init__(self, db_driver: DatabaseDriver) -> None:
+        ...
+
+    @abstractmethod
+    async def save(self, obj: T) -> None:
         ...
 
 
@@ -24,19 +34,25 @@ class IRepositories(ABC):
         ...
 
 
-class ICatalogRepository(IRepository):
+class IPersonsRepository(IRepository[Person]):
     @abstractmethod
-    async def get(self, query: Query) -> Catalog:
+    async def get(self, query: Query) -> Person:
         ...
 
 
-class IDatasetsRepository(IRepository):
+class ICatalogsRepository(IRepository[Catalog]):
+    @abstractmethod
+    async def create(self, title: str, description: str) -> Catalog:
+        ...
+
+    @abstractmethod
+    async def get(self, query: Query | None = None) -> Catalog:
+        ...
+
+
+class IDatasetsRepository(IRepository[Dataset]):
     @abstractmethod
     async def get(self, query: Query) -> Dataset:
-        ...
-
-    @abstractmethod
-    async def save(self, data: Dataset) -> None:
         ...
 
     @abstractmethod
@@ -47,7 +63,7 @@ class IDatasetsRepository(IRepository):
 # --- Implementations ---
 
 
-class BaseRepository(IRepository):
+class BaseRepository(IRepository[T], Generic[T]):
     db_driver: DatabaseDriver
     neosemantics: Neosemantics
 
@@ -55,69 +71,94 @@ class BaseRepository(IRepository):
         self.db_driver = db_driver
         self.neosemantics = Neosemantics(db_driver)
 
+    async def save(self, obj: T) -> None:
+        result = await self.neosemantics.save(obj.graph)
+        if not result["success"]:
+            message = result["extra_info"]
+            raise ErrorSavingData(f"Graph was not saved: {message}")
 
-class CatalogRepository(BaseRepository, ICatalogRepository):
-    async def get(self, query: Query) -> Catalog:
+
+class PersonsRepository(BaseRepository[Person], IPersonsRepository):
+    async def get(self, query: Query) -> Person:
+        p = Person.label
+
         q = Query(
-            match=[f"({Catalog.label}:dcat__Catalog)-[r*]-(related)"],
+            match=[f"({p}:foaf__Person)-[r*0..]->(related)"],
             where=['all(rel IN r WHERE type(rel) <> "rdf__type")'],
         )
-        q.join(query)
-        q.return_clause = [Catalog.label, "r", "related"]
+        q += query
+        q.return_clause = [p, "r", "related"]
         query_str = q.build()
 
         graph = await self.neosemantics.export(query_str)
+        if not graph:
+            raise NodeDoesNotExist("Person not found in the graph")
+        if len(list(graph.subjects(RDF.type, FOAF.Person))) > 1:
+            raise MultipleNodesFound("Multiple persons found in the graph")
+
+        return Person(graph)
+
+
+class CatalogsRepository(BaseRepository[Catalog], ICatalogsRepository):
+    async def create(self, title: str, description: str) -> Catalog:
+        catalog = Catalog.create(title, description)
+        await self.neosemantics.save(catalog.graph)
+        return catalog
+
+    async def get(self, query: Query | None = None) -> Catalog:
+        c = Catalog.label
+        d = Dataset.label
+
+        q1 = Query(
+            match=[f"({c}:dcat__Catalog)"],
+            optional_match=[f"({c})-[dataset_rel:dcat__dataset]->({d}:dcat__Dataset)"],
+            where=[f"{d}.dspace__isDeleted<>true"],
+        )
+
+        q2 = Query(
+            optional_match=[f"({d})-[r*0..]->(related)"],
+            where=["all(rel IN r WHERE type(rel) <> 'rdf__type')"],
+        )
+        if query is not None:
+            q2 += query
+        q2.return_clause = [c, "dataset_rel", d, "r", "related"]
+
+        query_str = q1.build_together(q2)
+
+        graph = await self.neosemantics.export(query_str)
+        if not graph:
+            raise NodeDoesNotExist("Catalog not found in the graph")
+        if len(list(graph.subjects(RDF.type, DCAT.Catalog))) > 1:
+            raise MultipleNodesFound("Multiple catalogs found in the graph")
+
         return Catalog(graph)
 
 
-class DatasetsRepository(BaseRepository, IDatasetsRepository):
+class DatasetsRepository(BaseRepository[Dataset], IDatasetsRepository):
     async def get(self, query: Query) -> Dataset:
+        d = Dataset.label
+
         q = Query(
-            match=[f"({Dataset.label}:dcat__Dataset)-[r*]-(related)"],
+            match=[f"({d}:dcat__Dataset)-[r*0..]->(related)"],
             where=['all(rel IN r WHERE type(rel) <> "rdf__type")'],
         )
-        q.join(query)
-        q.return_clause = [Dataset.label, "r", "related"]
+        q.add_where(f"{d}.dspace__isDeleted<>true")
+        q += query
+        q.return_clause = [d, "r", "related"]
         query_str = q.build()
 
         graph = await self.neosemantics.export(query_str)
-
         if not graph:
-            raise DatasetDoesNotExist("Dataset not found in the graph")
-
+            raise NodeDoesNotExist("Dataset not found in the graph")
         if len(list(graph.subjects(RDF.type, DCAT.Dataset))) > 1:
-            raise MultipleDatasetsFound("Multiple datasets found in the graph")
+            raise MultipleNodesFound("Multiple datasets found in the graph")
 
         return Dataset(graph)
 
-    async def save(self, dataset: Dataset) -> None:
-        result = await self.neosemantics.save(dataset.graph)
-        if result["triples_loaded"] == 0:
-            raise DatasetWasNotSaved("Dataset was not saved in the database")
-
     async def delete(self, query: Query) -> None:
-        q = Query(
-            match=[f"({Dataset.label}:dcat__Dataset)-[r*]-(related)"],
-            where=['all(rel IN r WHERE type(rel) <> "rdf__type")'],
-        )
-        q.join(query)
-        query_str = q.build()
-        query_str += f"""
-            UNWIND r AS rel
-            DELETE rel
-            WITH {Dataset.label}, collect(related) AS nodes
-            UNWIND nodes AS node
-            DETACH DELETE node
-            DETACH DELETE {Dataset.label}
-            RETURN COUNT(*) AS deleted_count
-        """
-
-        result = await self.db_driver.execute_query(
-            query_str, result_transformer_=lambda r: r.single(strict=True)
-        )
-
-        if result["deleted_count"] == 0:
-            raise DatasetDoesNotExist("Dataset not found in the graph")
+        dataset = await self.get(query)
+        dataset.set_attribute(DSPACE.isDeleted, True)
+        await self.save(dataset)
 
 
 # --- Repositories class ---
@@ -125,5 +166,6 @@ class DatasetsRepository(BaseRepository, IDatasetsRepository):
 
 class Repositories(IRepositories):
     def __init__(self, db_driver: DatabaseDriver) -> None:
-        self.catalog = CatalogRepository(db_driver)
+        self.persons = PersonsRepository(db_driver)
+        self.catalogs = CatalogsRepository(db_driver)
         self.datasets = DatasetsRepository(db_driver)

@@ -1,6 +1,6 @@
 from typing import Self
 
-from ..entities import Dataset
+from ..entities import Dataset, Person
 
 
 class Query:
@@ -24,31 +24,31 @@ class Query:
         self.skip = skip
         self.limit = limit
 
-    def join(self, query: Self) -> Self:
-        self.match += query.match
-        self.optional_match += query.optional_match
-        self.where += query.where
-        self.with_clause = query.with_clause
-        self.return_clause += query.return_clause
-        self.order_by = query.order_by
-        self.skip = query.skip
-        self.limit = query.limit
+    def __add__(self, other: Self) -> Self:
+        self.match += other.match
+        self.optional_match += other.optional_match
+        self.where += other.where
+        self.with_clause = other.with_clause
+        self.return_clause += other.return_clause
+        self.order_by = other.order_by
+        self.skip = other.skip
+        self.limit = other.limit
         return self
 
     def add_match(self, statement: str) -> Self:
-        self.match += statement
+        self.match.append(statement)
         return self
 
     def add_optional_match(self, statement: str) -> Self:
-        self.optional_match += statement
+        self.optional_match.append(statement)
         return self
 
     def add_where(self, statement: str) -> Self:
-        self.where += statement
+        self.where.append(statement)
         return self
 
     def add_return(self, statement: str) -> Self:
-        self.return_clause += statement
+        self.return_clause.append(statement)
         return self
 
     def build(self) -> str:
@@ -71,7 +71,18 @@ class Query:
             query_parts.append(f"LIMIT {self.limit}")
         return "\n".join(query_parts)
 
+    def build_together(self, *args: Self) -> str:
+        parts = [self.build()]
+        for query in args:
+            parts.append(query.build())
+        return "\n".join(parts)
+
 
 class FilterDatasetByID(Query):
     def __init__(self, id: str):
         super().__init__(where=[f'{Dataset.label}.dcterms__identifier="{id}"'])
+
+
+class FilterPersonByID(Query):
+    def __init__(self, id: str):
+        super().__init__(where=[f'{Person.label}.dcterms__identifier="{id}"'])

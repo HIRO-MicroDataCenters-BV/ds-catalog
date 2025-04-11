@@ -1,12 +1,4 @@
-class DatasetWasNotSaved(Exception):
-    ...
-
-
-class DatasetDoesNotExist(Exception):
-    ...
-
-
-class MultipleDatasetsFound(Exception):
+class ErrorSavingData(Exception):
     ...
 
 

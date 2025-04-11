@@ -4,9 +4,8 @@ from classy_fastapi import Routable, delete, get, post
 from fastapi import Depends, HTTPException, status
 
 from app.core import entities, usecases
-from app.core.exceptions import DatasetDoesNotExist
+from app.core.exceptions import NodeDoesNotExist
 from app.core.repository import Repositories
-from app.settings import Settings, get_settings
 
 from ..depends import get_repositories, get_user
 from ..examples import dataset_example
@@ -43,20 +42,12 @@ class DatasetsRoutes(Routable):
     async def save_dataset(
         self,
         data: Dataset,
-        user: Annotated[entities.Person, Depends(get_user)],
+        user: Annotated[entities.User, Depends(get_user)],
         usecases: usecases.DatasetsUsecases = Depends(get_usecases),
-        settings: Settings = Depends(get_settings),
     ) -> JSONLDResponse:
         """Create or update a dataset"""
         input_entity = data.to_entity()
-        output_entity = await usecases.save(
-            input_entity,
-            context={
-                "user": user,
-                "catalog_title": settings.catalog.title,
-                "catalog_description": settings.catalog.description,
-            },
-        )
+        output_entity = await usecases.save(input_entity, context={"user": user})
         return JSONLDResponse(output_entity)
 
     @get(
@@ -80,13 +71,13 @@ class DatasetsRoutes(Routable):
     async def get_dataset(
         self,
         id: str,
-        user: Annotated[entities.Person, Depends(get_user)],
+        user: Annotated[entities.User, Depends(get_user)],
         usecases: usecases.DatasetsUsecases = Depends(get_usecases),
     ) -> JSONLDResponse:
         """Get a dataset"""
         try:
             entity = await usecases.get(id, context={"user": user})
-        except DatasetDoesNotExist:
+        except NodeDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=DATASET_NOT_FOUND,
@@ -107,13 +98,13 @@ class DatasetsRoutes(Routable):
     async def delete_dataset(
         self,
         id: str,
-        user: Annotated[entities.Person, Depends(get_user)],
+        user: Annotated[entities.User, Depends(get_user)],
         usecases: usecases.DatasetsUsecases = Depends(get_usecases),
     ) -> None:
         """Delete a dataset"""
         try:
             await usecases.delete(id, context={"user": user})
-        except DatasetDoesNotExist:
+        except NodeDoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=DATASET_NOT_FOUND,

@@ -11,12 +11,12 @@ class HealthCheck(BaseModel):
     status: str = Field(examples=["OK"])
 
 
-class Person(BaseModel):
+class User(BaseModel):
     id: str
     name: str
 
-    def to_entity(self) -> entities.Person:
-        return entities.Person(id=self.id, name=self.name)
+    def to_entity(self) -> entities.User:
+        return entities.User(id=self.id, name=self.name)
 
 
 class JsonLD(BaseModel):
