@@ -117,7 +117,7 @@ class CatalogsRepository(BaseRepository[Catalog], ICatalogsRepository):
 
         q2 = Query(
             optional_match=[f"({d})-[r*0..]->(related)"],
-            where=["all(rel IN r WHERE type(rel) <> 'rdf__type')"],
+            where=['all(rel IN r WHERE type(rel) <> "rdf__type")'],
         )
         if query is not None:
             q2 += query

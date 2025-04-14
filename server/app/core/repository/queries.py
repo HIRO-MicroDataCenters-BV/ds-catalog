@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Any, Self
 
 from ..entities import Dataset, Person
 
@@ -34,6 +34,14 @@ class Query:
         self.skip = other.skip
         self.limit = other.limit
         return self
+
+    def __str__(self) -> str:
+        return self.build()
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, Query):
+            return False
+        return str(self) == str(other)
 
     def add_match(self, statement: str) -> Self:
         self.match.append(statement)

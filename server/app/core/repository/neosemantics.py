@@ -1,3 +1,5 @@
+from typing import Any
+
 import rdflib
 
 from app.database import DatabaseDriver
@@ -43,7 +45,7 @@ class Neosemantics:
 
         return graph
 
-    async def save(self, graph: rdflib.Graph) -> dict[str, int]:
+    async def save(self, graph: rdflib.Graph) -> dict[str, Any]:
         data_str = graph.serialize(format="json-ld", auto_compact=True)
         result = await self._db_driver.execute_query(
             "CALL n10s.rdf.import.inline($data, 'JSON-LD');",

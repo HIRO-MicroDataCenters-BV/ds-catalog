@@ -10,7 +10,7 @@ repos:
       - id: trailing-whitespace
         exclude: client/.*|.*\.md
       - id: end-of-file-fixer
-        exclude: client/.*|.*\.md
+        exclude: client/.*|.*\.md|snapshots
       - id: check-yaml
         exclude: charts/
       - id: check-added-large-files

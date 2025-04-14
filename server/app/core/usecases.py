@@ -86,9 +86,11 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             person = Person.from_user(user)
 
         # Set the additional attributes for the dataset
-        dataset.set_attribute(DSPACE.isDeleted, False)
-        dataset.set_attribute(DSPACE.isShared, False)
+        is_shared = dataset.get_attribute(DSPACE.isShared)
+        if is_shared is None:
+            dataset.set_attribute(DSPACE.isShared, False)
         dataset.set_attribute(DCTERMS.issued, datetime.now(UTC).isoformat())
+        dataset.set_attribute(DSPACE.isDeleted, False)
         dataset.set_attribute(DCTERMS.publisher, person.uri)
 
         # Set the dataset as a child of the catalog

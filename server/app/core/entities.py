@@ -79,21 +79,15 @@ class Graph:
         framed_json_ld = jsonld.frame(json_ld, frame)
         return json.dumps(framed_json_ld, indent=4)
 
-    def _get_root_node(self) -> URIRef:
+    @property
+    def uri(self) -> URIRef:
         node = next(self.graph.subjects(RDF.type, self.rdf_type), None)
         if node is None:
             raise NodeDoesNotExist("Root node not found in the graph")
         return cast(URIRef, node)
 
-    @property
-    def uri(self) -> URIRef:
-        return self._get_root_node()
-
-    def get_attribute(self, attr: URIRef) -> Any:
-        obj = next(self.graph.objects(self.uri, attr), None)
-        if obj is None:
-            raise NodeDoesNotExist(f"Attribute {attr} not found in the graph")
-        return obj
+    def get_attribute(self, attr: URIRef, default: Any = None) -> Any:
+        return next(self.graph.objects(self.uri, attr), default)
 
     def set_attribute(
         self,
