@@ -114,7 +114,7 @@ paths:
                 type: string
               example:
                 '@context':
-                  '@vocab': http://data-space.org/
+                  dspace: http://data-space.org/
                   xsd: http://www.w3.org/2001/XMLSchema#
                   dcat: http://www.w3.org/ns/dcat#
                   dcatap: http://data.europa.eu/r5r/
@@ -206,7 +206,7 @@ paths:
                         '@id': https://example.com/dataservice/456/download
                   dcat:inSeries:
                     '@id': https://example.com/series/541
-                  extraMetadata:
+                  dspace:extraMetadata:
                   - '@id': https://example.com/metadata/1
                     '@type': http://med-example.org/Patient
                     http://med-example.org/birthDate:
@@ -247,7 +247,10 @@ paths:
                     '@id': https://example.com/person/123
                     '@type': foaf:Agent
                     foaf:name: John Doe
-                  isShared:
+                  dspace:isShared:
+                    '@type': xsd:boolean
+                    '@value': false
+                  dspace:isDeleted:
                     '@type': xsd:boolean
                     '@value': false
         '422':
@@ -278,7 +281,7 @@ paths:
                 type: string
               example:
                 '@context':
-                  '@vocab': http://data-space.org/
+                  dspace: http://data-space.org/
                   xsd: http://www.w3.org/2001/XMLSchema#
                   dcat: http://www.w3.org/ns/dcat#
                   dcatap: http://data.europa.eu/r5r/
@@ -356,7 +359,7 @@ paths:
                       '@id': https://example.com/dataservice/456/download
                 dcat:inSeries:
                   '@id': https://example.com/series/541
-                extraMetadata:
+                dspace:extraMetadata:
                 - '@id': https://example.com/metadata/1
                   '@type': http://med-example.org/Patient
                   http://med-example.org/birthDate:
@@ -397,7 +400,10 @@ paths:
                   '@id': https://example.com/person/123
                   '@type': foaf:Agent
                   foaf:name: John Doe
-                isShared:
+                dspace:isShared:
+                  '@type': xsd:boolean
+                  '@value': false
+                dspace:isDeleted:
                   '@type': xsd:boolean
                   '@value': false
         '422':
@@ -429,7 +435,7 @@ paths:
                 type: string
               example:
                 '@context':
-                  '@vocab': http://data-space.org/
+                  dspace: http://data-space.org/
                   xsd: http://www.w3.org/2001/XMLSchema#
                   dcat: http://www.w3.org/ns/dcat#
                   dcatap: http://data.europa.eu/r5r/
@@ -507,7 +513,7 @@ paths:
                       '@id': https://example.com/dataservice/456/download
                 dcat:inSeries:
                   '@id': https://example.com/series/541
-                extraMetadata:
+                dspace:extraMetadata:
                 - '@id': https://example.com/metadata/1
                   '@type': http://med-example.org/Patient
                   http://med-example.org/birthDate:
@@ -548,7 +554,10 @@ paths:
                   '@id': https://example.com/person/123
                   '@type': foaf:Agent
                   foaf:name: John Doe
-                isShared:
+                dspace:isShared:
+                  '@type': xsd:boolean
+                  '@value': false
+                dspace:isDeleted:
                   '@type': xsd:boolean
                   '@value': false
         '404':
@@ -661,10 +670,10 @@ components:
       title: Dataset
       examples:
       - '@context':
-          '@vocab': http://data-space.org/
           dcat: http://www.w3.org/ns/dcat#
           dcatap: http://data.europa.eu/r5r/
           dcterms: http://purl.org/dc/terms/
+          dspace: http://data-space.org/
           foaf: http://xmlns.com/foaf/0.1/
           med: http://med-example.org/
           skos: http://www.w3.org/2004/02/skos/core#
@@ -740,7 +749,7 @@ components:
           '@value': Sample Dataset Title
         - '@language': es
           '@value': "T\xEDtulo del conjunto de datos de ejemplo"
-        extraMetadata:
+        dspace:extraMetadata:
         - '@id': https://example.com/metadata/1
           '@type': med:Patient
           med:birthDate:
