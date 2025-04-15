@@ -99,11 +99,11 @@ configuration = ds_catalog.Configuration(
 with ds_catalog.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = ds_catalog.CatalogApi(api_client)
-    catalog_filters = ds_catalog.CatalogFilters() # CatalogFilters | 
+    request_body = None # Dict[str, object] | 
 
     try:
         # Get Local Catalog
-        api_response = api_instance.get_catalog(catalog_filters)
+        api_response = api_instance.get_catalog(request_body)
         print("The response of CatalogApi->get_catalog:\n")
         pprint(api_response)
     except ApiException as e:
@@ -129,8 +129,6 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
- - [CatalogFilters](docs/CatalogFilters.md)
- - [Dataset](docs/Dataset.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
  - [HealthCheck](docs/HealthCheck.md)
  - [ValidationError](docs/ValidationError.md)

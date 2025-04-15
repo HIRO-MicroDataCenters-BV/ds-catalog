@@ -14,6 +14,7 @@ class DSPACE(DefinedNamespace):
     extraMetadata: URIRef
     operationValue: URIRef
     operation: URIRef
+    filters: URIRef
 
 
 class SPDX(DefinedNamespace):

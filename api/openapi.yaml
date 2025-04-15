@@ -636,10 +636,7 @@ paths:
 components:
   schemas:
     CatalogFilters:
-      properties:
-        '@context':
-          type: object
-          title: '@Context'
+      properties: {}
       additionalProperties: true
       type: object
       title: CatalogFilters
@@ -658,10 +655,7 @@ components:
                   operation: contains
                   operationValue: I10
     Dataset:
-      properties:
-        '@context':
-          type: object
-          title: '@Context'
+      properties: {}
       additionalProperties: true
       type: object
       title: Dataset

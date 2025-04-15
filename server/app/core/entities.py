@@ -6,6 +6,7 @@ import uuid
 from pyld import jsonld
 from rdflib import Graph as RDFGraph
 from rdflib import Literal, URIRef
+from rdflib.compare import to_isomorphic
 from rdflib.namespace import DCAT, DCTERMS, FOAF, RDF, SKOS, XSD
 
 from .exceptions import NodeDoesNotExist
@@ -55,6 +56,16 @@ class Graph:
             raise TypeError("Cannot add non-graph object")
         self.graph += other.graph
         return self
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, Graph):
+            return False
+        return (
+            to_isomorphic(self.graph) == to_isomorphic(other.graph)
+            and self.rdf_type == other.rdf_type
+            and self.label == other.label
+            and self.context == other.context
+        )
 
     @classmethod
     def create_empty(cls, id: str) -> Self:

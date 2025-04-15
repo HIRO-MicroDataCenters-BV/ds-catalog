@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from typing_extensions import Annotated
 
 from pydantic import StrictStr
-from ds_catalog.models.catalog_filters import CatalogFilters
+from typing import Any, Dict
 
 from ds_catalog.api_client import ApiClient, RequestSerialized
 from ds_catalog.api_response import ApiResponse
@@ -41,7 +41,7 @@ class CatalogApi:
     @validate_call
     def get_catalog(
         self,
-        catalog_filters: CatalogFilters,
+        request_body: Dict[str, Any],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -59,8 +59,8 @@ class CatalogApi:
 
         Get the local catalog with dataset list.  The request accepts filters as a JSON-LD object in the body.  ### Format: Filters are structured as nested JSON-LD objects. Each filter defines the path to the field with optional operators or language annotations.  ```json {   \"@context\": {     \"@vocab\": \"http://data-space.org/\",     \"<namespace>\": \"<namespaceURL>\",     ...   }   \"@type\": \"Filters\",   \"filters\": [     {       [\"@type\": \"<[namespace:]Class>\",]       \"<[namespace:]attribute>[@<lang>]\": <nestedObject> | <value> | {         \"operation\": \"<operator>\",         \"operationValue\": <value>       }     },     ...   ] } ```  ### Supported operators: - `gte`, `lte` — range filtering - `in` — list filtering - `contains` — substring search  ### Example: ```json {   \"@context\": {     \"@vocab\": \"http://data-space.org/\",     \"dcat\": \"http://www.w3.org/ns/dcat#\",     \"med\": \"http://med.example.org/\"   },   \"@type\": \"Filters\",   \"filters\": [     {       \"dcat:dataset\": {         \"extraMetadata\": {           \"@type\": \"med:Diagnoses\",           \"med:hasDiagnosis\": {             \"med:code\": {               \"operation\": \"contains\",               \"operationValue\": \"I10\"             }           }         }       }     }   ] } ```  ### More filter examples: - ```json     {         \"dcat:dataset\": {             \"dcterms:title\": \"example\"         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:title@en\": \"example\"         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:title\": {                 \"@language\": \"en\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:title\": {                 \"@value\": \"example\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcat:distribution\": {                 \"dcat:format\": \"PDF\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:sex\": \"M\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"@type\": \"med:Patient\",                 \"med:sex\": \"M\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:weight\": 75             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:weight\": {                     \"@value\": 75                 }             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:weight\": {                     \"@type\": \"xsd:integer\"                 }             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:datePublished\": {                 \"operationValue\": \"2021-01-01\",                 \"operation\": \"gte\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:datePublished\": {                 \"operationValue\": \"2021-12-31\",                 \"operation\": \"lte\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:weight\": {                     \"operationValue\": 70,                     \"operation\": \"gte\"                 }             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:weight\": {                     \"operationValue\": 70,                     \"operation\": \"lte\"                 }             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcat:keyword\": {                 \"operationValue\": [\"science\", \"health\"],                 \"operation\": \"in\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:title@en\": {                 \"operationValue\": \"example\",                 \"operation\": \"contains\"             }         }     }   ```
 
-        :param catalog_filters: (required)
-        :type catalog_filters: CatalogFilters
+        :param request_body: (required)
+        :type request_body: Dict[str, object]
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -84,7 +84,7 @@ class CatalogApi:
         """ # noqa: E501
 
         _param = self._get_catalog_serialize(
-            catalog_filters=catalog_filters,
+            request_body=request_body,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -109,7 +109,7 @@ class CatalogApi:
     @validate_call
     def get_catalog_with_http_info(
         self,
-        catalog_filters: CatalogFilters,
+        request_body: Dict[str, Any],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -127,8 +127,8 @@ class CatalogApi:
 
         Get the local catalog with dataset list.  The request accepts filters as a JSON-LD object in the body.  ### Format: Filters are structured as nested JSON-LD objects. Each filter defines the path to the field with optional operators or language annotations.  ```json {   \"@context\": {     \"@vocab\": \"http://data-space.org/\",     \"<namespace>\": \"<namespaceURL>\",     ...   }   \"@type\": \"Filters\",   \"filters\": [     {       [\"@type\": \"<[namespace:]Class>\",]       \"<[namespace:]attribute>[@<lang>]\": <nestedObject> | <value> | {         \"operation\": \"<operator>\",         \"operationValue\": <value>       }     },     ...   ] } ```  ### Supported operators: - `gte`, `lte` — range filtering - `in` — list filtering - `contains` — substring search  ### Example: ```json {   \"@context\": {     \"@vocab\": \"http://data-space.org/\",     \"dcat\": \"http://www.w3.org/ns/dcat#\",     \"med\": \"http://med.example.org/\"   },   \"@type\": \"Filters\",   \"filters\": [     {       \"dcat:dataset\": {         \"extraMetadata\": {           \"@type\": \"med:Diagnoses\",           \"med:hasDiagnosis\": {             \"med:code\": {               \"operation\": \"contains\",               \"operationValue\": \"I10\"             }           }         }       }     }   ] } ```  ### More filter examples: - ```json     {         \"dcat:dataset\": {             \"dcterms:title\": \"example\"         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:title@en\": \"example\"         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:title\": {                 \"@language\": \"en\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:title\": {                 \"@value\": \"example\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcat:distribution\": {                 \"dcat:format\": \"PDF\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:sex\": \"M\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"@type\": \"med:Patient\",                 \"med:sex\": \"M\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:weight\": 75             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:weight\": {                     \"@value\": 75                 }             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:weight\": {                     \"@type\": \"xsd:integer\"                 }             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:datePublished\": {                 \"operationValue\": \"2021-01-01\",                 \"operation\": \"gte\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:datePublished\": {                 \"operationValue\": \"2021-12-31\",                 \"operation\": \"lte\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:weight\": {                     \"operationValue\": 70,                     \"operation\": \"gte\"                 }             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:weight\": {                     \"operationValue\": 70,                     \"operation\": \"lte\"                 }             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcat:keyword\": {                 \"operationValue\": [\"science\", \"health\"],                 \"operation\": \"in\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:title@en\": {                 \"operationValue\": \"example\",                 \"operation\": \"contains\"             }         }     }   ```
 
-        :param catalog_filters: (required)
-        :type catalog_filters: CatalogFilters
+        :param request_body: (required)
+        :type request_body: Dict[str, object]
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -152,7 +152,7 @@ class CatalogApi:
         """ # noqa: E501
 
         _param = self._get_catalog_serialize(
-            catalog_filters=catalog_filters,
+            request_body=request_body,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -177,7 +177,7 @@ class CatalogApi:
     @validate_call
     def get_catalog_without_preload_content(
         self,
-        catalog_filters: CatalogFilters,
+        request_body: Dict[str, Any],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -195,8 +195,8 @@ class CatalogApi:
 
         Get the local catalog with dataset list.  The request accepts filters as a JSON-LD object in the body.  ### Format: Filters are structured as nested JSON-LD objects. Each filter defines the path to the field with optional operators or language annotations.  ```json {   \"@context\": {     \"@vocab\": \"http://data-space.org/\",     \"<namespace>\": \"<namespaceURL>\",     ...   }   \"@type\": \"Filters\",   \"filters\": [     {       [\"@type\": \"<[namespace:]Class>\",]       \"<[namespace:]attribute>[@<lang>]\": <nestedObject> | <value> | {         \"operation\": \"<operator>\",         \"operationValue\": <value>       }     },     ...   ] } ```  ### Supported operators: - `gte`, `lte` — range filtering - `in` — list filtering - `contains` — substring search  ### Example: ```json {   \"@context\": {     \"@vocab\": \"http://data-space.org/\",     \"dcat\": \"http://www.w3.org/ns/dcat#\",     \"med\": \"http://med.example.org/\"   },   \"@type\": \"Filters\",   \"filters\": [     {       \"dcat:dataset\": {         \"extraMetadata\": {           \"@type\": \"med:Diagnoses\",           \"med:hasDiagnosis\": {             \"med:code\": {               \"operation\": \"contains\",               \"operationValue\": \"I10\"             }           }         }       }     }   ] } ```  ### More filter examples: - ```json     {         \"dcat:dataset\": {             \"dcterms:title\": \"example\"         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:title@en\": \"example\"         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:title\": {                 \"@language\": \"en\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:title\": {                 \"@value\": \"example\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcat:distribution\": {                 \"dcat:format\": \"PDF\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:sex\": \"M\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"@type\": \"med:Patient\",                 \"med:sex\": \"M\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:weight\": 75             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:weight\": {                     \"@value\": 75                 }             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:weight\": {                     \"@type\": \"xsd:integer\"                 }             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:datePublished\": {                 \"operationValue\": \"2021-01-01\",                 \"operation\": \"gte\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:datePublished\": {                 \"operationValue\": \"2021-12-31\",                 \"operation\": \"lte\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:weight\": {                     \"operationValue\": 70,                     \"operation\": \"gte\"                 }             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"extraMetadata\": {                 \"med:weight\": {                     \"operationValue\": 70,                     \"operation\": \"lte\"                 }             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcat:keyword\": {                 \"operationValue\": [\"science\", \"health\"],                 \"operation\": \"in\"             }         }     }   ``` - ```json     {         \"dcat:dataset\": {             \"dcterms:title@en\": {                 \"operationValue\": \"example\",                 \"operation\": \"contains\"             }         }     }   ```
 
-        :param catalog_filters: (required)
-        :type catalog_filters: CatalogFilters
+        :param request_body: (required)
+        :type request_body: Dict[str, object]
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -220,7 +220,7 @@ class CatalogApi:
         """ # noqa: E501
 
         _param = self._get_catalog_serialize(
-            catalog_filters=catalog_filters,
+            request_body=request_body,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -240,7 +240,7 @@ class CatalogApi:
 
     def _get_catalog_serialize(
         self,
-        catalog_filters,
+        request_body,
         _request_auth,
         _content_type,
         _headers,
@@ -264,8 +264,8 @@ class CatalogApi:
         # process the header parameters
         # process the form parameters
         # process the body parameter
-        if catalog_filters is not None:
-            _body_params = catalog_filters
+        if request_body is not None:
+            _body_params = request_body
 
 
         # set the HTTP header `Accept`

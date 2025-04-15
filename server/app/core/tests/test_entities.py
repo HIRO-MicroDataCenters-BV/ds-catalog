@@ -78,6 +78,16 @@ class TestGraph:
         assert (node2, RDF.type, DCAT.Catalog) in result.graph
         assert (node2, DCTERMS.title, Literal("Catalog 2")) in result.graph
 
+    def test_eq(self, graph_class):
+        class AnotherGraph(Graph):
+            rdf_type = DCAT.DataService
+            label = "ds"
+
+        assert graph_class() == graph_class()
+        assert graph_class.create_empty("1") == graph_class.create_empty("1")
+        assert graph_class.create_empty("1") != graph_class.create_empty("2")
+        assert graph_class() != AnotherGraph()
+
     def test_create_empty(self, graph_class):
         id = "http://example.com/1"
         result = graph_class.create_empty(id)
