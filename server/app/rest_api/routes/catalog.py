@@ -40,7 +40,7 @@ class CatalogRoutes(Routable):
     async def get_catalog(
         self,
         filters: CatalogFilters,
-        user: Annotated[entities.Person, Depends(get_user)],
+        user: Annotated[entities.User, Depends(get_user)],
         usecases: usecases.CatalogUsecases = Depends(get_usecases),
     ) -> JSONLDResponse:
         """

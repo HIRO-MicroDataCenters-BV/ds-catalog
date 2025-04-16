@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from typing_extensions import Annotated
 
 from pydantic import StrictStr
-from ds_catalog.models.dataset import Dataset
+from typing import Any, Dict
 
 from ds_catalog.api_client import ApiClient, RequestSerialized
 from ds_catalog.api_response import ApiResponse
@@ -570,7 +570,7 @@ class DatasetsApi:
     @validate_call
     def save_dataset(
         self,
-        dataset: Dataset,
+        request_body: Dict[str, Any],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -588,8 +588,8 @@ class DatasetsApi:
 
         Create or update a dataset
 
-        :param dataset: (required)
-        :type dataset: Dataset
+        :param request_body: (required)
+        :type request_body: Dict[str, object]
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -613,7 +613,7 @@ class DatasetsApi:
         """ # noqa: E501
 
         _param = self._save_dataset_serialize(
-            dataset=dataset,
+            request_body=request_body,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -638,7 +638,7 @@ class DatasetsApi:
     @validate_call
     def save_dataset_with_http_info(
         self,
-        dataset: Dataset,
+        request_body: Dict[str, Any],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -656,8 +656,8 @@ class DatasetsApi:
 
         Create or update a dataset
 
-        :param dataset: (required)
-        :type dataset: Dataset
+        :param request_body: (required)
+        :type request_body: Dict[str, object]
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -681,7 +681,7 @@ class DatasetsApi:
         """ # noqa: E501
 
         _param = self._save_dataset_serialize(
-            dataset=dataset,
+            request_body=request_body,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -706,7 +706,7 @@ class DatasetsApi:
     @validate_call
     def save_dataset_without_preload_content(
         self,
-        dataset: Dataset,
+        request_body: Dict[str, Any],
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -724,8 +724,8 @@ class DatasetsApi:
 
         Create or update a dataset
 
-        :param dataset: (required)
-        :type dataset: Dataset
+        :param request_body: (required)
+        :type request_body: Dict[str, object]
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -749,7 +749,7 @@ class DatasetsApi:
         """ # noqa: E501
 
         _param = self._save_dataset_serialize(
-            dataset=dataset,
+            request_body=request_body,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -769,7 +769,7 @@ class DatasetsApi:
 
     def _save_dataset_serialize(
         self,
-        dataset,
+        request_body,
         _request_auth,
         _content_type,
         _headers,
@@ -793,8 +793,8 @@ class DatasetsApi:
         # process the header parameters
         # process the form parameters
         # process the body parameter
-        if dataset is not None:
-            _body_params = dataset
+        if request_body is not None:
+            _body_params = request_body
 
 
         # set the HTTP header `Accept`

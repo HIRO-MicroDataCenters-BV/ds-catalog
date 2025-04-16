@@ -1,7 +1,5 @@
 README.md
 docs/CatalogApi.md
-docs/CatalogFilters.md
-docs/Dataset.md
 docs/DatasetsApi.md
 docs/DefaultApi.md
 docs/HTTPValidationError.md
@@ -20,8 +18,6 @@ ds_catalog/api_response.py
 ds_catalog/configuration.py
 ds_catalog/exceptions.py
 ds_catalog/models/__init__.py
-ds_catalog/models/catalog_filters.py
-ds_catalog/models/dataset.py
 ds_catalog/models/health_check.py
 ds_catalog/models/http_validation_error.py
 ds_catalog/models/validation_error.py

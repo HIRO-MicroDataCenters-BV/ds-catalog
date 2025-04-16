@@ -1,12 +1,16 @@
 from abc import ABC, abstractmethod
+from datetime import UTC, datetime
 
-from rdflib.namespace import DCAT
+from rdflib import DCAT
+from rdflib.namespace import DCTERMS
 
-from .context import Context, CreateDatasetContext
-from .entities import Catalog, CatalogFilters, Dataset
+from app.core.exceptions import NodeDoesNotExist
+
+from .context import Context
+from .entities import Catalog, CatalogFilters, Dataset, Person
 from .namespace import DSPACE
 from .repository import Repositories
-from .repository.queries import FilterDatasetByID, Query
+from .repository.queries import FilterDatasetByID, FilterPersonByID, Query
 
 
 class IUsecases(ABC):
@@ -32,7 +36,7 @@ class ICatalogUsecases(IUsecases):
 
 class IDatasetsUsecases(IUsecases):
     @abstractmethod
-    async def save(self, data: Dataset, context: CreateDatasetContext) -> Dataset:
+    async def save(self, data: Dataset, context: Context) -> Dataset:
         ...
 
     @abstractmethod
@@ -63,17 +67,43 @@ class CatalogUsecases(BaseUsecases, ICatalogUsecases):
     ) -> Catalog:
         """Get the local catalog"""
         query = Query()  # TODO: Build the query based on the filters
-        return await self.repositories.catalog.get(query)
+        return await self.repositories.catalogs.get(query)
 
 
 class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
-    async def save(self, dataset: Dataset, context: CreateDatasetContext) -> Dataset:
+    async def save(self, dataset: Dataset, context: Context) -> Dataset:
         """Create or update a dataset"""
-        node = dataset.get_node_by_type(DCAT.Dataset)
-        dataset.set_attribute(node, DSPACE.isShared, False)
-        # TODO: Add attributes (creator, etc.) to the dataset
-        await self.repositories.datasets.save(dataset)
-        return dataset
+
+        # Get the local catalog
+        catalog = await self.repositories.catalogs.get()
+
+        # Get or create the person
+        user = context["user"]
+        query = FilterPersonByID(user["id"])
+        try:
+            person = await self.repositories.persons.get(query)
+        except NodeDoesNotExist:
+            person = Person.from_user(user)
+
+        # Set the additional attributes for the dataset
+        is_shared = dataset.get_attribute(DSPACE.isShared)
+        if is_shared is None:
+            dataset.set_attribute(DSPACE.isShared, False)
+        dataset.set_attribute(DCTERMS.issued, datetime.now(UTC).isoformat())
+        dataset.set_attribute(DSPACE.isDeleted, False)
+        dataset.set_attribute(DCTERMS.publisher, person.uri)
+
+        # Set the dataset as a child of the catalog
+        catalog.set_attribute(DCAT.dataset, dataset.uri)
+
+        # Save the graph (including the dataset, catalog, and person)
+        catalog += dataset
+        catalog += person
+        await self.repositories.catalogs.save(catalog)
+
+        # Return the dataset
+        id = dataset.get_attribute(DCTERMS.identifier)
+        return await self.get(id, context)
 
     async def get(self, id: str, context: Context) -> Dataset:
         """Get a dataset by its ID"""
@@ -91,14 +121,12 @@ class DatasetSharingUsecases(BaseUsecases, IDatasetSharingUsecases):
         """Share a dataset"""
         query = FilterDatasetByID(id)
         dataset = await self.repositories.datasets.get(query)
-        node = dataset.get_node_by_type(DCAT.Dataset)
-        dataset.set_attribute(node, DSPACE.isShared, True)
+        dataset.set_attribute(DSPACE.isShared, True)
         await self.repositories.datasets.save(dataset)
 
     async def unshare(self, id: str, context: Context) -> None:
         """Unshare a dataset"""
         query = FilterDatasetByID(id)
         dataset = await self.repositories.datasets.get(query)
-        node = dataset.get_node_by_type(DCAT.Dataset)
-        dataset.set_attribute(node, DSPACE.isShared, False)
+        dataset.set_attribute(DSPACE.isShared, False)
         await self.repositories.datasets.save(dataset)

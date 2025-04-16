@@ -146,7 +146,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **save_dataset**
-> str save_dataset(dataset)
+> str save_dataset(request_body)
 
 Save Dataset
 
@@ -157,7 +157,6 @@ Create or update a dataset
 
 ```python
 import ds_catalog
-from ds_catalog.models.dataset import Dataset
 from ds_catalog.rest import ApiException
 from pprint import pprint
 
@@ -172,11 +171,11 @@ configuration = ds_catalog.Configuration(
 with ds_catalog.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = ds_catalog.DatasetsApi(api_client)
-    dataset = ds_catalog.Dataset() # Dataset | 
+    request_body = None # Dict[str, object] | 
 
     try:
         # Save Dataset
-        api_response = api_instance.save_dataset(dataset)
+        api_response = api_instance.save_dataset(request_body)
         print("The response of DatasetsApi->save_dataset:\n")
         pprint(api_response)
     except Exception as e:
@@ -190,7 +189,7 @@ with ds_catalog.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **dataset** | [**Dataset**](Dataset.md)|  | 
+ **request_body** | [**Dict[str, object]**](object.md)|  | 
 
 ### Return type
 

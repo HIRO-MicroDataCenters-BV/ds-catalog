@@ -1,7 +1,7 @@
 from polyfactory.factories.pydantic_factory import ModelFactory
 
-from ..serializers import Person
+from ..serializers import User
 
 
-class PersonFactory(ModelFactory[Person]):
-    __model__ = Person
+class UserFactory(ModelFactory[User]):
+    __model__ = User

@@ -8,7 +8,7 @@ Method | HTTP request | Description
 
 
 # **get_catalog**
-> str get_catalog(catalog_filters)
+> str get_catalog(request_body)
 
 Get Local Catalog
 
@@ -19,7 +19,6 @@ Get the local catalog with dataset list.  The request accepts filters as a JSON-
 
 ```python
 import ds_catalog
-from ds_catalog.models.catalog_filters import CatalogFilters
 from ds_catalog.rest import ApiException
 from pprint import pprint
 
@@ -34,11 +33,11 @@ configuration = ds_catalog.Configuration(
 with ds_catalog.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = ds_catalog.CatalogApi(api_client)
-    catalog_filters = ds_catalog.CatalogFilters() # CatalogFilters | 
+    request_body = None # Dict[str, object] | 
 
     try:
         # Get Local Catalog
-        api_response = api_instance.get_catalog(catalog_filters)
+        api_response = api_instance.get_catalog(request_body)
         print("The response of CatalogApi->get_catalog:\n")
         pprint(api_response)
     except Exception as e:
@@ -52,7 +51,7 @@ with ds_catalog.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **catalog_filters** | [**CatalogFilters**](CatalogFilters.md)|  | 
+ **request_body** | [**Dict[str, object]**](object.md)|  | 
 
 ### Return type
 

@@ -1,7 +1,7 @@
 from typing import Any
 
 context_example: dict[str, Any] = {
-    "@vocab": "http://data-space.org/",
+    "dspace": "http://data-space.org/",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "dcat": "http://www.w3.org/ns/dcat#",
     "dcatap": "http://data.europa.eu/r5r/",
@@ -106,12 +106,12 @@ base_dataset_body_example: dict[str, Any] = {
         }
     ],
     "dcat:inSeries": {"@id": "https://example.com/series/541"},
-    "extraMetadata": [],
+    "dspace:extraMetadata": [],
 }
 
 dataset_body_example: dict[str, Any] = {
     **base_dataset_body_example,
-    "extraMetadata": [
+    "dspace:extraMetadata": [
         {
             "@id": "https://example.com/metadata/1",
             "@type": "http://med-example.org/Patient",
@@ -160,7 +160,8 @@ dataset_body_example: dict[str, Any] = {
         "@type": "foaf:Agent",
         "foaf:name": "John Doe",
     },
-    "isShared": {"@type": "xsd:boolean", "@value": False},
+    "dspace:isShared": {"@type": "xsd:boolean", "@value": False},
+    "dspace:isDeleted": {"@type": "xsd:boolean", "@value": False},
 }
 
 dataset_example: dict[str, Any] = {
@@ -174,7 +175,7 @@ dataset_input_example: dict[str, Any] = {
         "med": "http://med-example.org/",
     },
     **base_dataset_body_example,
-    "extraMetadata": [
+    "dspace:extraMetadata": [
         {
             "@id": "https://example.com/metadata/1",
             "@type": "med:Patient",

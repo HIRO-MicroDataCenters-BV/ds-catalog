@@ -1,6 +1,4 @@
-from typing import Any
-
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.core import entities
 
@@ -11,32 +9,31 @@ class HealthCheck(BaseModel):
     status: str = Field(examples=["OK"])
 
 
-class Person(BaseModel):
+class User(BaseModel):
     id: str
     name: str
 
-    def to_entity(self) -> entities.Person:
-        return entities.Person(id=self.id, name=self.name)
+    def to_entity(self) -> entities.User:
+        return entities.User(id=self.id, name=self.name)
 
 
 class JsonLD(BaseModel):
-    context: dict[str, Any] = Field(None, alias="@context")
-
-    class Config:
-        populate_by_name = True
-        extra = "allow"
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="allow",
+    )
 
 
 class CatalogFilters(JsonLD):
     # TODO: Validate the data
 
-    model_config = {
-        "json_schema_extra": {
+    model_config = ConfigDict(
+        json_schema_extra={
             "examples": [
                 catalog_filters_example,
             ],
         },
-    }
+    )
 
     def to_entity(self) -> entities.CatalogFilters:
         d = self.model_dump_json(by_alias=True)
@@ -46,13 +43,13 @@ class CatalogFilters(JsonLD):
 class Dataset(JsonLD):
     # TODO: Validate the data
 
-    model_config = {
-        "json_schema_extra": {
+    model_config = ConfigDict(
+        json_schema_extra={
             "examples": [
                 dataset_input_example,
             ],
-        }
-    }
+        },
+    )
 
     def to_entity(self) -> entities.Dataset:
         d = self.model_dump_json(by_alias=True)
