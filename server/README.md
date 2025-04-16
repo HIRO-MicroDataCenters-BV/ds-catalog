@@ -17,8 +17,6 @@ Python 3.12+
 
 3. Create .env file from the template .env.template:
     ```bash
-    NEO4J_AUTH=neo4j/your_password
-
     DS__DATABASE__PROTOCOL=neo4j
     DS__DATABASE__HOST=localhost
     DS__DATABASE__PORT=7687
@@ -62,6 +60,8 @@ Requirements:
 * [Docker](https://docs.docker.com/)
 * [Minikube](https://minikube.sigs.k8s.io/docs/) or Kubernetes cluster
 * [Helm](https://helm.sh/ru/docs/)
+* [Neo4j](https://neo4j.com/docs/operations-manual/current/kubernetes/)
+* [Neosemantics](https://neo4j.com/labs/neosemantics/)
 
 ### Local (for development)
 1. Start Minikube:
@@ -69,52 +69,28 @@ Requirements:
     minikube start
     ```
 
-2. Build a Docker image:
+2. Deploy Neo4j with the Neosemantics plugin.  
+   You can deploy them using [this repository](https://github.com/HIRO-MicroDataCenters-BV/Neo4j-With-Neosemantics).
+
+3. Build a Docker image:
     ```bash
     docker build . -t ds-catalog-srvice:latest
     ```
 
-3. Upload the Docker image to Minikube:
+4. Upload the Docker image to Minikube:
     ```bash
     minikube image load ds-catalog-srvice:latest
     ```
 
-4. Download chart dependencies:
+5. Deploy the Helm chart:
     ```bash
-    helm dependency update ./charts/server
+    helm upgrade --install catalog ./charts/server --set image.repository=ds-catalog-srvice --set image.tag=latest --set database.host=<host name> --set database.username=<username> --set database.password=<password> --set migrate.enabled=true
     ```
+    Use `migrate.enabled=true` for the first deployment only.
 
-5. Create a secret with username, password, and NEO4J_AUTH:
-    ```bash
-    kubectl create secret generic neo4j-secrets \
-      --from-literal=username=<username> \
-      --from-literal=password=<password> \
-      --from-literal=NEO4J_AUTH=<username>/<password>
-    ```
-
-    Username is `neo4j` by default.
-
-    To retrieve the secrets, use the following commands:
-    ```bash
-    kubectl get secret neo4j-secrets -o jsonpath="{.data.username}" | base64 --decode
-    kubectl get secret neo4j-secrets -o jsonpath="{.data.password}" | base64 --decode
-    kubectl get secret neo4j-secrets -o jsonpath="{.data.NEO4J_AUTH}" | base64 --decode
-    ```
-
-6. Deploy the Helm chart:
-    ```bash
-    helm upgrade --install catalog ./charts/server --set image.repository=ds-catalog-srvice --set image.tag=latest
-    ```
-
-7. To delete the deployment:
+6. To delete the deployment:
     ```bash
     helm delete catalog
-
-    kubectl get pvc
-    kubectl delete pvc data-catalog-0
-
-    kubectl get secret
-    kubectl delete secret neo4j-secrets
     ```
 
 ### Production
