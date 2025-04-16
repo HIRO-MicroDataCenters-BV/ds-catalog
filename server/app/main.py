@@ -1,10 +1,25 @@
-from typing import Any, Dict
+from typing import Any, AsyncGenerator, Dict
+
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from . import example, items
+from app.rest_api.routes import catalog, datasets, health_check, sharing
+
+from .database import Neo4jDatabase
+from .settings import get_settings
+
+settings = get_settings()
+db = Neo4jDatabase(
+    protocol=settings.database.protocol,
+    host=settings.database.host,
+    port=settings.database.port,
+    name=settings.database.name,
+    username=settings.database.username,
+    password=settings.database.password,
+)
 
 
 class CustomFastAPI(FastAPI):
@@ -12,9 +27,10 @@ class CustomFastAPI(FastAPI):
         if self.openapi_schema:
             return self.openapi_schema
         openapi_schema = get_openapi(
-            title="Template web service",
-            version="0.0.0",
-            description="This is a template of a web service",
+            title="Data Space Catalog Service",
+            version="0.1.1",
+            description="The service provides a REST API for managing and "
+            "sharing catalog items.",
             contact={
                 "name": "HIRO-MicroDataCenters",
                 "email": "all-hiro@hiro-microdatacenters.nl",
@@ -22,7 +38,7 @@ class CustomFastAPI(FastAPI):
             license_info={
                 "name": "MIT",
                 "url": "https://github.com/HIRO-MicroDataCenters-BV"
-                "/template-python/blob/main/LICENSE",
+                "/ds-catalog/blob/main/LICENSE",
             },
             routes=self.routes,
         )
@@ -30,11 +46,18 @@ class CustomFastAPI(FastAPI):
         return self.openapi_schema
 
 
-app = CustomFastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    await db.connect()
+    yield
+    await db.close()
 
 
+app = CustomFastAPI(lifespan=lifespan)
 Instrumentator().instrument(app).expose(app)
 
 
-app.include_router(example.router)
-app.include_router(items.routes.router)
+app.include_router(health_check.routes.router)
+app.include_router(catalog.routes.router)
+app.include_router(datasets.routes.router)
+app.include_router(sharing.routes.router)

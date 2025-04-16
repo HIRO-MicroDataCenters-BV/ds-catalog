@@ -4,23 +4,23 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**example_get**](DefaultApi.md#example_get) | **GET** / | Example endpoint
+[**health_check**](DefaultApi.md#health_check) | **GET** /health-check/ | Health check
 [**metrics_metrics_get**](DefaultApi.md#metrics_metrics_get) | **GET** /metrics | Metrics
 
 
-# **example_get**
-> ExampleResponse example_get()
+# **health_check**
+> HealthCheck health_check()
 
-Example endpoint
+Health check
 
-Example endpoint that returns test data
+Returns a 200 status code if the service is up and running
 
 ### Example
 
 
 ```python
 import ds_catalog
-from ds_catalog.models.example_response import ExampleResponse
+from ds_catalog.models.health_check import HealthCheck
 from ds_catalog.rest import ApiException
 from pprint import pprint
 
@@ -37,12 +37,12 @@ with ds_catalog.ApiClient(configuration) as api_client:
     api_instance = ds_catalog.DefaultApi(api_client)
 
     try:
-        # Example endpoint
-        api_response = api_instance.example_get()
-        print("The response of DefaultApi->example_get:\n")
+        # Health check
+        api_response = api_instance.health_check()
+        print("The response of DefaultApi->health_check:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling DefaultApi->example_get: %s\n" % e)
+        print("Exception when calling DefaultApi->health_check: %s\n" % e)
 ```
 
 
@@ -53,7 +53,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**ExampleResponse**](ExampleResponse.md)
+[**HealthCheck**](HealthCheck.md)
 
 ### Authorization
 
