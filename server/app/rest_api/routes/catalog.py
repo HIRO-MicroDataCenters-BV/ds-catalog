@@ -63,20 +63,14 @@ class CatalogRoutes(Routable):
           "filters": [
             {
               ["@type": "<[namespace:]Class>",]
-              "<[namespace:]attribute>[@<lang>]": <nestedObject> | <value> | {
-                "operation": "<operator>",
-                "operationValue": <value>
+              "<[namespace:]attribute>": <nestedObject> | <value> | {
+                "@value": <value>,
+                ["@type": <type> | "@language": <language>]
               }
-            },
-            ...
+            }
           ]
         }
         ```
-
-        ### Supported operators:
-        - `gte`, `lte` — range filtering
-        - `in` — list filtering
-        - `contains` — substring search
 
         ### Example:
         ```json
@@ -93,10 +87,7 @@ class CatalogRoutes(Routable):
                 "extraMetadata": {
                   "@type": "med:Diagnoses",
                   "med:hasDiagnosis": {
-                    "med:code": {
-                      "operation": "contains",
-                      "operationValue": "I10"
-                    }
+                    "med:code": "I10"
                   }
                 }
               }
@@ -106,161 +97,133 @@ class CatalogRoutes(Routable):
         ```
 
         ### More filter examples:
-        - ```json
+        - <b>Filter by dataset identifier</b>
+        ```json
             {
+                "@type": "dcat:Catalog",
                 "dcat:dataset": {
-                    "dcterms:title": "example"
+                    "@type": "dcat:Dataset",
+                    "dcterms:identifier": "123"
                 }
             }
-          ```
-        - ```json
+        ```
+
+        - <b>Filtering without specifying classes:</b> The service will attempt to infer
+        unspecified classes. If inferencing fails, an error will be returned.
+        ```json
             {
                 "dcat:dataset": {
-                    "dcterms:title@en": "example"
+                    "dcterms:identifier": "123"
                 }
             }
-          ```
-        - ```json
+        ```
+
+        - <b>Filtering with language</b>
+        ```json
             {
                 "dcat:dataset": {
                     "dcterms:title": {
+                        "@value": "example",
                         "@language": "en"
                     }
                 }
             }
-          ```
-        - ```json
-            {
-                "dcat:dataset": {
-                    "dcterms:title": {
-                        "@value": "example"
-                    }
-                }
-            }
-          ```
-        - ```json
-            {
-                "dcat:dataset": {
-                    "dcat:distribution": {
-                        "dcat:format": "PDF"
-                    }
-                }
-            }
-          ```
-        - ```json
-            {
-                "dcat:dataset": {
-                    "extraMetadata": {
-                        "med:sex": "M"
-                    }
-                }
-            }
-          ```
-        - ```json
+        ```
+
+        - <b>Filtering with data type</b>
+        ```json
             {
                 "dcat:dataset": {
                     "extraMetadata": {
                         "@type": "med:Patient",
-                        "med:sex": "M"
-                    }
-                }
-            }
-          ```
-        - ```json
-            {
-                "dcat:dataset": {
-                    "extraMetadata": {
-                        "med:weight": 75
-                    }
-                }
-            }
-          ```
-        - ```json
-            {
-                "dcat:dataset": {
-                    "extraMetadata": {
-                        "med:weight": {
-                            "@value": 75
-                        }
-                    }
-                }
-            }
-          ```
-        - ```json
-            {
-                "dcat:dataset": {
-                    "extraMetadata": {
-                        "med:weight": {
+                        "med:height": {
+                            "@value": "180",
                             "@type": "xsd:integer"
                         }
                     }
                 }
             }
-          ```
-        - ```json
+        ```
+
+        - <b>Incomplete filter structure:</b> All datasets with diagnosis code I10
+        will be found.
+        ```json
             {
-                "dcat:dataset": {
-                    "dcterms:datePublished": {
-                        "operationValue": "2021-01-01",
-                        "operation": "gte"
-                    }
+                "@type": "med:Diagnosis",
+                "med:code": "I10"
+            }
+        ```
+        ```json
+            {
+                "@type": "med:Diagnoses",
+                "med:hasDiagnosis": {
+                    "@type": "med:Diagnosis",
+                    "med:code": "I10"
                 }
             }
-          ```
-        - ```json
+        ```
+
+        - <b>Multiple conditions:</b> All datasets with identifier 123 <b>AND</b>
+        diagnosis code I10 will be found.
+        ```json
             {
                 "dcat:dataset": {
-                    "dcterms:datePublished": {
-                        "operationValue": "2021-12-31",
-                        "operation": "lte"
-                    }
-                }
-            }
-          ```
-        - ```json
-            {
-                "dcat:dataset": {
+                    "dcterms:identifier": "123",
                     "extraMetadata": {
-                        "med:weight": {
-                            "operationValue": 70,
-                            "operation": "gte"
+                        "med:hasDiagnosis": {
+                            "@type": "med:Diagnosis",
+                            "med:code": "I10"
                         }
                     }
                 }
             }
-          ```
-        - ```json
+        ```
+
+        - <b>Multiple conditions:</b> All datasets with patient height 180 <b>AND</b>
+        diagnosis code I10 will be found.
+        ```json
             {
                 "dcat:dataset": {
-                    "extraMetadata": {
-                        "med:weight": {
-                            "operationValue": 70,
-                            "operation": "lte"
+                    "extraMetadata": [
+                        {
+                            "@type": "med:Patient",
+                            "med:height": "180"
+                        },
+                        {
+                            "@type": "med:Diagnoses",
+                            "med:hasDiagnosis": {
+                                "@type": "med:Diagnosis",
+                                "med:code": "I10"
+                            }
                         }
-                    }
+                    ]
                 }
             }
-          ```
-        - ```json
+        ```
+
+        - <b>Multiple values:</b> All datasets will be found for which the patient's
+        height is 190 <b>OR</b> 180.
+        ```json
             {
                 "dcat:dataset": {
-                    "dcat:keyword": {
-                        "operationValue": ["science", "health"],
-                        "operation": "in"
-                    }
+                    "extraMetadata": [
+                        {
+                            "@type": "med:Patient",
+                            "med:height": [
+                                {
+                                    "@value": "190",
+                                    "@type": "xsd:integer"
+                                },
+                                {
+                                    "@value": "180",
+                                    "@type": "xsd:integer"
+                                }
+                            ]
+                        }
+                    ]
                 }
             }
-          ```
-        - ```json
-            {
-                "dcat:dataset": {
-                    "dcterms:title@en": {
-                        "operationValue": "example",
-                        "operation": "contains"
-                    }
-                }
-            }
-          ```
+        ```
 
         """
         filters_entity = filters.to_entity()
