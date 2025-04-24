@@ -1,0 +1,377 @@
+from typing import Any, Callable, Self
+
+import json
+import re
+from collections import defaultdict
+from dataclasses import dataclass
+
+from rdflib import DCAT, RDF, BNode
+from rdflib import Graph as RDFGraph
+from rdflib import Literal, Node, URIRef
+from rdflib.namespace import Namespace, NamespaceManager
+
+from app.core.namespace import DSPACE
+
+from ..entities import Catalog, CatalogFilters, Dataset
+from ..exceptions import ErrorConstructingQuery
+from .queries import FilterCatalog, Query
+
+Triplet = tuple[Node | None, Node | None, Node | None]
+
+
+def build_cypher_qname(prefix: str, name: str) -> str:
+    if prefix == "":
+        return name
+    else:
+        return "__".join((prefix, name))
+
+
+def uri_to_cypher(uri: str, namespaces: dict[str, str]) -> str:
+    """
+    Converts a full URI to a Cypher-compatible QName using provided namespace prefixes.
+
+    Example:
+        uri_to_cypher(
+            "http://www.w3.org/ns/dcat#Dataset", {"dcat": "http://www.w3.org/ns/dcat#"})
+        # Output: 'dcat__Dataset'
+
+    """
+
+    g = RDFGraph()
+    namespace_manager = NamespaceManager(g)
+
+    for prefix, ns in namespaces.items():
+        namespace_manager.bind(prefix, Namespace(ns))
+
+    try:
+        prefix, _, name = namespace_manager.compute_qname(URIRef(uri), generate=False)
+    except KeyError:
+        raise ErrorConstructingQuery(f"No known prefix for {uri}")
+
+    return build_cypher_qname(prefix, name)
+
+
+def escape_value(value: Any) -> str:
+    """
+    Escapes a Python value for safe inclusion in a Cypher query using JSON encoding.
+
+    Example:
+        escape_value("O'Reilly")    # Output: '"O\'Reilly"'
+        escape_value(42)            # Output: '42'
+        escape_value(True)          # Output: 'true'
+        escape_value(None)          # Output: 'null'
+
+    """
+
+    return json.dumps(value)
+
+
+def render_cypher_template(template: str, params: dict[str, Any]) -> str:
+    """
+    Renders a Cypher query template by replacing $placeholders with escaped
+    parameter values.
+
+    Example:
+        render_cypher_template(
+            "MATCH (n:$label) WHERE n.id = $id", {"label": "Person", "id": 123})
+        # Output: 'MATCH (n:Person) WHERE n.id = 123'
+    """
+
+    def replacer(match: re.Match[str]) -> str:
+        key = match.group(1)
+        if key not in params:
+            raise ValueError(f"Missing parameter: {key}")
+        return escape_value(params[key])
+
+    return re.sub(r"\$(\w+)", replacer, template)
+
+
+class LabelGenerator:
+    """
+    Generates unique labels with a given prefix, optionally using a key to cache
+    and reuse results.
+
+    Each prefix maintains its own independent counter. Repeated calls with
+    the same key and prefix will return the same label. Presets can be provided
+    on initialization.
+
+    Example:
+        gen = LabelGenerator()
+        gen.generate("n")            # "n1"
+        gen.generate("n")            # "n2"
+        gen.generate("n", key="a")   # "n3"
+        gen.generate("n", key="a")   # "n3" (cached)
+        gen.generate("r")            # "r1"
+        gen.generate("r")            # "r2"
+    """
+
+    def __init__(self, presets: dict[str, dict[Any, str]] | None = None):
+        self._counters: defaultdict[str, int] = defaultdict(int)
+        self._generated: defaultdict[str, dict[Any, str]] = defaultdict(dict)
+
+        if presets:
+            for prefix, keys in presets.items():
+                self._generated[prefix].update(keys)
+
+    def generate(self, prefix: str, key: Any | None = None) -> str:
+        if key:
+            if key in self._generated[prefix]:
+                return self._generated[prefix][key]
+
+        self._counters[prefix] += 1
+        n = self._counters[prefix]
+        result = f"{prefix}{n}"
+
+        if key:
+            self._generated[prefix][key] = result
+
+        return result
+
+
+@dataclass
+class FilterTree:
+    type: Node | None
+    children: dict[Node, list[Self]]
+    values: dict[Node, list[Any]]
+
+    def __str__(self) -> str:
+        return self.prettify()
+
+    def prettify(self, indent: int = 1) -> str:
+        result = ""
+
+        prefix = "  " * indent
+        result += f"{prefix}Type: {self.type}\n"
+
+        if self.values:
+            result += f"{prefix}  Values:\n"
+            for rel, vals in self.values.items():
+                result += f"{prefix}    {rel}: {vals}\n"
+
+        if self.children:
+            result += f"{prefix}  Children:\n"
+            for rel, child_list in self.children.items():
+                result += f"{prefix}    Relation: {rel}\n"
+                for child in child_list:
+                    result += child.prettify(indent + 3)
+
+        return result
+
+    def has_type(self, type_: URIRef) -> bool:
+        if self.type == type_:
+            return True
+        for child_list in self.children.values():
+            for c in child_list:
+                if c.type == type_ or c.has_type(type_):
+                    return True
+        return False
+
+    def inference_types(
+        self,
+        rules: list[Callable[[Node | None, Node | None, Node | None], Triplet]],
+    ) -> None:
+        if self.type is None:
+            for rel, child_list in self.children.items():
+                for child in child_list:
+                    for rule in rules:
+                        s, _, o = rule(self.type, rel, child.type)
+                        if s and s != self.type:
+                            self.type = s
+                        if o and o != child.type:
+                            child.type = o
+
+
+@dataclass
+class FilterValue:
+    language: str | None
+    value: Any
+
+
+def traverse_graph(
+    graph: RDFGraph,
+    node: Node,
+    visited: set[Node] | None = None,
+) -> FilterTree | None:
+    """Recursively traverses the RDF graph to build a filters tree"""
+
+    if visited is None:
+        visited = set()
+
+    if node in visited:
+        return None
+
+    visited.add(node)
+
+    children: dict[Node, list[FilterTree]] = defaultdict(list)
+    values: dict[Node, list[Any]] = defaultdict(list)
+
+    for pred, obj in graph.predicate_objects(subject=node):
+        if pred == RDF.type:
+            continue
+
+        if isinstance(obj, (URIRef, BNode)):
+            r = traverse_graph(graph, obj, visited)
+            if r is not None:
+                children[pred].append(r)
+        elif isinstance(obj, Literal):
+            value = FilterValue(language=obj.language, value=obj.toPython())
+            values[pred].append(value)
+
+    subj_type = graph.value(subject=node, predicate=RDF.type)
+    return FilterTree(type=subj_type, children=children, values=values)
+
+
+def build_query(
+    filter_item: FilterTree,
+    namespaces: dict[str, str],
+    gen: LabelGenerator | None = None,
+    depth: int = 1,
+) -> Query:
+    """Builds a Cypher query from a FilterTree"""
+
+    if filter_item.type is None:
+        raise ErrorConstructingQuery("Required subject type not specified")
+
+    if gen is None:
+        gen = LabelGenerator(
+            presets={
+                "n": {
+                    DCAT.Catalog: Catalog.label,
+                    DCAT.Dataset: Dataset.label,
+                }
+            }
+        )
+
+    q = Query()
+
+    # Add WHERE statments
+    for rel, values in filter_item.values.items():
+        s, p = filter_item.type, rel
+
+        s_label = gen.generate("n", s)
+        p_type = uri_to_cypher(str(p), namespaces)
+
+        conditions = []
+
+        for o in values:
+            value_key = gen.generate("v")
+
+            if o.language:
+                lang_key = gen.generate("v")
+                condition = render_cypher_template(
+                    f"any(t IN {s_label}.{p_type} "
+                    f"WHERE n10s.rdf.getLangTag(t) = ${lang_key} "
+                    f"AND n10s.rdf.getValue(t) = ${value_key})",
+                    params={
+                        lang_key: o.language,
+                        value_key: o.value,
+                    },
+                )
+            else:
+                condition = render_cypher_template(
+                    f"{s_label}.{p_type} = ${value_key}", params={value_key: o.value}
+                )
+
+            conditions.append(condition)
+
+        if conditions:
+            if len(conditions) == 1:
+                q.add_where(conditions[0])
+            else:
+                statment = " OR ".join(conditions)
+                q.add_where(f"({statment})")
+
+    # Add OPTIONAL MATCH statments
+    if depth == 1 and not filter_item.children:
+        s = filter_item.type
+        s_label = gen.generate("n", s)
+        s_type = f":{uri_to_cypher(str(s), namespaces)}" if s else ""
+        q.add_optional_match(f"({s_label}{s_type})")
+    else:
+        for rel, children in filter_item.children.items():
+            for child in children:
+                if child.type is None:
+                    raise ErrorConstructingQuery(
+                        f"Required object type not specified for subject "
+                        f"{filter_item.type} and predicate {rel}"
+                    )
+
+                s, p, o = filter_item.type, rel, child.type
+
+                s_label = gen.generate("n", s)
+                p_label = gen.generate("r")
+                o_label = gen.generate("n", o)
+
+                s_type = f":{uri_to_cypher(str(s), namespaces)}" if s else ""
+                p_type = f":{uri_to_cypher(str(p), namespaces)}"
+                o_type = f":{uri_to_cypher(str(o), namespaces)}" if o else ""
+
+                q.add_optional_match(
+                    f"({s_label}{s_type})-[{p_label}{p_type}]->({o_label}{o_type})"
+                )
+
+                q += build_query(child, namespaces, gen, depth + 1)
+
+    return q
+
+
+def infer_dcat_dataset_types(
+    s: Node | None,
+    p: Node | None,
+    o: Node | None,
+) -> Triplet:
+    """Infers subject/object types for the dcat:dataset predicate"""
+    if (s is None or o is None) and p == DCAT.dataset:
+        return DCAT.Catalog, p, DCAT.Dataset
+    return s, p, o
+
+
+def infer_dspace_extra_metadata_types(
+    s: Node | None,
+    p: Node | None,
+    o: Node | None,
+) -> Triplet:
+    """Infers subject type for the dspace:extraMetadata predicate"""
+    if s is None and p == DSPACE.extraMetadata:
+        return DCAT.Dataset, p, o
+    return s, p, o
+
+
+def catalog_filter_to_query(
+    filter: CatalogFilters,
+    namespaces: dict[str, str],
+) -> FilterCatalog:
+    """Converts a CatalogFilters instance to a Cypher FilterCatalog query"""
+
+    # TODO: Proccess all filter items
+    filter_items = list(filter.graph.objects(predicate=DSPACE.filters))
+    if not filter_items:
+        raise ErrorConstructingQuery("The first filter item was not found")
+    if len(filter_items) > 1:
+        raise ErrorConstructingQuery("Multiple filter items found")
+
+    first_filter = filter_items[0]
+
+    root_filter_item = traverse_graph(filter.graph, first_filter)
+    if root_filter_item is None:
+        raise ErrorConstructingQuery("Failed to process filters")
+
+    root_filter_item.inference_types(
+        rules=[
+            infer_dcat_dataset_types,
+            infer_dspace_extra_metadata_types,
+        ]
+    )
+
+    query = build_query(root_filter_item, namespaces)
+
+    root_node_type = DCAT.Dataset
+    has_root_type = root_filter_item.has_type(root_node_type)
+    if not has_root_type:
+        query.add_optional_match(
+            f"({Dataset.label}:{uri_to_cypher(root_node_type, namespaces)})"
+        )
+
+    query.with_clause = Dataset.label
+
+    return FilterCatalog() + query

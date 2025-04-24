@@ -33,6 +33,10 @@ class IRepositories(ABC):
     def __init__(self, db_driver: DatabaseDriver) -> None:
         ...
 
+    @abstractmethod
+    async def get_namespaces(self) -> dict[str, str]:
+        ...
+
 
 class IPersonsRepository(IRepository[Person]):
     @abstractmethod
@@ -109,21 +113,19 @@ class CatalogsRepository(BaseRepository[Catalog], ICatalogsRepository):
         c = Catalog.label
         d = Dataset.label
 
-        q1 = Query(
+        q = Query(
             match=[f"({c}:dcat__Catalog)"],
-            optional_match=[f"({c})-[dataset_rel:dcat__dataset]->({d}:dcat__Dataset)"],
-            where=[f"{d}.dspace__isDeleted<>true"],
+            optional_match=[f"({c})-[r0:dcat__dataset]->({d})-[r*0..]->(related)"],
+            where=[
+                'all(rel IN r WHERE type(rel) <> "rdf__type")',
+                f"{d}.dspace__isDeleted<>true",
+            ],
+            return_clause=[c, "r0", d, "r", "related"],
         )
 
-        q2 = Query(
-            optional_match=[f"({d})-[r*0..]->(related)"],
-            where=['all(rel IN r WHERE type(rel) <> "rdf__type")'],
-        )
-        if query is not None:
-            q2 += query
-        q2.return_clause = [c, "dataset_rel", d, "r", "related"]
-
-        query_str = q1.build_together(q2)
+        if query is None:
+            query = Query()
+        query_str = Query.build_together(query, q)
 
         graph = await self.neosemantics.export(query_str)
         if not graph:
@@ -166,6 +168,11 @@ class DatasetsRepository(BaseRepository[Dataset], IDatasetsRepository):
 
 class Repositories(IRepositories):
     def __init__(self, db_driver: DatabaseDriver) -> None:
+        self._db_driver = db_driver
+
         self.persons = PersonsRepository(db_driver)
         self.catalogs = CatalogsRepository(db_driver)
         self.datasets = DatasetsRepository(db_driver)
+
+    async def get_namespaces(self) -> dict[str, str]:
+        return await Neosemantics(self._db_driver).list_namespaces()

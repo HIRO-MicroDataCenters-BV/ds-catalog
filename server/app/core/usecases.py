@@ -10,7 +10,8 @@ from .context import Context
 from .entities import Catalog, CatalogFilters, Dataset, Person
 from .namespace import DSPACE
 from .repository import Repositories
-from .repository.queries import FilterDatasetByID, FilterPersonByID, Query
+from .repository.queries import FilterDatasetByID, FilterPersonByID
+from .repository.query_builder import catalog_filter_to_query
 
 
 class IUsecases(ABC):
@@ -66,7 +67,8 @@ class CatalogUsecases(BaseUsecases, ICatalogUsecases):
         self, filters: CatalogFilters, context: Context
     ) -> Catalog:
         """Get the local catalog"""
-        query = Query()  # TODO: Build the query based on the filters
+        namespaces = await self.repositories.get_namespaces()
+        query = catalog_filter_to_query(filters, namespaces)
         return await self.repositories.catalogs.get(query)
 
 
