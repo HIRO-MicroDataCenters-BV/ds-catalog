@@ -124,8 +124,9 @@ class CatalogsRepository(BaseRepository[Catalog], ICatalogsRepository):
         )
 
         if query is None:
-            query = Query()
-        query_str = Query.build_together(query, q)
+            query_str = q.build()
+        else:
+            query_str = Query.build_together(query, q)
 
         graph = await self.neosemantics.export(query_str)
         if not graph:
@@ -168,11 +169,12 @@ class DatasetsRepository(BaseRepository[Dataset], IDatasetsRepository):
 
 class Repositories(IRepositories):
     def __init__(self, db_driver: DatabaseDriver) -> None:
-        self._db_driver = db_driver
+        self.db_driver = db_driver
+        self.neosemantics = Neosemantics(db_driver)
 
         self.persons = PersonsRepository(db_driver)
         self.catalogs = CatalogsRepository(db_driver)
         self.datasets = DatasetsRepository(db_driver)
 
     async def get_namespaces(self) -> dict[str, str]:
-        return await Neosemantics(self._db_driver).list_namespaces()
+        return await self.neosemantics.list_namespaces()

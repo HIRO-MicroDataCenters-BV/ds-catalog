@@ -1,0 +1,2 @@
+OPTIONAL MATCH (c:dcat__Catalog)-[r1:dcat__dataset]->(d:dcat__Dataset), (d:dcat__Dataset)-[r2:dspace__extraMetadata]->(n1:med__Patient)
+WHERE n1.med__height = 180 AND d.dcterms__identifier = "123" AND (any(t IN d.dcterms__title WHERE n10s.rdf.getLangTag(t) = "en" AND n10s.rdf.getValue(t) = "Test Title") OR any(t IN d.dcterms__title WHERE n10s.rdf.getLangTag(t) = "de" AND n10s.rdf.getValue(t) = "Titel"))

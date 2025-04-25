@@ -2,6 +2,7 @@ README.md
 docs/CatalogApi.md
 docs/DatasetsApi.md
 docs/DefaultApi.md
+docs/ErrorResponse.md
 docs/HTTPValidationError.md
 docs/HealthCheck.md
 docs/SharingApi.md
@@ -18,6 +19,7 @@ ds_catalog/api_response.py
 ds_catalog/configuration.py
 ds_catalog/exceptions.py
 ds_catalog/models/__init__.py
+ds_catalog/models/error_response.py
 ds_catalog/models/health_check.py
 ds_catalog/models/http_validation_error.py
 ds_catalog/models/validation_error.py

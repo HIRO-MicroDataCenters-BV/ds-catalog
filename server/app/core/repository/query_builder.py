@@ -221,19 +221,33 @@ def traverse_graph(
     return FilterTree(type=subj_type, children=children, values=values)
 
 
-def build_query(
-    filter_item: FilterTree,
-    namespaces: dict[str, str],
-    gen: LabelGenerator | None = None,
-    depth: int = 1,
-) -> Query:
+class FilterQueryBuilder:
     """Builds a Cypher query from a FilterTree"""
 
-    if filter_item.type is None:
-        raise ErrorConstructingQuery("Required subject type not specified")
+    def __init__(
+        self,
+        filter_tree: FilterTree,
+        namespaces: dict[str, str],
+        gen: LabelGenerator | None = None,
+    ) -> None:
+        if filter_tree.type is None:
+            raise ErrorConstructingQuery("Required subject type not specified")
 
-    if gen is None:
-        gen = LabelGenerator(
+        self.filter_tree = filter_tree
+        self.namespaces = namespaces
+        self.gen = gen or self._default_label_generator()
+        self.query = Query()
+
+    def build(self) -> Query:
+        return self._build(1)
+
+    def _build(self, depth: int) -> Query:
+        self._add_optional_matches(self.filter_tree, depth)
+        self._add_where_statements(self.filter_tree)
+        return self.query
+
+    def _default_label_generator(self) -> LabelGenerator:
+        return LabelGenerator(
             presets={
                 "n": {
                     DCAT.Catalog: Catalog.label,
@@ -242,77 +256,68 @@ def build_query(
             }
         )
 
-    q = Query()
+    def _add_optional_matches(self, filter_tree: FilterTree, depth: int) -> None:
+        if depth == 1 and not filter_tree.children:
+            s_label = self.gen.generate("n", filter_tree.type)
+            s_type = f":{uri_to_cypher(str(filter_tree.type), self.namespaces)}"
+            self.query.add_optional_match(f"({s_label}{s_type})")
+            return
 
-    # Add WHERE statments
-    for rel, values in filter_item.values.items():
-        s, p = filter_item.type, rel
-
-        s_label = gen.generate("n", s)
-        p_type = uri_to_cypher(str(p), namespaces)
-
-        conditions = []
-
-        for o in values:
-            value_key = gen.generate("v")
-
-            if o.language:
-                lang_key = gen.generate("v")
-                condition = render_cypher_template(
-                    f"any(t IN {s_label}.{p_type} "
-                    f"WHERE n10s.rdf.getLangTag(t) = ${lang_key} "
-                    f"AND n10s.rdf.getValue(t) = ${value_key})",
-                    params={
-                        lang_key: o.language,
-                        value_key: o.value,
-                    },
-                )
-            else:
-                condition = render_cypher_template(
-                    f"{s_label}.{p_type} = ${value_key}", params={value_key: o.value}
-                )
-
-            conditions.append(condition)
-
-        if conditions:
-            if len(conditions) == 1:
-                q.add_where(conditions[0])
-            else:
-                statment = " OR ".join(conditions)
-                q.add_where(f"({statment})")
-
-    # Add OPTIONAL MATCH statments
-    if depth == 1 and not filter_item.children:
-        s = filter_item.type
-        s_label = gen.generate("n", s)
-        s_type = f":{uri_to_cypher(str(s), namespaces)}" if s else ""
-        q.add_optional_match(f"({s_label}{s_type})")
-    else:
-        for rel, children in filter_item.children.items():
+        for rel, children in filter_tree.children.items():
             for child in children:
                 if child.type is None:
                     raise ErrorConstructingQuery(
                         f"Required object type not specified for subject "
-                        f"{filter_item.type} and predicate {rel}"
+                        f"{filter_tree.type} and predicate {rel}"
                     )
 
-                s, p, o = filter_item.type, rel, child.type
+                s_label = self.gen.generate("n", filter_tree.type)
+                p_label = self.gen.generate("r")
+                o_label = self.gen.generate("n", child.type)
 
-                s_label = gen.generate("n", s)
-                p_label = gen.generate("r")
-                o_label = gen.generate("n", o)
+                s_type = f":{uri_to_cypher(str(filter_tree.type), self.namespaces)}"
+                p_type = f":{uri_to_cypher(str(rel), self.namespaces)}"
+                o_type = f":{uri_to_cypher(str(child.type), self.namespaces)}"
 
-                s_type = f":{uri_to_cypher(str(s), namespaces)}" if s else ""
-                p_type = f":{uri_to_cypher(str(p), namespaces)}"
-                o_type = f":{uri_to_cypher(str(o), namespaces)}" if o else ""
-
-                q.add_optional_match(
+                self.query.add_optional_match(
                     f"({s_label}{s_type})-[{p_label}{p_type}]->({o_label}{o_type})"
                 )
 
-                q += build_query(child, namespaces, gen, depth + 1)
+                sub_builder = FilterQueryBuilder(
+                    filter_tree=child,
+                    namespaces=self.namespaces,
+                    gen=self.gen,
+                )
+                self.query += sub_builder._build(depth + 1)
 
-    return q
+    def _add_where_statements(self, filter_tree: FilterTree) -> None:
+        for rel, values in filter_tree.values.items():
+            s_label = self.gen.generate("n", filter_tree.type)
+            p_type = uri_to_cypher(str(rel), self.namespaces)
+            conditions = [self._build_condition(s_label, p_type, o) for o in values]
+
+            if conditions:
+                if len(conditions) == 1:
+                    self.query.add_where(conditions[0])
+                else:
+                    self.query.add_where(f"({' OR '.join(conditions)})")
+
+    def _build_condition(self, s_label: str, p_type: str, o: FilterValue) -> str:
+        value_key = self.gen.generate("v")
+
+        if o.language:
+            lang_key = self.gen.generate("v")
+            return render_cypher_template(
+                f"any(t IN {s_label}.{p_type} "
+                f"WHERE n10s.rdf.getLangTag(t) = ${lang_key} "
+                f"AND n10s.rdf.getValue(t) = ${value_key})",
+                params={lang_key: o.language, value_key: o.value},
+            )
+        else:
+            return render_cypher_template(
+                f"{s_label}.{p_type} = ${value_key}",
+                params={value_key: o.value},
+            )
 
 
 def infer_dcat_dataset_types(
@@ -352,24 +357,23 @@ def catalog_filter_to_query(
 
     first_filter = filter_items[0]
 
-    root_filter_item = traverse_graph(filter.graph, first_filter)
-    if root_filter_item is None:
+    filter_tree = traverse_graph(filter.graph, first_filter)
+    if filter_tree is None:
         raise ErrorConstructingQuery("Failed to process filters")
 
-    root_filter_item.inference_types(
+    filter_tree.inference_types(
         rules=[
             infer_dcat_dataset_types,
             infer_dspace_extra_metadata_types,
         ]
     )
 
-    query = build_query(root_filter_item, namespaces)
+    query = FilterQueryBuilder(filter_tree, namespaces).build()
 
-    root_node_type = DCAT.Dataset
-    has_root_type = root_filter_item.has_type(root_node_type)
+    has_root_type = filter_tree.has_type(DCAT.Dataset)
     if not has_root_type:
         query.add_optional_match(
-            f"({Dataset.label}:{uri_to_cypher(root_node_type, namespaces)})"
+            f"({Dataset.label}:{uri_to_cypher(DCAT.Dataset, namespaces)})"
         )
 
     query.with_clause = Dataset.label

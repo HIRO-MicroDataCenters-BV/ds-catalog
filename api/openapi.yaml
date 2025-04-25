@@ -252,6 +252,19 @@ paths:
                   dspace:isDeleted:
                     '@type': xsd:boolean
                     '@value': false
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+                    title: Detail
+                type: object
+                required:
+                - detail
+                title: ErrorResponse
         '422':
           description: Validation Error
           content:

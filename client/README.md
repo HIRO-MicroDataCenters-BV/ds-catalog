@@ -129,6 +129,7 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [ErrorResponse](docs/ErrorResponse.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
  - [HealthCheck](docs/HealthCheck.md)
  - [ValidationError](docs/ValidationError.md)

@@ -1,15 +1,16 @@
 from typing import Annotated
 
 from classy_fastapi import Routable, post
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
 
 from app.core import entities, usecases
+from app.core.exceptions import ErrorConstructingQuery
 from app.core.repository import Repositories
 
 from ..depends import get_repositories, get_user
 from ..examples import catalog_example
 from ..response import JSONLDResponse
-from ..serializers import CatalogFilters
+from ..serializers import CatalogFilters, ErrorResponse
 from ..tags import Tags
 
 
@@ -27,14 +28,20 @@ class CatalogRoutes(Routable):
         tags=[Tags.Catalog],
         response_class=JSONLDResponse,
         responses={
-            200: {
+            status.HTTP_200_OK: {
                 "description": "Successful Response",
                 "content": {
                     "application/ld+json": {
                         "example": catalog_example,
                     },
                 },
-            }
+            },
+            status.HTTP_400_BAD_REQUEST: {
+                "description": "Bad Request",
+                "content": {
+                    "application/json": {"schema": ErrorResponse.model_json_schema()}
+                },
+            },
         },
     )
     async def get_catalog(
@@ -226,10 +233,16 @@ class CatalogRoutes(Routable):
         ```
 
         """
-        filters_entity = filters.to_entity()
-        entity = await usecases.get_local_catalog(
-            filters_entity, context={"user": user}
-        )
+        try:
+            filters_entity = filters.to_entity()
+            entity = await usecases.get_local_catalog(
+                filters_entity, context={"user": user}
+            )
+        except ErrorConstructingQuery as err:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(err),
+            )
         return JSONLDResponse(entity)
 
 

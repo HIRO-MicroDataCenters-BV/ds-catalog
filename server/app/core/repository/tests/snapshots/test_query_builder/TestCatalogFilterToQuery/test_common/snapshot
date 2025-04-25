@@ -1,0 +1,3 @@
+OPTIONAL MATCH (c:dcat__Catalog)-[r1:dcat__dataset]->(d:dcat__Dataset)
+WHERE d.dcterms__identifier = "123"
+WITH d

@@ -9,7 +9,12 @@ from app.core.exceptions import ErrorSavingData, MultipleNodesFound, NodeDoesNot
 from app.core.namespace import DSPACE
 
 from ..queries import Query
-from ..repositories import CatalogsRepository, DatasetsRepository, PersonsRepository
+from ..repositories import (
+    CatalogsRepository,
+    DatasetsRepository,
+    PersonsRepository,
+    Repositories,
+)
 
 
 class TestPersonsRepository:
@@ -100,16 +105,25 @@ class TestCatalogsRepository:
 
         repository.neosemantics.export = AsyncMock(return_value=mock_graph)
 
-        query = Query()
+        query = Query(
+            optional_match=[
+                "(d:dcat__Dataset)",
+                "(m1:ns0__Diagnosis)",
+            ],
+            where=['m1.ns0__code="I10"'],
+            with_clause="d",
+        )
         result = await repository.get(query)
 
         repository.neosemantics.export.assert_called_once_with(
+            "OPTIONAL MATCH (d:dcat__Dataset), (m1:ns0__Diagnosis)\n"
+            'WHERE m1.ns0__code="I10"\n'
+            "WITH d\n"
             "MATCH (c:dcat__Catalog)\n"
-            "OPTIONAL MATCH (c)-[dataset_rel:dcat__dataset]->(d:dcat__Dataset)\n"
-            "WHERE d.dspace__isDeleted<>true\n"
-            "OPTIONAL MATCH (d)-[r*0..]->(related)\n"
-            'WHERE all(rel IN r WHERE type(rel) <> "rdf__type")\n'
-            "RETURN c, dataset_rel, d, r, related"
+            "OPTIONAL MATCH (c)-[r0:dcat__dataset]->(d)-[r*0..]->(related)\n"
+            'WHERE all(rel IN r WHERE type(rel) <> "rdf__type") '
+            "AND d.dspace__isDeleted<>true\n"
+            "RETURN c, r0, d, r, related"
         )
         assert isinstance(result, Catalog)
         assert result.graph == mock_graph
@@ -220,3 +234,19 @@ class TestDatasetsRepository:
         repository.get.assert_called_once_with(query)
         repository.save.assert_called_once_with(mock_dataset)
         mock_dataset.set_attribute.assert_called_once_with(DSPACE.isDeleted, True)
+
+
+class TestRepositories:
+    @pytest.fixture
+    def repositories(self):
+        db_driver = Mock()
+        repositories = Repositories(db_driver)
+        repositories.neosemantics = Mock()
+        return repositories
+
+    @pytest.mark.asyncio
+    async def test_get_namespaces(self, repositories):
+        namespaces = Mock()
+        repositories.neosemantics.list_namespaces = AsyncMock(return_value=namespaces)
+        result = await repositories.get_namespaces()
+        assert result == namespaces

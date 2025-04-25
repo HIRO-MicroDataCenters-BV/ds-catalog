@@ -85,7 +85,7 @@ class TestQueries:
     def test_build_together(self):
         query1 = Query(match=["(n:Node)"], where=["n.name='Test'"])
         query2 = Query(optional_match=["(n)-[:REL]->(m)"], return_clause=["m"])
-        combined_query = query1.build_together(query2)
+        combined_query = Query.build_together(query1, query2)
         expected_query = (
             "MATCH (n:Node)\n"
             "WHERE n.name='Test'\n"

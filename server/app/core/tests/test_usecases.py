@@ -5,12 +5,13 @@ from freezegun import freeze_time
 from rdflib import DCAT, DCTERMS, FOAF, RDF, Literal, URIRef
 
 from ..context import Context
-from ..entities import Catalog, CatalogFilters, Dataset, Person
+from ..entities import Catalog, Dataset, Person
 from ..exceptions import NodeDoesNotExist
 from ..namespace import DSPACE
 from ..repository.queries import FilterDatasetByID, FilterPersonByID
+from ..repository.query_builder import catalog_filter_to_query
 from ..usecases import CatalogUsecases, DatasetSharingUsecases, DatasetsUsecases
-from .factories import user_factory
+from .factories import catalog_filters_factory, namespace_factory, user_factory
 
 
 class TestCatalogUsecases:
@@ -21,16 +22,24 @@ class TestCatalogUsecases:
     @pytest.mark.asyncio
     async def test_get_local_catalog(self, repositories):
         expected_result = Mock()
+        namespaces = namespace_factory()
+
+        repositories.get_namespaces = AsyncMock(return_value=namespaces)
         repositories.catalogs.get = AsyncMock(return_value=expected_result)
 
         usecase = CatalogUsecases(repositories)
 
-        filters = CatalogFilters()
+        filters = catalog_filters_factory()
         context = Context(user=user_factory())
         result = await usecase.get_local_catalog(filters, context)
 
         assert result == expected_result
+
+        repositories.get_namespaces.assert_called_once()
         repositories.catalogs.get.assert_called_once()
+
+        [query] = repositories.catalogs.get.call_args[0]
+        assert query == catalog_filter_to_query(filters, namespaces)
 
 
 class TestDatasetsUsecases:

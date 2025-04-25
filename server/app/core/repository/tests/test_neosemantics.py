@@ -135,3 +135,22 @@ class TestNeosemantics:
 
         assert result["success"] is False
         assert result["extra_info"] == "Error details"
+
+    @pytest.mark.asyncio
+    async def test_list_namespaces(self, db_driver):
+        db_driver.execute_query = AsyncMock(
+            return_value=[
+                [
+                    {"prefix": "dcat", "namespace": "http://www.w3.org/ns/dcat#"},
+                    {"prefix": "dcterms", "namespace": "http://purl.org/dc/terms/"},
+                ]
+            ]
+        )
+
+        neosemantics = Neosemantics(db_driver)
+        result = await neosemantics.list_namespaces()
+
+        assert result == {
+            "dcat": "http://www.w3.org/ns/dcat#",
+            "dcterms": "http://purl.org/dc/terms/",
+        }
