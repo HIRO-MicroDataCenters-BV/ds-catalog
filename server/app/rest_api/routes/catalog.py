@@ -79,6 +79,12 @@ class CatalogRoutes(Routable):
         }
         ```
 
+        To get all datasets, use an empty object in the request body.
+
+        ```json
+        {}
+        ```
+
         ### Example:
         ```json
         {

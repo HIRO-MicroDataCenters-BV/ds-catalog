@@ -383,12 +383,10 @@ class TestCatalogFilterToQuery:
         result = catalog_filter_to_query(filters, namespaces)
         snapshot_for_class.assert_match(str(result), "snapshot")
 
-    def test_raises_error_when_no_filter_items(self, namespaces):
+    def test_when_no_filter_items(self, namespaces):
         filters = catalog_filters_factory(filter_items=[])
-        with pytest.raises(
-            ErrorConstructingQuery, match="The first filter item was not found"
-        ):
-            catalog_filter_to_query(filters, namespaces)
+        result = catalog_filter_to_query(filters, namespaces)
+        assert result is None
 
     def test_raises_error_when_multiple_filter_items(self, namespaces):
         filters = catalog_filters_factory(filter_items=[{}, {}])

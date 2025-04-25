@@ -47,16 +47,18 @@ paths:
         : [\n    {\n      [\"@type\": \"<[namespace:]Class>\",]\n      \"<[namespace:]attribute>\"\
         : <nestedObject> | <value> | {\n        \"@value\": <value>,\n        [\"\
         @type\": <type> | \"@language\": <language>]\n      }\n    }\n  ]\n}\n```\n\
-        \n### Example:\n```json\n{\n  \"@context\": {\n    \"@vocab\": \"http://data-space.org/\"\
-        ,\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\n    \"med\": \"http://med.example.org/\"\
-        \n  },\n  \"@type\": \"Filters\",\n  \"filters\": [\n    {\n      \"dcat:dataset\"\
-        : {\n        \"extraMetadata\": {\n          \"@type\": \"med:Diagnoses\"\
-        ,\n          \"med:hasDiagnosis\": {\n            \"@type\": \"med:Diagnosis\"\
-        ,\n            \"med:code\": \"I10\"\n          }\n        }\n      }\n  \
-        \  }\n  ]\n}\n```\n\n### More filter examples:\n- <b>Filter by dataset identifier</b>\n\
-        ```json\n    {\n        \"@type\": \"dcat:Catalog\",\n        \"dcat:dataset\"\
-        : {\n            \"@type\": \"dcat:Dataset\",\n            \"dcterms:identifier\"\
-        : \"123\"\n        }\n    }\n```\n\n- <b>Filtering without specifying classes:</b>\
+        \nTo get all datasets, use an empty object in the request body.\n\n```json\n\
+        {}\n```\n\n### Example:\n```json\n{\n  \"@context\": {\n    \"@vocab\": \"\
+        http://data-space.org/\",\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\n\
+        \    \"med\": \"http://med.example.org/\"\n  },\n  \"@type\": \"Filters\"\
+        ,\n  \"filters\": [\n    {\n      \"dcat:dataset\": {\n        \"extraMetadata\"\
+        : {\n          \"@type\": \"med:Diagnoses\",\n          \"med:hasDiagnosis\"\
+        : {\n            \"@type\": \"med:Diagnosis\",\n            \"med:code\":\
+        \ \"I10\"\n          }\n        }\n      }\n    }\n  ]\n}\n```\n\n### More\
+        \ filter examples:\n- <b>Filter by dataset identifier</b>\n```json\n    {\n\
+        \        \"@type\": \"dcat:Catalog\",\n        \"dcat:dataset\": {\n     \
+        \       \"@type\": \"dcat:Dataset\",\n            \"dcterms:identifier\":\
+        \ \"123\"\n        }\n    }\n```\n\n- <b>Filtering without specifying classes:</b>\
         \ The service will attempt to infer\nunspecified classes. If inferencing fails,\
         \ an error will be returned.\n```json\n    {\n        \"dcat:dataset\": {\n\
         \            \"dcterms:identifier\": \"123\"\n        }\n    }\n```\n\n- <b>Filtering\

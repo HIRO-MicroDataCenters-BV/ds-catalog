@@ -345,13 +345,15 @@ def infer_dspace_extra_metadata_types(
 def catalog_filter_to_query(
     filter: CatalogFilters,
     namespaces: dict[str, str],
-) -> FilterCatalog:
+) -> FilterCatalog | None:
     """Converts a CatalogFilters instance to a Cypher FilterCatalog query"""
 
     # TODO: Proccess all filter items
     filter_items = list(filter.graph.objects(predicate=DSPACE.filters))
+
     if not filter_items:
-        raise ErrorConstructingQuery("The first filter item was not found")
+        return None
+
     if len(filter_items) > 1:
         raise ErrorConstructingQuery("Multiple filter items found")
 
