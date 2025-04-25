@@ -247,7 +247,7 @@ class TestFilterQueryBuilder:
             "dcat": "http://www.w3.org/ns/dcat#",
             "dcterms": "http://purl.org/dc/terms/",
             "dspace": "http://data-space.org/",
-            "med": "http://med.example.com/",
+            "med": "http://med.example.org/",
         }
 
     def test_common(self, snapshot_for_class, namespaces):
@@ -270,9 +270,9 @@ class TestFilterQueryBuilder:
                         children={
                             DSPACE.extraMetadata: [
                                 FilterTree(
-                                    type=URIRef("http://med.example.com/Patient"),
+                                    type=URIRef("http://med.example.org/Patient"),
                                     values={
-                                        URIRef("http://med.example.com/height"): [
+                                        URIRef("http://med.example.org/height"): [
                                             FilterValue(value=180, language=None),
                                         ]
                                     },
@@ -361,7 +361,7 @@ class TestCatalogFilterToQuery:
             "dcat": "http://www.w3.org/ns/dcat#",
             "dcterms": "http://purl.org/dc/terms/",
             "dspace": "http://data-space.org/",
-            "med": "http://med.example.com/",
+            "med": "http://med.example.org/",
         }
 
     def test_common(self, snapshot_for_class, namespaces):
@@ -375,8 +375,8 @@ class TestCatalogFilterToQuery:
         filters = catalog_filters_factory(
             filter_items=[
                 {
-                    "@type": "http://med.example.com/Diagnosis",
-                    "http://med.example.com/code": "I10",
+                    "@type": "http://med.example.org/Diagnosis",
+                    "http://med.example.org/code": "I10",
                 }
             ]
         )

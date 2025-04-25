@@ -12,7 +12,7 @@ def user_factory(id: str = "123", name: str = "Smith") -> User:
 def namespace_factory() -> dict[str, str]:
     return {
         **CONTEXT,
-        "ns0": "http://med.example.com/",
+        "ns0": "http://med.example.org/",
     }
 
 

@@ -94,6 +94,7 @@ class CatalogRoutes(Routable):
                 "extraMetadata": {
                   "@type": "med:Diagnoses",
                   "med:hasDiagnosis": {
+                    "@type": "med:Diagnosis",
                     "med:code": "I10"
                   }
                 }
@@ -177,6 +178,7 @@ class CatalogRoutes(Routable):
                 "dcat:dataset": {
                     "dcterms:identifier": "123",
                     "extraMetadata": {
+                        "@type": "med:Diagnoses",
                         "med:hasDiagnosis": {
                             "@type": "med:Diagnosis",
                             "med:code": "I10"
@@ -194,7 +196,10 @@ class CatalogRoutes(Routable):
                     "extraMetadata": [
                         {
                             "@type": "med:Patient",
-                            "med:height": "180"
+                            "med:height": {
+                                "@value": "180",
+                                "@type": "xsd:integer"
+                            }
                         },
                         {
                             "@type": "med:Diagnoses",
