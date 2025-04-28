@@ -240,13 +240,9 @@ class TestDatasetsRepository:
 class TestFilesRepository:
     @pytest.mark.asyncio
     async def test_get_file_path(self, tmp_path):
-        filename = "Test-File~!@#$%^&*()_+.txt"
-        file_path = tmp_path / filename
-
         repository = FilesRepository(upload_folder=str(tmp_path))
-        result = repository._get_file_path(filename)
-
-        assert result == file_path
+        result = repository._get_file_path("Test-File~!@#$%^&*()_+.txt")
+        assert result == tmp_path / "test-file~!@#$%^&*()_+.txt"
 
     @pytest.mark.asyncio
     async def test_create_success(self, tmp_path):
