@@ -41,17 +41,13 @@ catalog:
   title: Catalog
   description: My Local Catalog
 
-neo4j:
-  enabled: true
-  neo4j:
-    name: neo4j
-    resources:
-      cpu: "0.5"
-      memory: "2Gi"
-    passwordFromSecret: "neo4j-secrets"
-  volumes:
-    data:
-      mode: defaultStorageClass
-      defaultStorageClass:
-        requests:
-          storage: 2Gi
+database:
+  protocol: neo4j
+  host: localhost
+  port: 7687
+  name: neo4j
+  username: neo4j
+  password: your_password
+
+migrate:
+  enabled: false

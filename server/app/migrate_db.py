@@ -18,10 +18,6 @@ db = Neo4jDatabase(
 )
 
 
-async def clean_db(db_driver: DatabaseDriver) -> None:
-    await db_driver.execute_query("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r;")
-
-
 async def configure_db(db_driver: DatabaseDriver) -> None:
     await db_driver.execute_query(
         """
@@ -36,6 +32,11 @@ async def configure_db(db_driver: DatabaseDriver) -> None:
                 "http://www.w3.org/ns/dcat#theme", "http://purl.org/dc/terms/title"]
         });
     """
+    )
+
+    await db_driver.execute_query(
+        "CREATE CONSTRAINT n10s_unique_uri IF NOT EXISTS FOR (r:Resource) "
+        "REQUIRE r.uri IS UNIQUE;"
     )
 
     await db_driver.execute_query(
@@ -106,7 +107,6 @@ if __name__ == "__main__":
     asyncio.run(
         run_migrations(
             migrations=[
-                clean_db,
                 configure_db,
                 upload_ontology,
                 init_catalog,

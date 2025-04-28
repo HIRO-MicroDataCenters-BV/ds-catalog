@@ -5,12 +5,18 @@ from freezegun import freeze_time
 from rdflib import DCAT, DCTERMS, FOAF, RDF, Literal, URIRef
 
 from ..context import Context
-from ..entities import Catalog, CatalogFilters, Dataset, Person
+from ..entities import Catalog, Dataset, Person
 from ..exceptions import NodeDoesNotExist
 from ..namespace import DSPACE
 from ..repository.queries import FilterDatasetByID, FilterPersonByID
-from ..usecases import CatalogUsecases, DatasetSharingUsecases, DatasetsUsecases
-from .factories import user_factory
+from ..repository.query_builder import catalog_filter_to_query
+from ..usecases import (
+    CatalogUsecases,
+    DatasetSharingUsecases,
+    DatasetsUsecases,
+    MMIOsUsecases,
+)
+from .factories import catalog_filters_factory, namespace_factory, user_factory
 
 
 class TestCatalogUsecases:
@@ -21,16 +27,24 @@ class TestCatalogUsecases:
     @pytest.mark.asyncio
     async def test_get_local_catalog(self, repositories):
         expected_result = Mock()
+        namespaces = namespace_factory()
+
+        repositories.get_namespaces = AsyncMock(return_value=namespaces)
         repositories.catalogs.get = AsyncMock(return_value=expected_result)
 
         usecase = CatalogUsecases(repositories)
 
-        filters = CatalogFilters()
+        filters = catalog_filters_factory()
         context = Context(user=user_factory())
         result = await usecase.get_local_catalog(filters, context)
 
         assert result == expected_result
+
+        repositories.get_namespaces.assert_called_once()
         repositories.catalogs.get.assert_called_once()
+
+        [query] = repositories.catalogs.get.call_args[0]
+        assert query == catalog_filter_to_query(filters, namespaces)
 
 
 class TestDatasetsUsecases:
@@ -197,3 +211,52 @@ class TestDatasetSharingUsecases:
         assert dataset.get_attribute(DSPACE.isShared) == Literal(False)
 
         repositories.datasets.save.assert_called_once_with(dataset)
+
+
+class TestMMIOsUsecases:
+    @pytest.fixture
+    def repositories(self):
+        return Mock()
+
+    @pytest.mark.asyncio
+    async def test_create(self, repositories):
+        file = Mock()
+        filename = "test_file.mmio"
+        user = user_factory()
+
+        repositories.files.create = AsyncMock()
+
+        usecase = MMIOsUsecases(repositories)
+
+        context = Context(user=user)
+        await usecase.create(file, filename, context)
+
+        repositories.files.create.assert_called_once_with(file, filename)
+
+    @pytest.mark.asyncio
+    async def test_get(self, repositories):
+        filename = "test_file.mmio"
+        file_path = "/file-path"
+
+        repositories.files.get = AsyncMock(return_value=file_path)
+
+        usecase = MMIOsUsecases(repositories)
+
+        context = Context(user=user_factory())
+        result = await usecase.get(filename, context)
+
+        repositories.files.get.assert_called_once_with(filename)
+        assert result == file_path
+
+    @pytest.mark.asyncio
+    async def test_delete(self, repositories):
+        filename = "test_file.mmio"
+
+        repositories.files.delete = AsyncMock()
+
+        usecase = MMIOsUsecases(repositories)
+
+        context = Context(user=user_factory())
+        await usecase.delete(filename, context)
+
+        repositories.files.delete.assert_called_once_with(filename)

@@ -60,3 +60,22 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{- define "app.commonEnv" }}
+- name: DS__CATALOG__TITLE
+  value: "{{ .Values.catalog.title }}"
+- name: DS__CATALOG__DESCRIPTION
+  value: "{{ .Values.catalog.description }}"
+- name: DS__DATABASE__PROTOCOL
+  value: "{{ .Values.database.protocol }}"
+- name: DS__DATABASE__HOST
+  value: "{{ .Values.database.host }}"
+- name: DS__TEST_DATABASE__PORT
+  value: "{{ .Values.database.port }}"
+- name: DS__TEST_DATABASE__NAME
+  value: "{{ .Values.database.name }}"
+- name: DS__DATABASE__USERNAME
+  value: "{{ .Values.database.username }}"
+- name: DS__DATABASE__PASSWORD
+  value: "{{ .Values.database.password }}"
+{{- end }}

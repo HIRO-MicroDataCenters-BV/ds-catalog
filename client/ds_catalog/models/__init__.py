@@ -15,6 +15,7 @@
 
 
 # import models into model package
+from ds_catalog.models.error_response import ErrorResponse
 from ds_catalog.models.http_validation_error import HTTPValidationError
 from ds_catalog.models.health_check import HealthCheck
 from ds_catalog.models.validation_error import ValidationError

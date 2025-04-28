@@ -114,39 +114,39 @@ dataset_body_example: dict[str, Any] = {
     "dspace:extraMetadata": [
         {
             "@id": "https://example.com/metadata/1",
-            "@type": "http://med-example.org/Patient",
-            "http://med-example.org/birthDate": {
+            "@type": "http://med.example.org/Patient",
+            "http://med.example.org/birthDate": {
                 "@type": "xsd:string",
                 "@value": "1990-05-20",
             },
-            "http://med-example.org/height": {"@type": "xsd:long", "@value": "180"},
-            "http://med-example.org/sex": {"@type": "xsd:string", "@value": "M"},
-            "http://med-example.org/weight": {"@type": "xsd:long", "@value": "75"},
+            "http://med.example.org/height": {"@type": "xsd:long", "@value": "180"},
+            "http://med.example.org/sex": {"@type": "xsd:string", "@value": "M"},
+            "http://med.example.org/weight": {"@type": "xsd:long", "@value": "75"},
         },
         {
             "@id": "https://example.com/metadata/2",
-            "@type": "http://med-example.org/Diagnoses",
-            "http://med-example.org/hasDiagnosis": [
+            "@type": "http://med.example.org/Diagnoses",
+            "http://med.example.org/hasDiagnosis": [
                 {
                     "@id": "https://example.com" "/diagnosis/1",
-                    "@type": "http://med-example.org/Diagnosis",
-                    "http://med-example.org/code": {
+                    "@type": "http://med.example.org/Diagnosis",
+                    "http://med.example.org/code": {
                         "@type": "xsd:string",
                         "@value": "I10",
                     },
-                    "http://med-example.org/description": {
+                    "http://med.example.org/description": {
                         "@type": "xsd:string",
                         "@value": "Essential (primary) hypertension",
                     },
                 },
                 {
                     "@id": "https://example.com" "/diagnosis/2",
-                    "@type": "http://med-example.org/Diagnosis",
-                    "http://med-example.org/code": {
+                    "@type": "http://med.example.org/Diagnosis",
+                    "http://med.example.org/code": {
                         "@type": "xsd:string",
                         "@value": "E11",
                     },
-                    "http://med-example.org/description": {
+                    "http://med.example.org/description": {
                         "@type": "xsd:string",
                         "@value": "Type 2 diabetes mellitus",
                     },
@@ -172,7 +172,7 @@ dataset_example: dict[str, Any] = {
 dataset_input_example: dict[str, Any] = {
     "@context": {
         **context_example,
-        "med": "http://med-example.org/",
+        "med": "http://med.example.org/",
     },
     **base_dataset_body_example,
     "dspace:extraMetadata": [

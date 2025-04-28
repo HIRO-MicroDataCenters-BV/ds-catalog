@@ -20,6 +20,7 @@ __version__ = "1.0.0"
 # import apis into sdk package
 from ds_catalog.api.catalog_api import CatalogApi
 from ds_catalog.api.datasets_api import DatasetsApi
+from ds_catalog.api.mmio_api import MMIOApi
 from ds_catalog.api.sharing_api import SharingApi
 from ds_catalog.api.default_api import DefaultApi
 
@@ -35,6 +36,7 @@ from ds_catalog.exceptions import ApiAttributeError
 from ds_catalog.exceptions import ApiException
 
 # import models into sdk package
+from ds_catalog.models.error_response import ErrorResponse
 from ds_catalog.models.http_validation_error import HTTPValidationError
 from ds_catalog.models.health_check import HealthCheck
 from ds_catalog.models.validation_error import ValidationError

@@ -1,3 +1,5 @@
+from typing import BinaryIO
+
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
 
@@ -10,7 +12,8 @@ from .context import Context
 from .entities import Catalog, CatalogFilters, Dataset, Person
 from .namespace import DSPACE
 from .repository import Repositories
-from .repository.queries import FilterDatasetByID, FilterPersonByID, Query
+from .repository.queries import FilterDatasetByID, FilterPersonByID
+from .repository.query_builder import catalog_filter_to_query
 
 
 class IUsecases(ABC):
@@ -58,6 +61,20 @@ class IDatasetSharingUsecases(IUsecases):
         ...
 
 
+class IMMIOsUsecases(IUsecases):
+    @abstractmethod
+    async def create(self, file: BinaryIO, filename: str, context: Context) -> None:
+        ...
+
+    @abstractmethod
+    async def get(self, filename: str, context: Context) -> str:
+        ...
+
+    @abstractmethod
+    async def delete(self, filename: str, context: Context) -> None:
+        ...
+
+
 # --- Implementations ---
 
 
@@ -66,7 +83,8 @@ class CatalogUsecases(BaseUsecases, ICatalogUsecases):
         self, filters: CatalogFilters, context: Context
     ) -> Catalog:
         """Get the local catalog"""
-        query = Query()  # TODO: Build the query based on the filters
+        namespaces = await self.repositories.get_namespaces()
+        query = catalog_filter_to_query(filters, namespaces)
         return await self.repositories.catalogs.get(query)
 
 
@@ -130,3 +148,17 @@ class DatasetSharingUsecases(BaseUsecases, IDatasetSharingUsecases):
         dataset = await self.repositories.datasets.get(query)
         dataset.set_attribute(DSPACE.isShared, False)
         await self.repositories.datasets.save(dataset)
+
+
+class MMIOsUsecases(BaseUsecases, IMMIOsUsecases):
+    async def create(self, file: BinaryIO, filename: str, context: Context) -> None:
+        """Create a new MMIO file"""
+        await self.repositories.files.create(file, filename)
+
+    async def get(self, filename: str, context: Context) -> str:
+        """Get a MMIO file"""
+        return await self.repositories.files.get(filename)
+
+    async def delete(self, filename: str, context: Context) -> None:
+        """Delete a MMIO file"""
+        await self.repositories.files.delete(filename)

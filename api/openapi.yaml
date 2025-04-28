@@ -44,60 +44,63 @@ paths:
         \ optional operators or language annotations.\n\n```json\n{\n  \"@context\"\
         : {\n    \"@vocab\": \"http://data-space.org/\",\n    \"<namespace>\": \"\
         <namespaceURL>\",\n    ...\n  }\n  \"@type\": \"Filters\",\n  \"filters\"\
-        : [\n    {\n      [\"@type\": \"<[namespace:]Class>\",]\n      \"<[namespace:]attribute>[@<lang>]\"\
-        : <nestedObject> | <value> | {\n        \"operation\": \"<operator>\",\n \
-        \       \"operationValue\": <value>\n      }\n    },\n    ...\n  ]\n}\n```\n\
-        \n### Supported operators:\n- `gte`, `lte` \u2014 range filtering\n- `in`\
-        \ \u2014 list filtering\n- `contains` \u2014 substring search\n\n### Example:\n\
-        ```json\n{\n  \"@context\": {\n    \"@vocab\": \"http://data-space.org/\"\
-        ,\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\n    \"med\": \"http://med.example.org/\"\
-        \n  },\n  \"@type\": \"Filters\",\n  \"filters\": [\n    {\n      \"dcat:dataset\"\
-        : {\n        \"extraMetadata\": {\n          \"@type\": \"med:Diagnoses\"\
-        ,\n          \"med:hasDiagnosis\": {\n            \"med:code\": {\n      \
-        \        \"operation\": \"contains\",\n              \"operationValue\": \"\
-        I10\"\n            }\n          }\n        }\n      }\n    }\n  ]\n}\n```\n\
-        \n### More filter examples:\n- ```json\n    {\n        \"dcat:dataset\": {\n\
-        \            \"dcterms:title\": \"example\"\n        }\n    }\n  ```\n- ```json\n\
-        \    {\n        \"dcat:dataset\": {\n            \"dcterms:title@en\": \"\
-        example\"\n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\"\
-        : {\n            \"dcterms:title\": {\n                \"@language\": \"en\"\
-        \n            }\n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\"\
-        : {\n            \"dcterms:title\": {\n                \"@value\": \"example\"\
-        \n            }\n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\"\
-        : {\n            \"dcat:distribution\": {\n                \"dcat:format\"\
-        : \"PDF\"\n            }\n        }\n    }\n  ```\n- ```json\n    {\n    \
-        \    \"dcat:dataset\": {\n            \"extraMetadata\": {\n             \
-        \   \"med:sex\": \"M\"\n            }\n        }\n    }\n  ```\n- ```json\n\
-        \    {\n        \"dcat:dataset\": {\n            \"extraMetadata\": {\n  \
-        \              \"@type\": \"med:Patient\",\n                \"med:sex\": \"\
-        M\"\n            }\n        }\n    }\n  ```\n- ```json\n    {\n        \"\
-        dcat:dataset\": {\n            \"extraMetadata\": {\n                \"med:weight\"\
-        : 75\n            }\n        }\n    }\n  ```\n- ```json\n    {\n        \"\
-        dcat:dataset\": {\n            \"extraMetadata\": {\n                \"med:weight\"\
-        : {\n                    \"@value\": 75\n                }\n            }\n\
-        \        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\": {\n\
-        \            \"extraMetadata\": {\n                \"med:weight\": {\n   \
-        \                 \"@type\": \"xsd:integer\"\n                }\n        \
-        \    }\n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\"\
-        : {\n            \"dcterms:datePublished\": {\n                \"operationValue\"\
-        : \"2021-01-01\",\n                \"operation\": \"gte\"\n            }\n\
-        \        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\": {\n\
-        \            \"dcterms:datePublished\": {\n                \"operationValue\"\
-        : \"2021-12-31\",\n                \"operation\": \"lte\"\n            }\n\
-        \        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\": {\n\
-        \            \"extraMetadata\": {\n                \"med:weight\": {\n   \
-        \                 \"operationValue\": 70,\n                    \"operation\"\
-        : \"gte\"\n                }\n            }\n        }\n    }\n  ```\n- ```json\n\
-        \    {\n        \"dcat:dataset\": {\n            \"extraMetadata\": {\n  \
-        \              \"med:weight\": {\n                    \"operationValue\":\
-        \ 70,\n                    \"operation\": \"lte\"\n                }\n   \
-        \         }\n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\"\
-        : {\n            \"dcat:keyword\": {\n                \"operationValue\":\
-        \ [\"science\", \"health\"],\n                \"operation\": \"in\"\n    \
-        \        }\n        }\n    }\n  ```\n- ```json\n    {\n        \"dcat:dataset\"\
-        : {\n            \"dcterms:title@en\": {\n                \"operationValue\"\
-        : \"example\",\n                \"operation\": \"contains\"\n            }\n\
-        \        }\n    }\n  ```"
+        : [\n    {\n      [\"@type\": \"<[namespace:]Class>\",]\n      \"<[namespace:]attribute>\"\
+        : <nestedObject> | <value> | {\n        \"@value\": <value>,\n        [\"\
+        @type\": <type> | \"@language\": <language>]\n      }\n    }\n  ]\n}\n```\n\
+        \nTo get all datasets, use an empty object in the request body.\n\n```json\n\
+        {}\n```\n\n### Example:\n```json\n{\n  \"@context\": {\n    \"@vocab\": \"\
+        http://data-space.org/\",\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\n\
+        \    \"med\": \"http://med.example.org/\"\n  },\n  \"@type\": \"Filters\"\
+        ,\n  \"filters\": [\n    {\n      \"dcat:dataset\": {\n        \"extraMetadata\"\
+        : {\n          \"@type\": \"med:Diagnoses\",\n          \"med:hasDiagnosis\"\
+        : {\n            \"@type\": \"med:Diagnosis\",\n            \"med:code\":\
+        \ \"I10\"\n          }\n        }\n      }\n    }\n  ]\n}\n```\n\n### More\
+        \ filter examples:\n- <b>Filter by dataset identifier</b>\n```json\n    {\n\
+        \        \"@type\": \"dcat:Catalog\",\n        \"dcat:dataset\": {\n     \
+        \       \"@type\": \"dcat:Dataset\",\n            \"dcterms:identifier\":\
+        \ \"123\"\n        }\n    }\n```\n\n- <b>Filtering without specifying classes:</b>\
+        \ The service will attempt to infer\nunspecified classes. If inferencing fails,\
+        \ an error will be returned.\n```json\n    {\n        \"dcat:dataset\": {\n\
+        \            \"dcterms:identifier\": \"123\"\n        }\n    }\n```\n\n- <b>Filtering\
+        \ with language</b>\n```json\n    {\n        \"dcat:dataset\": {\n       \
+        \     \"dcterms:title\": {\n                \"@value\": \"example\",\n   \
+        \             \"@language\": \"en\"\n            }\n        }\n    }\n```\n\
+        \n- <b>Filtering with data type</b>\n```json\n    {\n        \"dcat:dataset\"\
+        : {\n            \"extraMetadata\": {\n                \"@type\": \"med:Patient\"\
+        ,\n                \"med:height\": {\n                    \"@value\": \"180\"\
+        ,\n                    \"@type\": \"xsd:integer\"\n                }\n   \
+        \         }\n        }\n    }\n```\n\n- <b>Incomplete filter structure:</b>\
+        \ All datasets with diagnosis code I10\nwill be found.\n```json\n    {\n \
+        \       \"@type\": \"med:Diagnosis\",\n        \"med:code\": \"I10\"\n   \
+        \ }\n```\n```json\n    {\n        \"@type\": \"med:Diagnoses\",\n        \"\
+        med:hasDiagnosis\": {\n            \"@type\": \"med:Diagnosis\",\n       \
+        \     \"med:code\": \"I10\"\n        }\n    }\n```\n\n- <b>Multiple conditions:</b>\
+        \ All datasets with identifier 123 <b>AND</b>\ndiagnosis code I10 will be\
+        \ found.\n```json\n    {\n        \"dcat:dataset\": {\n            \"dcterms:identifier\"\
+        : \"123\",\n            \"extraMetadata\": {\n                \"@type\": \"\
+        med:Diagnoses\",\n                \"med:hasDiagnosis\": {\n              \
+        \      \"@type\": \"med:Diagnosis\",\n                    \"med:code\": \"\
+        I10\"\n                }\n            }\n        }\n    }\n```\n\n- <b>Multiple\
+        \ conditions:</b> All datasets with patient height 180 <b>AND</b>\ndiagnosis\
+        \ code I10 will be found.\n```json\n    {\n        \"dcat:dataset\": {\n \
+        \           \"extraMetadata\": [\n                {\n                    \"\
+        @type\": \"med:Patient\",\n                    \"med:height\": {\n       \
+        \                 \"@value\": \"180\",\n                        \"@type\"\
+        : \"xsd:integer\"\n                    }\n                },\n           \
+        \     {\n                    \"@type\": \"med:Diagnoses\",\n             \
+        \       \"med:hasDiagnosis\": {\n                        \"@type\": \"med:Diagnosis\"\
+        ,\n                        \"med:code\": \"I10\"\n                    }\n\
+        \                }\n            ]\n        }\n    }\n```\n\n- <b>Multiple\
+        \ values:</b> All datasets will be found for which the patient's\nheight is\
+        \ 190 <b>OR</b> 180.\n```json\n    {\n        \"dcat:dataset\": {\n      \
+        \      \"extraMetadata\": [\n                {\n                    \"@type\"\
+        : \"med:Patient\",\n                    \"med:height\": [\n              \
+        \          {\n                            \"@value\": \"190\",\n         \
+        \                   \"@type\": \"xsd:integer\"\n                        },\n\
+        \                        {\n                            \"@value\": \"180\"\
+        ,\n                            \"@type\": \"xsd:integer\"\n              \
+        \          }\n                    ]\n                }\n            ]\n  \
+        \      }\n    }\n```"
       operationId: get_catalog
       requestBody:
         content:
@@ -208,36 +211,36 @@ paths:
                     '@id': https://example.com/series/541
                   dspace:extraMetadata:
                   - '@id': https://example.com/metadata/1
-                    '@type': http://med-example.org/Patient
-                    http://med-example.org/birthDate:
+                    '@type': http://med.example.org/Patient
+                    http://med.example.org/birthDate:
                       '@type': xsd:string
                       '@value': '1990-05-20'
-                    http://med-example.org/height:
+                    http://med.example.org/height:
                       '@type': xsd:long
                       '@value': '180'
-                    http://med-example.org/sex:
+                    http://med.example.org/sex:
                       '@type': xsd:string
                       '@value': M
-                    http://med-example.org/weight:
+                    http://med.example.org/weight:
                       '@type': xsd:long
                       '@value': '75'
                   - '@id': https://example.com/metadata/2
-                    '@type': http://med-example.org/Diagnoses
-                    http://med-example.org/hasDiagnosis:
+                    '@type': http://med.example.org/Diagnoses
+                    http://med.example.org/hasDiagnosis:
                     - '@id': https://example.com/diagnosis/1
-                      '@type': http://med-example.org/Diagnosis
-                      http://med-example.org/code:
+                      '@type': http://med.example.org/Diagnosis
+                      http://med.example.org/code:
                         '@type': xsd:string
                         '@value': I10
-                      http://med-example.org/description:
+                      http://med.example.org/description:
                         '@type': xsd:string
                         '@value': Essential (primary) hypertension
                     - '@id': https://example.com/diagnosis/2
-                      '@type': http://med-example.org/Diagnosis
-                      http://med-example.org/code:
+                      '@type': http://med.example.org/Diagnosis
+                      http://med.example.org/code:
                         '@type': xsd:string
                         '@value': E11
-                      http://med-example.org/description:
+                      http://med.example.org/description:
                         '@type': xsd:string
                         '@value': Type 2 diabetes mellitus
                   dcterms:issued:
@@ -253,6 +256,105 @@ paths:
                   dspace:isDeleted:
                     '@type': xsd:boolean
                     '@value': false
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+                    title: Detail
+                type: object
+                required:
+                - detail
+                title: ErrorResponse
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /mmio/:
+    post:
+      tags:
+      - MMIO
+      summary: Save Mmio File
+      description: Upload a MMIO file
+      operationId: save_mmio_file
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_save_mmio_file'
+        required: true
+      responses:
+        '201':
+          description: File uploaded successfully
+          headers:
+            Location:
+              description: URL to download the file
+              schema:
+                type: string
+              example: /mmio/12345
+        '400':
+          description: No file selected for uploading
+        '409':
+          description: File already exists
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /mmio/{filename}/:
+    get:
+      tags:
+      - MMIO
+      summary: Get Mmio File
+      description: Get a MMIO file
+      operationId: get_mmio_file
+      parameters:
+      - name: filename
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Filename
+      responses:
+        '200':
+          description: Successful file retrieval
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: File not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - MMIO
+      summary: Delete Mmio File
+      description: Delete a MMIO file
+      operationId: delete_mmio_file
+      parameters:
+      - name: filename
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Filename
+      responses:
+        '204':
+          description: Successful Response
+        '404':
+          description: File not found
         '422':
           description: Validation Error
           content:
@@ -361,36 +463,36 @@ paths:
                   '@id': https://example.com/series/541
                 dspace:extraMetadata:
                 - '@id': https://example.com/metadata/1
-                  '@type': http://med-example.org/Patient
-                  http://med-example.org/birthDate:
+                  '@type': http://med.example.org/Patient
+                  http://med.example.org/birthDate:
                     '@type': xsd:string
                     '@value': '1990-05-20'
-                  http://med-example.org/height:
+                  http://med.example.org/height:
                     '@type': xsd:long
                     '@value': '180'
-                  http://med-example.org/sex:
+                  http://med.example.org/sex:
                     '@type': xsd:string
                     '@value': M
-                  http://med-example.org/weight:
+                  http://med.example.org/weight:
                     '@type': xsd:long
                     '@value': '75'
                 - '@id': https://example.com/metadata/2
-                  '@type': http://med-example.org/Diagnoses
-                  http://med-example.org/hasDiagnosis:
+                  '@type': http://med.example.org/Diagnoses
+                  http://med.example.org/hasDiagnosis:
                   - '@id': https://example.com/diagnosis/1
-                    '@type': http://med-example.org/Diagnosis
-                    http://med-example.org/code:
+                    '@type': http://med.example.org/Diagnosis
+                    http://med.example.org/code:
                       '@type': xsd:string
                       '@value': I10
-                    http://med-example.org/description:
+                    http://med.example.org/description:
                       '@type': xsd:string
                       '@value': Essential (primary) hypertension
                   - '@id': https://example.com/diagnosis/2
-                    '@type': http://med-example.org/Diagnosis
-                    http://med-example.org/code:
+                    '@type': http://med.example.org/Diagnosis
+                    http://med.example.org/code:
                       '@type': xsd:string
                       '@value': E11
-                    http://med-example.org/description:
+                    http://med.example.org/description:
                       '@type': xsd:string
                       '@value': Type 2 diabetes mellitus
                 dcterms:issued:
@@ -515,36 +617,36 @@ paths:
                   '@id': https://example.com/series/541
                 dspace:extraMetadata:
                 - '@id': https://example.com/metadata/1
-                  '@type': http://med-example.org/Patient
-                  http://med-example.org/birthDate:
+                  '@type': http://med.example.org/Patient
+                  http://med.example.org/birthDate:
                     '@type': xsd:string
                     '@value': '1990-05-20'
-                  http://med-example.org/height:
+                  http://med.example.org/height:
                     '@type': xsd:long
                     '@value': '180'
-                  http://med-example.org/sex:
+                  http://med.example.org/sex:
                     '@type': xsd:string
                     '@value': M
-                  http://med-example.org/weight:
+                  http://med.example.org/weight:
                     '@type': xsd:long
                     '@value': '75'
                 - '@id': https://example.com/metadata/2
-                  '@type': http://med-example.org/Diagnoses
-                  http://med-example.org/hasDiagnosis:
+                  '@type': http://med.example.org/Diagnoses
+                  http://med.example.org/hasDiagnosis:
                   - '@id': https://example.com/diagnosis/1
-                    '@type': http://med-example.org/Diagnosis
-                    http://med-example.org/code:
+                    '@type': http://med.example.org/Diagnosis
+                    http://med.example.org/code:
                       '@type': xsd:string
                       '@value': I10
-                    http://med-example.org/description:
+                    http://med.example.org/description:
                       '@type': xsd:string
                       '@value': Essential (primary) hypertension
                   - '@id': https://example.com/diagnosis/2
-                    '@type': http://med-example.org/Diagnosis
-                    http://med-example.org/code:
+                    '@type': http://med.example.org/Diagnosis
+                    http://med.example.org/code:
                       '@type': xsd:string
                       '@value': E11
-                    http://med-example.org/description:
+                    http://med.example.org/description:
                       '@type': xsd:string
                       '@value': Type 2 diabetes mellitus
                 dcterms:issued:
@@ -644,6 +746,16 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
+    Body_save_mmio_file:
+      properties:
+        file:
+          type: string
+          format: binary
+          title: File
+      type: object
+      required:
+      - file
+      title: Body_save_mmio_file
     CatalogFilters:
       properties: {}
       additionalProperties: true
@@ -675,7 +787,7 @@ components:
           dcterms: http://purl.org/dc/terms/
           dspace: http://data-space.org/
           foaf: http://xmlns.com/foaf/0.1/
-          med: http://med-example.org/
+          med: http://med.example.org/
           skos: http://www.w3.org/2004/02/skos/core#
           spdx: http://spdx.org/rdf/terms#
           xsd: http://www.w3.org/2001/XMLSchema#
