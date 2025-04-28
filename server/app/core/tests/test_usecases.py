@@ -10,7 +10,12 @@ from ..exceptions import NodeDoesNotExist
 from ..namespace import DSPACE
 from ..repository.queries import FilterDatasetByID, FilterPersonByID
 from ..repository.query_builder import catalog_filter_to_query
-from ..usecases import CatalogUsecases, DatasetSharingUsecases, DatasetsUsecases
+from ..usecases import (
+    CatalogUsecases,
+    DatasetSharingUsecases,
+    DatasetsUsecases,
+    MMIOsUsecases,
+)
 from .factories import catalog_filters_factory, namespace_factory, user_factory
 
 
@@ -206,3 +211,52 @@ class TestDatasetSharingUsecases:
         assert dataset.get_attribute(DSPACE.isShared) == Literal(False)
 
         repositories.datasets.save.assert_called_once_with(dataset)
+
+
+class TestMMIOsUsecases:
+    @pytest.fixture
+    def repositories(self):
+        return Mock()
+
+    @pytest.mark.asyncio
+    async def test_create(self, repositories):
+        file = Mock()
+        filename = "test_file.mmio"
+        user = user_factory()
+
+        repositories.files.create = AsyncMock()
+
+        usecase = MMIOsUsecases(repositories)
+
+        context = Context(user=user)
+        await usecase.create(file, filename, context)
+
+        repositories.files.create.assert_called_once_with(file, filename)
+
+    @pytest.mark.asyncio
+    async def test_get(self, repositories):
+        filename = "test_file.mmio"
+        file_path = "/file-path"
+
+        repositories.files.get = AsyncMock(return_value=file_path)
+
+        usecase = MMIOsUsecases(repositories)
+
+        context = Context(user=user_factory())
+        result = await usecase.get(filename, context)
+
+        repositories.files.get.assert_called_once_with(filename)
+        assert result == file_path
+
+    @pytest.mark.asyncio
+    async def test_delete(self, repositories):
+        filename = "test_file.mmio"
+
+        repositories.files.delete = AsyncMock()
+
+        usecase = MMIOsUsecases(repositories)
+
+        context = Context(user=user_factory())
+        await usecase.delete(filename, context)
+
+        repositories.files.delete.assert_called_once_with(filename)

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "c0050da8-891d-48ee-8bd6-f7c0b057a285",
+		"_postman_id": "6577eb78-e160-4a55-828b-60ded569e4c3",
 		"name": "ds-catalog",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "35990741"
@@ -190,6 +190,92 @@
 								"datasets",
 								"abc-123-xyz",
 								"unshare",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "MMIOs",
+			"item": [
+				{
+					"name": "create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "postman-cloud:///1f0241ec-46ef-4430-b2b2-f027bddecb55"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/mmio/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"mmio",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/mmio/mmio-sample/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"mmio",
+								"mmio-sample",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/mmio/MMIO-sample/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"mmio",
+								"MMIO-sample",
 								""
 							]
 						}

@@ -592,3 +592,5 @@ MigrationBackup/
 /server/volumes
 /server/.env
 /server/charts/**/**.tgz
+
+/server/uploads/

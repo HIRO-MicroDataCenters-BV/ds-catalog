@@ -5,6 +5,7 @@ docs/DefaultApi.md
 docs/ErrorResponse.md
 docs/HTTPValidationError.md
 docs/HealthCheck.md
+docs/MMIOApi.md
 docs/SharingApi.md
 docs/ValidationError.md
 docs/ValidationErrorLocInner.md
@@ -13,6 +14,7 @@ ds_catalog/api/__init__.py
 ds_catalog/api/catalog_api.py
 ds_catalog/api/datasets_api.py
 ds_catalog/api/default_api.py
+ds_catalog/api/mmio_api.py
 ds_catalog/api/sharing_api.py
 ds_catalog/api_client.py
 ds_catalog/api_response.py

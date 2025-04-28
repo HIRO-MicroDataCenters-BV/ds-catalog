@@ -275,6 +275,92 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /mmio/:
+    post:
+      tags:
+      - MMIO
+      summary: Save Mmio File
+      description: Upload a MMIO file
+      operationId: save_mmio_file
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_save_mmio_file'
+        required: true
+      responses:
+        '201':
+          description: File uploaded successfully
+          headers:
+            Location:
+              description: URL to download the file
+              schema:
+                type: string
+              example: /mmio/12345
+        '400':
+          description: No file selected for uploading
+        '409':
+          description: File already exists
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /mmio/{filename}/:
+    get:
+      tags:
+      - MMIO
+      summary: Get Mmio File
+      description: Get a MMIO file
+      operationId: get_mmio_file
+      parameters:
+      - name: filename
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Filename
+      responses:
+        '200':
+          description: Successful file retrieval
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: File not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - MMIO
+      summary: Delete Mmio File
+      description: Delete a MMIO file
+      operationId: delete_mmio_file
+      parameters:
+      - name: filename
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Filename
+      responses:
+        '204':
+          description: Successful Response
+        '404':
+          description: File not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /datasets/:
     post:
       tags:
@@ -660,6 +746,16 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
+    Body_save_mmio_file:
+      properties:
+        file:
+          type: string
+          format: binary
+          title: File
+      type: object
+      required:
+      - file
+      title: Body_save_mmio_file
     CatalogFilters:
       properties: {}
       additionalProperties: true

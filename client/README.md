@@ -121,6 +121,9 @@ Class | Method | HTTP request | Description
 *DatasetsApi* | [**delete_dataset**](docs/DatasetsApi.md#delete_dataset) | **DELETE** /datasets/{id}/ | Delete Dataset
 *DatasetsApi* | [**get_dataset**](docs/DatasetsApi.md#get_dataset) | **GET** /datasets/{id}/ | Get Dataset
 *DatasetsApi* | [**save_dataset**](docs/DatasetsApi.md#save_dataset) | **POST** /datasets/ | Save Dataset
+*MMIOApi* | [**delete_mmio_file**](docs/MMIOApi.md#delete_mmio_file) | **DELETE** /mmio/{filename}/ | Delete Mmio File
+*MMIOApi* | [**get_mmio_file**](docs/MMIOApi.md#get_mmio_file) | **GET** /mmio/{filename}/ | Get Mmio File
+*MMIOApi* | [**save_mmio_file**](docs/MMIOApi.md#save_mmio_file) | **POST** /mmio/ | Save Mmio File
 *SharingApi* | [**share_dataset**](docs/SharingApi.md#share_dataset) | **POST** /datasets/{id}/share/ | Share Dataset
 *SharingApi* | [**unshare_dataset**](docs/SharingApi.md#unshare_dataset) | **POST** /datasets/{id}/unshare/ | Unhare Dataset
 *DefaultApi* | [**health_check**](docs/DefaultApi.md#health_check) | **GET** /health-check/ | Health check

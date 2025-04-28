@@ -12,6 +12,7 @@ from ..queries import Query
 from ..repositories import (
     CatalogsRepository,
     DatasetsRepository,
+    FilesRepository,
     PersonsRepository,
     Repositories,
 )
@@ -234,6 +235,86 @@ class TestDatasetsRepository:
         repository.get.assert_called_once_with(query)
         repository.save.assert_called_once_with(mock_dataset)
         mock_dataset.set_attribute.assert_called_once_with(DSPACE.isDeleted, True)
+
+
+class TestFilesRepository:
+    @pytest.mark.asyncio
+    async def test_get_file_path(self, tmp_path):
+        filename = "Test-File~!@#$%^&*()_+.txt"
+        file_path = tmp_path / filename
+
+        repository = FilesRepository(upload_folder=str(tmp_path))
+        result = repository._get_file_path(filename)
+
+        assert result == file_path
+
+    @pytest.mark.asyncio
+    async def test_create_success(self, tmp_path):
+        filename = "testfile.txt"
+        file_path = tmp_path / filename
+
+        file_content = b"Test content"
+        file_mock = Mock()
+        file_mock.read.return_value = file_content
+
+        assert not file_path.exists()
+
+        repository = FilesRepository(upload_folder=str(tmp_path))
+        await repository.create(file_mock, filename)
+
+        assert file_path.exists()
+        with file_path.open("rb") as f:
+            assert f.read() == file_content
+
+    @pytest.mark.asyncio
+    async def test_create_if_file_exists(self, tmp_path):
+        filename = "testfile.txt"
+        file_path = tmp_path / filename
+        file_path.touch()
+        file_mock = Mock()
+
+        repository = FilesRepository(upload_folder=str(tmp_path))
+
+        with pytest.raises(FileExistsError):
+            await repository.create(file_mock, filename)
+
+    @pytest.mark.asyncio
+    async def test_get_success(self, tmp_path):
+        filename = "testfile.txt"
+        file_path = tmp_path / filename
+        file_path.touch()
+
+        repository = FilesRepository(upload_folder=str(tmp_path))
+        result = await repository.get(filename)
+
+        assert result == str(file_path)
+
+    @pytest.mark.asyncio
+    async def test_get_if_file_not_found(self, tmp_path):
+        filename = "testfile.txt"
+        repository = FilesRepository(upload_folder=str(tmp_path))
+
+        with pytest.raises(FileNotFoundError):
+            await repository.get(filename)
+
+    @pytest.mark.asyncio
+    async def test_delete_success(self, tmp_path):
+        filename = "testfile.txt"
+        file_path = tmp_path / filename
+        file_path.touch()
+
+        repository = FilesRepository(upload_folder=str(tmp_path))
+
+        await repository.delete(filename)
+        assert not file_path.exists()
+
+    @pytest.mark.asyncio
+    async def test_delete_if_file_not_found(self, tmp_path):
+        filename = "testfile.txt"
+        repository = FilesRepository(upload_folder=str(tmp_path))
+
+        with pytest.raises(FileNotFoundError):
+            await repository.delete(filename)
 
 
 class TestRepositories:

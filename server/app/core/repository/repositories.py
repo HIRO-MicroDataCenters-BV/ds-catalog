@@ -1,6 +1,7 @@
-from typing import Generic, TypeVar
+from typing import BinaryIO, Generic, TypeVar
 
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 from rdflib import DCAT, FOAF, RDF
 
@@ -61,6 +62,24 @@ class IDatasetsRepository(IRepository[Dataset]):
 
     @abstractmethod
     async def delete(self, query: Query) -> None:
+        ...
+
+
+class IFilesRepository(ABC):
+    @abstractmethod
+    def __init__(self, upload_folder: str) -> None:
+        ...
+
+    @abstractmethod
+    async def create(self, file: BinaryIO, filename: str) -> None:
+        ...
+
+    @abstractmethod
+    async def get(self, filename: str) -> str:
+        ...
+
+    @abstractmethod
+    async def delete(self, filename: str) -> None:
         ...
 
 
@@ -164,6 +183,36 @@ class DatasetsRepository(BaseRepository[Dataset], IDatasetsRepository):
         await self.save(dataset)
 
 
+class FilesRepository(IFilesRepository):
+    _upload_folder: Path
+
+    def __init__(self, upload_folder: str = "./uploads") -> None:
+        self._upload_folder = Path(upload_folder)
+        self._upload_folder.mkdir(parents=True, exist_ok=True)
+
+    def _get_file_path(self, filename: str) -> Path:
+        return self._upload_folder / filename.lower()
+
+    async def create(self, file: BinaryIO, filename: str) -> None:
+        file_path = self._get_file_path(filename)
+        if file_path.exists():
+            raise FileExistsError(f"File {filename} already exists")
+        with file_path.open("wb") as f:
+            f.write(file.read())
+
+    async def get(self, filename: str) -> str:
+        file_path = self._get_file_path(filename)
+        if not file_path.exists():
+            raise FileNotFoundError(f"File {filename} not found")
+        return str(file_path)
+
+    async def delete(self, filename: str) -> None:
+        file_path = self._get_file_path(filename)
+        if not file_path.exists():
+            raise FileNotFoundError(f"File {filename} not found")
+        file_path.unlink()
+
+
 # --- Repositories class ---
 
 
@@ -175,6 +224,7 @@ class Repositories(IRepositories):
         self.persons = PersonsRepository(db_driver)
         self.catalogs = CatalogsRepository(db_driver)
         self.datasets = DatasetsRepository(db_driver)
+        self.files = FilesRepository()
 
     async def get_namespaces(self) -> dict[str, str]:
         return await self.neosemantics.list_namespaces()
