@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Database(BaseModel):
-    protocol: str = "neo4j"
+    protocol: str = "bolt"
     host: str = "localhost"
     port: int = 7687
     name: str = "neo4j"
