@@ -24,7 +24,10 @@ class Query:
         self.skip = skip
         self.limit = limit
 
-    def __add__(self, other: Self) -> Self:
+    def __add__(self, other: "Query") -> Self:
+        if not isinstance(other, Query):
+            raise TypeError("Can only merge with another Query instance")
+
         self.match += other.match
         self.optional_match += other.optional_match
         self.where += other.where
@@ -33,6 +36,7 @@ class Query:
         self.order_by = other.order_by
         self.skip = other.skip
         self.limit = other.limit
+
         return self
 
     def __str__(self) -> str:
@@ -79,11 +83,17 @@ class Query:
             query_parts.append(f"LIMIT {self.limit}")
         return "\n".join(query_parts)
 
-    def build_together(self, *args: Self) -> str:
-        parts = [self.build()]
+    @classmethod
+    def build_together(cls, *args: Self) -> str:
+        parts = []
         for query in args:
             parts.append(query.build())
         return "\n".join(parts)
+
+
+class FilterPersonByID(Query):
+    def __init__(self, id: str):
+        super().__init__(where=[f'{Person.label}.dcterms__identifier="{id}"'])
 
 
 class FilterDatasetByID(Query):
@@ -91,6 +101,5 @@ class FilterDatasetByID(Query):
         super().__init__(where=[f'{Dataset.label}.dcterms__identifier="{id}"'])
 
 
-class FilterPersonByID(Query):
-    def __init__(self, id: str):
-        super().__init__(where=[f'{Person.label}.dcterms__identifier="{id}"'])
+class FilterCatalog(Query):
+    ...

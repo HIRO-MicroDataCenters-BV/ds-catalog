@@ -5,6 +5,10 @@ from app.core import entities
 from .examples import catalog_filters_example, dataset_input_example
 
 
+class ErrorResponse(BaseModel):
+    detail: str
+
+
 class HealthCheck(BaseModel):
     status: str = Field(examples=["OK"])
 

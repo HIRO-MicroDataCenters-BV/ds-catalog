@@ -1,0 +1,6 @@
+  Type: http://example.org/Person
+    Values:
+      http://example.org/name: ['John']
+    Children:
+      Relation: http://example.org/hasChild
+        Type: http://example.org/Child

@@ -1,6 +1,7 @@
-from typing import Generic, TypeVar
+from typing import BinaryIO, Generic, TypeVar
 
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 from rdflib import DCAT, FOAF, RDF
 
@@ -33,6 +34,10 @@ class IRepositories(ABC):
     def __init__(self, db_driver: DatabaseDriver) -> None:
         ...
 
+    @abstractmethod
+    async def get_namespaces(self) -> dict[str, str]:
+        ...
+
 
 class IPersonsRepository(IRepository[Person]):
     @abstractmethod
@@ -57,6 +62,24 @@ class IDatasetsRepository(IRepository[Dataset]):
 
     @abstractmethod
     async def delete(self, query: Query) -> None:
+        ...
+
+
+class IFilesRepository(ABC):
+    @abstractmethod
+    def __init__(self, upload_folder: str) -> None:
+        ...
+
+    @abstractmethod
+    async def create(self, file: BinaryIO, filename: str) -> None:
+        ...
+
+    @abstractmethod
+    async def get(self, filename: str) -> str:
+        ...
+
+    @abstractmethod
+    async def delete(self, filename: str) -> None:
         ...
 
 
@@ -109,21 +132,20 @@ class CatalogsRepository(BaseRepository[Catalog], ICatalogsRepository):
         c = Catalog.label
         d = Dataset.label
 
-        q1 = Query(
+        q = Query(
             match=[f"({c}:dcat__Catalog)"],
-            optional_match=[f"({c})-[dataset_rel:dcat__dataset]->({d}:dcat__Dataset)"],
-            where=[f"{d}.dspace__isDeleted<>true"],
+            optional_match=[f"({c})-[r0:dcat__dataset]->({d})-[r*0..]->(related)"],
+            where=[
+                'all(rel IN r WHERE type(rel) <> "rdf__type")',
+                f"{d}.dspace__isDeleted<>true",
+            ],
+            return_clause=[c, "r0", d, "r", "related"],
         )
 
-        q2 = Query(
-            optional_match=[f"({d})-[r*0..]->(related)"],
-            where=['all(rel IN r WHERE type(rel) <> "rdf__type")'],
-        )
-        if query is not None:
-            q2 += query
-        q2.return_clause = [c, "dataset_rel", d, "r", "related"]
-
-        query_str = q1.build_together(q2)
+        if query is None:
+            query_str = q.build()
+        else:
+            query_str = Query.build_together(query, q)
 
         graph = await self.neosemantics.export(query_str)
         if not graph:
@@ -161,11 +183,48 @@ class DatasetsRepository(BaseRepository[Dataset], IDatasetsRepository):
         await self.save(dataset)
 
 
+class FilesRepository(IFilesRepository):
+    _upload_folder: Path
+
+    def __init__(self, upload_folder: str = "./uploads") -> None:
+        self._upload_folder = Path(upload_folder)
+        self._upload_folder.mkdir(parents=True, exist_ok=True)
+
+    def _get_file_path(self, filename: str) -> Path:
+        return self._upload_folder / filename.lower()
+
+    async def create(self, file: BinaryIO, filename: str) -> None:
+        file_path = self._get_file_path(filename)
+        if file_path.exists():
+            raise FileExistsError(f"File {filename} already exists")
+        with file_path.open("wb") as f:
+            f.write(file.read())
+
+    async def get(self, filename: str) -> str:
+        file_path = self._get_file_path(filename)
+        if not file_path.exists():
+            raise FileNotFoundError(f"File {filename} not found")
+        return str(file_path)
+
+    async def delete(self, filename: str) -> None:
+        file_path = self._get_file_path(filename)
+        if not file_path.exists():
+            raise FileNotFoundError(f"File {filename} not found")
+        file_path.unlink()
+
+
 # --- Repositories class ---
 
 
 class Repositories(IRepositories):
     def __init__(self, db_driver: DatabaseDriver) -> None:
+        self.db_driver = db_driver
+        self.neosemantics = Neosemantics(db_driver)
+
         self.persons = PersonsRepository(db_driver)
         self.catalogs = CatalogsRepository(db_driver)
         self.datasets = DatasetsRepository(db_driver)
+        self.files = FilesRepository()
+
+    async def get_namespaces(self) -> dict[str, str]:
+        return await self.neosemantics.list_namespaces()

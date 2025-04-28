@@ -35,7 +35,8 @@ async def configure_db(db_driver: DatabaseDriver) -> None:
     )
 
     await db_driver.execute_query(
-        "CREATE CONSTRAINT n10s_unique_uri FOR (r:Resource) REQUIRE r.uri IS UNIQUE;"
+        "CREATE CONSTRAINT n10s_unique_uri IF NOT EXISTS FOR (r:Resource) "
+        "REQUIRE r.uri IS UNIQUE;"
     )
 
     await db_driver.execute_query(

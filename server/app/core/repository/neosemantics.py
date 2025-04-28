@@ -56,3 +56,13 @@ class Neosemantics:
             "success": result["terminationStatus"] == "OK",
             "extra_info": result.get("extraInfo", None),
         }
+
+    async def list_namespaces(self) -> dict[str, str]:
+        query = "CALL n10s.nsprefixes.list() YIELD prefix, namespace "
+        "RETURN prefix, namespace"
+        records, *_ = await self._db_driver.execute_query(query)
+        result: dict[str, str] = {}
+        for record in records:
+            key = record["prefix"]
+            result[key] = record["namespace"]
+        return result
