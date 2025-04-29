@@ -91,6 +91,7 @@ Requirements:
 6. To delete the deployment:
     ```bash
     helm delete catalog
+    kubectl delete pvc catalog-ds-catalog-uploads
     ```
 
 ### Production
