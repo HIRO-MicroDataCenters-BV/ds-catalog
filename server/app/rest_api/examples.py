@@ -243,12 +243,7 @@ catalog_filters_example: dict[str, Any] = {
             "dcat:dataset": {
                 "extraMetadata": {
                     "@type": "med:Diagnoses",
-                    "med:hasDiagnosis": {
-                        "med:code": {
-                            "operationValue": "I10",
-                            "operation": "contains",
-                        }
-                    },
+                    "med:hasDiagnosis": {"@type": "med:Diagnosis", "med:code": "I10"},
                 }
             }
         }

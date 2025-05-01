@@ -772,9 +772,8 @@ components:
             extraMetadata:
               '@type': med:Diagnoses
               med:hasDiagnosis:
-                med:code:
-                  operation: contains
-                  operationValue: I10
+                '@type': med:Diagnosis
+                med:code: I10
     Dataset:
       properties: {}
       additionalProperties: true
