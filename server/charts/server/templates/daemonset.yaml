@@ -1,13 +1,12 @@
-{{- if eq .Values.deploymentMode "deployment" }}
-# This is a deployment
+{{- if eq .Values.deploymentMode "daemonset" }}
+# This is a DaemonSet
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: {{ include "app.fullname" . }}
   labels:
     {{- include "app.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       {{- include "app.selectorLabels" . | nindent 6 }}
@@ -30,6 +29,19 @@ spec:
       serviceAccountName: {{ include "app.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      affinity:
+        {{- if .Values.affinity }}
+        {{- toYaml .Values.affinity | nindent 8 }}
+        {{- else }}
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/role
+                    operator: NotIn
+                    values:
+                      - master
+        {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
