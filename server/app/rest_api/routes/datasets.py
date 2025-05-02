@@ -6,12 +6,13 @@ from fastapi import Depends, HTTPException, status
 from app.core import entities, usecases
 from app.core.exceptions import NodeDoesNotExist
 from app.core.repository import Repositories
+from app.settings import Settings, get_settings
 
 from ..depends import get_repositories, get_user
 from ..examples import dataset_example
 from ..response import JSONLDResponse
 from ..serializers import Dataset
-from ..strings import DATASET_NOT_FOUND
+from ..strings import DATASET_NOT_FOUND, FILE_NOT_FOUND
 from ..tags import Tags
 
 
@@ -23,7 +24,7 @@ def get_usecases(
 
 class DatasetsRoutes(Routable):
     @post(
-        "/datasets/",
+        "/datasets/{filename}/",
         operation_id="save_dataset",
         name="Save Dataset",
         tags=[Tags.Datasets],
@@ -41,13 +42,31 @@ class DatasetsRoutes(Routable):
     )
     async def save_dataset(
         self,
-        data: Dataset,
+        filename: str,
+        dataset: Dataset,
         user: Annotated[entities.User, Depends(get_user)],
         usecases: usecases.DatasetsUsecases = Depends(get_usecases),
+        settings: Settings = Depends(get_settings),
     ) -> JSONLDResponse:
         """Create or update a dataset"""
-        input_entity = data.to_entity()
-        output_entity = await usecases.save(input_entity, context={"user": user})
+
+        input_entity = dataset.to_entity()
+
+        try:
+            output_entity = await usecases.save(
+                input_entity,
+                filename,
+                context={
+                    "user": user,
+                    "oca_uri": settings.oca_uri,
+                },
+            )
+        except FileNotFoundError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=FILE_NOT_FOUND,
+            )
+
         return JSONLDResponse(output_entity)
 
     @get(

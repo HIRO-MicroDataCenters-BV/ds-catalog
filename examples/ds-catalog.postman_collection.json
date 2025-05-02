@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"@context\": {\r\n    \"@vocab\": \"http://data-space.org/\",\r\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\r\n    \"med\": \"http://med.example.org/\"\r\n  },\r\n  \"@type\": \"Filters\",\r\n  \"filters\": [\r\n    {\r\n      \"dcat:dataset\": {\r\n        \"extraMetadata\": {\r\n          \"@type\": \"med:Diagnoses\",\r\n          \"med:hasDiagnosis\": {\r\n            \"@type\": \"med:Diagnosis\",\r\n            \"med:code\": \"I10\"\r\n          }\r\n        }\r\n      }\r\n    }\r\n  ]\r\n}",
+							"raw": "{\r\n  \"@context\": {\r\n    \"@vocab\": \"http://data-space.org/\",\r\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\r\n    \"med\": \"http://oca.example.org/123/\"\r\n  },\r\n  \"@type\": \"Filters\",\r\n  \"filters\": [\r\n    {\r\n      \"dcat:dataset\": {\r\n        \"extraMetadata\": {\r\n          \"@type\": \"med:Record\",\r\n          \"med:patientFirstName\": \"Deirdre\"\r\n        }\r\n      }\r\n    }\r\n  ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -36,6 +36,90 @@
 							"path": [
 								"catalog",
 								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "MMIOs",
+			"item": [
+				{
+					"name": "create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "postman-cloud:///1f025d1e-d472-4260-8830-2016a6eed760"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/mmio/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"mmio",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/mmio/mmio-sample.csv",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"mmio",
+								"mmio-sample.csv"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/mmio/MMIO-sample.csv",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"mmio",
+								"MMIO-sample.csv"
 							]
 						}
 					},
@@ -83,7 +167,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"@context\": {\r\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\r\n    \"dcatap\": \"http://data.europa.eu/r5r/\",\r\n    \"dcterms\": \"http://purl.org/dc/terms/\",\r\n    \"dspace\": \"http://data-space.org/\",\r\n    \"foaf\": \"http://xmlns.com/foaf/0.1/\",\r\n    \"skos\": \"http://www.w3.org/2004/02/skos/core#\",\r\n    \"spdx\": \"http://spdx.org/rdf/terms#\",\r\n    \"xsd\": \"http://www.w3.org/2001/XMLSchema#\",\r\n    \"med\": \"http://med.example.org/\"\r\n  },\r\n  \"@id\": \"https://example.com/dataset/789\",\r\n  \"@type\": \"dcat:Dataset\",\r\n  \"dcat:distribution\": [\r\n    {\r\n      \"@id\": \"https://example.com/distribution/489\",\r\n      \"@type\": \"dcat:Distribution\",\r\n      \"dcat:accessService\": [\r\n        {\r\n          \"@id\": \"https://example.com/dataservice/456\",\r\n          \"@type\": \"dcat:DataService\",\r\n          \"dcat:endpointURL\": {\r\n            \"@id\": \"https://example.com/dataservice/456/download\"\r\n          },\r\n          \"dcterms:title\": [\r\n            {\r\n              \"@language\": \"en\",\r\n              \"@value\": \"Sample Data Service\"\r\n            }\r\n          ]\r\n        }\r\n      ],\r\n      \"dcat:accessURL\": {\r\n        \"@id\": \"https://example.com/distribution/489/information\"\r\n      },\r\n      \"dcat:byteSize\": {\r\n        \"@type\": \"xsd:decimal\",\r\n        \"@value\": 1024\r\n      },\r\n      \"dcat:format\": \"JSON\",\r\n      \"dcat:mediaType\": {\r\n        \"@id\": \"https://www.iana.org/assignments/media-types/application/json\"\r\n      },\r\n      \"dcatap:availability\": [\r\n        {\r\n          \"@id\": \"http://data.europa.eu/r5r/AVAILABLE\"\r\n        }\r\n      ],\r\n      \"dcterms:description\": [\r\n        {\r\n          \"@language\": \"en\",\r\n          \"@value\": \"This is a sample distribution.\"\r\n        }\r\n      ],\r\n      \"spdx:checksum\": {\r\n        \"spdx:algorithm\": \"SHA-256\",\r\n        \"spdx:checksumValue\": \"3a7bd3e2360a3b5c1b2ef3b1a4e8f7a6\"\r\n      }\r\n    }\r\n  ],\r\n  \"dcat:keyword\": [\r\n    \"sample\",\r\n    \"data\"\r\n  ],\r\n  \"dcat:theme\": [\r\n    {\r\n      \"@id\": \"http://eurovoc.europa.eu/100142\",\r\n      \"@type\": \"skos:Concept\",\r\n      \"skos:prefLabel\": [\r\n        {\r\n          \"@language\": \"en\",\r\n          \"@value\": \"Agriculture\"\r\n        }\r\n      ]\r\n    },\r\n    {\r\n      \"@id\": \"http://eurovoc.europa.eu/100141\",\r\n      \"@type\": \"skos:Concept\",\r\n      \"skos:prefLabel\": [\r\n        {\r\n          \"@language\": \"en\",\r\n          \"@value\": \"Health\"\r\n        }\r\n      ]\r\n    }\r\n  ],\r\n  \"dcterms:description\": [\r\n    {\r\n      \"@language\": \"en\",\r\n      \"@value\": \"This dataset contains sample data for testing purposes.\"\r\n    },\r\n    {\r\n      \"@language\": \"es\",\r\n      \"@value\": \"Este conjunto de datos contiene datos de ejemplo para fines de prueba.\"\r\n    }\r\n  ],\r\n  \"dcterms:identifier\": \"abc-123-xyz\",\r\n  \"dcterms:license\": \"https://example.com/license/xyz\",\r\n  \"dcterms:title\": [\r\n    {\r\n      \"@language\": \"en\",\r\n      \"@value\": \"Sample Dataset Title\"\r\n    },\r\n    {\r\n      \"@language\": \"es\",\r\n      \"@value\": \"Título del conjunto de datos de ejemplo\"\r\n    }\r\n  ],\r\n  \"dspace:extraMetadata\": [\r\n    {\r\n      \"@id\": \"https://example.com/metadata/1\",\r\n      \"@type\": \"med:Patient\",\r\n      \"med:birthDate\": \"1990-05-20\",\r\n      \"med:height\": {\r\n        \"@type\": \"xsd:integer\",\r\n        \"@value\": \"180\"\r\n      },\r\n      \"med:sex\": \"M\",\r\n      \"med:weight\": {\r\n        \"@type\": \"xsd:integer\",\r\n        \"@value\": \"75\"\r\n      }\r\n    },\r\n    {\r\n      \"@id\": \"https://example.com/metadata/2\",\r\n      \"@type\": \"med:Diagnoses\",\r\n      \"med:hasDiagnosis\": [\r\n        {\r\n          \"@id\": \"https://example.com/diagnosis/1\",\r\n          \"@type\": \"med:Diagnosis\",\r\n          \"med:code\": \"I10\",\r\n          \"med:description\": \"Essential (primary) hypertension\"\r\n        },\r\n        {\r\n          \"@id\": \"https://example.com/diagnosis/2\",\r\n          \"@type\": \"med:Diagnosis\",\r\n          \"med:code\": \"E11\",\r\n          \"med:description\": \"Type 2 diabetes mellitus\"\r\n        }\r\n      ]\r\n    }\r\n  ]\r\n}",
+							"raw": "{\r\n  \"@context\": {\r\n    \"dspace\": \"http://data-space.org/\",\r\n    \"xsd\": \"http://www.w3.org/2001/XMLSchema#\",\r\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\r\n    \"dcatap\": \"http://data.europa.eu/r5r/\",\r\n    \"dcterms\": \"http://purl.org/dc/terms/\",\r\n    \"spdx\": \"http://spdx.org/rdf/terms#\",\r\n    \"foaf\": \"http://xmlns.com/foaf/0.1/\",\r\n    \"skos\": \"http://www.w3.org/2004/02/skos/core#\",\r\n    \"med\": \"http://med.example.org/\"\r\n  },\r\n  \"@id\": \"https://example.com/dataset/789\",\r\n  \"@type\": \"dcat:Dataset\",\r\n  \"dcterms:identifier\": {\r\n    \"@type\": \"xsd:string\",\r\n    \"@value\": \"abc-123-xyz\"\r\n  },\r\n  \"dcterms:title\": [\r\n    {\r\n      \"@language\": \"en\",\r\n      \"@value\": \"SampleDatasetTitle\"\r\n    },\r\n    {\r\n      \"@language\": \"es\",\r\n      \"@value\": \"Título del conjunto de datos de muestra\"\r\n    }\r\n  ],\r\n  \"dcterms:description\": [\r\n    {\r\n      \"@language\": \"en\",\r\n      \"@value\": \"This dataset contains sample data for testing purposes.\"\r\n    },\r\n    {\r\n      \"@language\": \"es\",\r\n      \"@value\": \"Este conjunto de datos contiene datos de muestra para fines de prueba.\"\r\n    }\r\n  ],\r\n  \"dcat:keyword\": [\r\n    {\r\n      \"@type\": \"xsd:string\",\r\n      \"@value\": \"sample\"\r\n    },\r\n    {\r\n      \"@type\": \"xsd:string\",\r\n      \"@value\": \"data\"\r\n    }\r\n  ],\r\n  \"dcterms:license\": {\r\n    \"@type\": \"xsd:string\",\r\n    \"@value\": \"https://example.com/license/xyz\"\r\n  },\r\n  \"dcat:theme\": [\r\n    {\r\n      \"@id\": \"http://eurovoc.europa.eu/100142\",\r\n      \"@type\": \"skos:Concept\",\r\n      \"skos:prefLabel\": {\r\n        \"@value\": \"Agriculture\",\r\n        \"@language\": \"en\"\r\n      }\r\n    },\r\n    {\r\n      \"@id\": \"http://eurovoc.europa.eu/100141\",\r\n      \"@type\": \"skos:Concept\",\r\n      \"skos:prefLabel\": {\r\n        \"@value\": \"Health\",\r\n        \"@language\": \"en\"\r\n      }\r\n    }\r\n  ],\r\n  \"dcat:distribution\": [\r\n    {\r\n      \"@id\": \"https://example.com/distribution/489\",\r\n      \"@type\": \"dcat:Distribution\",\r\n      \"dcterms:description\": {\r\n        \"@language\": \"en\",\r\n        \"@value\": \"This is a sample distribution.\"\r\n      },\r\n      \"dcat:byteSize\": {\r\n        \"@value\": 1024,\r\n        \"@type\": \"xsd:decimal\"\r\n      },\r\n      \"dcat:mediaType\": {\r\n        \"@id\": \"https://www.iana.org/assignments/media-types/application/json\"\r\n      },\r\n      \"dcat:format\": {\r\n        \"@type\": \"xsd:string\",\r\n        \"@value\": \"JSON\"\r\n      },\r\n      \"dcatap:availability\": [\r\n        {\r\n          \"@id\": \"http://data.europa.eu/r5r/AVAILABLE\"\r\n        }\r\n      ],\r\n      \"spdx:checksum\": {\r\n        \"spdx:algorithm\": {\r\n          \"@type\": \"xsd:string\",\r\n          \"@value\": \"SHA-256\"\r\n        },\r\n        \"spdx:checksumValue\": {\r\n          \"@type\": \"xsd:string\",\r\n          \"@value\": \"3a7bd3e2360a3b5c1b2ef3b1a4e8f7a6\"\r\n        }\r\n      },\r\n      \"dcat:accessURL\": {\r\n        \"@id\": \"https://example.com/distribution/489/information\"\r\n      },\r\n      \"dcat:accessService\": [\r\n        {\r\n          \"@id\": \"https://example.com/dataservice/456\",\r\n          \"@type\": \"dcat:DataService\",\r\n          \"dcterms:title\": {\r\n            \"@language\": \"en\",\r\n            \"@value\": \"SampleDataService\"\r\n          },\r\n          \"dcat:endpointURL\": {\r\n            \"@id\": \"https://example.com/dataservice/456/download\"\r\n          }\r\n        }\r\n      ]\r\n    }\r\n  ],\r\n  \"dcat:inSeries\": {\r\n    \"@id\": \"https://example.com/series/541\"\r\n  }\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -91,7 +175,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://127.0.0.1:8000/datasets/",
+							"raw": "http://127.0.0.1:8000/datasets/mmio-sample.csv",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -102,7 +186,7 @@
 							"port": "8000",
 							"path": [
 								"datasets",
-								""
+								"mmio-sample.csv"
 							]
 						}
 					},
@@ -190,92 +274,6 @@
 								"datasets",
 								"abc-123-xyz",
 								"unshare",
-								""
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "MMIOs",
-			"item": [
-				{
-					"name": "create",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": "postman-cloud:///1f0241ec-46ef-4430-b2b2-f027bddecb55"
-								}
-							]
-						},
-						"url": {
-							"raw": "http://127.0.0.1:8000/mmio/",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "8000",
-							"path": [
-								"mmio",
-								""
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "get",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:8000/mmio/mmio-sample/",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "8000",
-							"path": [
-								"mmio",
-								"mmio-sample",
-								""
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "delete",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:8000/mmio/MMIO-sample/",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "8000",
-							"path": [
-								"mmio",
-								"MMIO-sample",
 								""
 							]
 						}

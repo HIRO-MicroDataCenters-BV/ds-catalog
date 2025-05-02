@@ -6,7 +6,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**delete_dataset**](DatasetsApi.md#delete_dataset) | **DELETE** /datasets/{id}/ | Delete Dataset
 [**get_dataset**](DatasetsApi.md#get_dataset) | **GET** /datasets/{id}/ | Get Dataset
-[**save_dataset**](DatasetsApi.md#save_dataset) | **POST** /datasets/ | Save Dataset
+[**save_dataset**](DatasetsApi.md#save_dataset) | **POST** /datasets/{filename}/ | Save Dataset
 
 
 # **delete_dataset**
@@ -146,7 +146,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **save_dataset**
-> str save_dataset(request_body)
+> str save_dataset(filename, request_body)
 
 Save Dataset
 
@@ -171,11 +171,12 @@ configuration = ds_catalog.Configuration(
 with ds_catalog.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = ds_catalog.DatasetsApi(api_client)
+    filename = 'filename_example' # str | 
     request_body = None # Dict[str, object] | 
 
     try:
         # Save Dataset
-        api_response = api_instance.save_dataset(request_body)
+        api_response = api_instance.save_dataset(filename, request_body)
         print("The response of DatasetsApi->save_dataset:\n")
         pprint(api_response)
     except Exception as e:
@@ -189,6 +190,7 @@ with ds_catalog.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
+ **filename** | **str**|  | 
  **request_body** | [**Dict[str, object]**](object.md)|  | 
 
 ### Return type

@@ -570,6 +570,7 @@ class DatasetsApi:
     @validate_call
     def save_dataset(
         self,
+        filename: StrictStr,
         request_body: Dict[str, Any],
         _request_timeout: Union[
             None,
@@ -588,6 +589,8 @@ class DatasetsApi:
 
         Create or update a dataset
 
+        :param filename: (required)
+        :type filename: str
         :param request_body: (required)
         :type request_body: Dict[str, object]
         :param _request_timeout: timeout setting for this request. If one
@@ -613,6 +616,7 @@ class DatasetsApi:
         """ # noqa: E501
 
         _param = self._save_dataset_serialize(
+            filename=filename,
             request_body=request_body,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -638,6 +642,7 @@ class DatasetsApi:
     @validate_call
     def save_dataset_with_http_info(
         self,
+        filename: StrictStr,
         request_body: Dict[str, Any],
         _request_timeout: Union[
             None,
@@ -656,6 +661,8 @@ class DatasetsApi:
 
         Create or update a dataset
 
+        :param filename: (required)
+        :type filename: str
         :param request_body: (required)
         :type request_body: Dict[str, object]
         :param _request_timeout: timeout setting for this request. If one
@@ -681,6 +688,7 @@ class DatasetsApi:
         """ # noqa: E501
 
         _param = self._save_dataset_serialize(
+            filename=filename,
             request_body=request_body,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -706,6 +714,7 @@ class DatasetsApi:
     @validate_call
     def save_dataset_without_preload_content(
         self,
+        filename: StrictStr,
         request_body: Dict[str, Any],
         _request_timeout: Union[
             None,
@@ -724,6 +733,8 @@ class DatasetsApi:
 
         Create or update a dataset
 
+        :param filename: (required)
+        :type filename: str
         :param request_body: (required)
         :type request_body: Dict[str, object]
         :param _request_timeout: timeout setting for this request. If one
@@ -749,6 +760,7 @@ class DatasetsApi:
         """ # noqa: E501
 
         _param = self._save_dataset_serialize(
+            filename=filename,
             request_body=request_body,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -769,6 +781,7 @@ class DatasetsApi:
 
     def _save_dataset_serialize(
         self,
+        filename,
         request_body,
         _request_auth,
         _content_type,
@@ -789,6 +802,8 @@ class DatasetsApi:
         _body_params: Optional[bytes] = None
 
         # process the path parameters
+        if filename is not None:
+            _path_params['filename'] = filename
         # process the query parameters
         # process the header parameters
         # process the form parameters
@@ -826,7 +841,7 @@ class DatasetsApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/datasets/',
+            resource_path='/datasets/{filename}/',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,

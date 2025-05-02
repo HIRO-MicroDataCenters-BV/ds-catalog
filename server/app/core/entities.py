@@ -3,11 +3,12 @@ from typing import Any, Self, TypedDict, cast
 import json
 import uuid
 
+import polars as pl
 from pyld import jsonld
 from rdflib import Graph as RDFGraph
 from rdflib import Literal, URIRef
 from rdflib.compare import to_isomorphic
-from rdflib.namespace import DCAT, DCTERMS, FOAF, RDF, SKOS, XSD
+from rdflib.namespace import DCAT, DCTERMS, FOAF, RDF, SKOS, XSD, Namespace
 
 from .exceptions import NodeDoesNotExist
 from .namespace import DCATAP, DSPACE, SPDX
@@ -37,18 +38,12 @@ class Graph:
     def __init__(self, graph: RDFGraph | None = None) -> None:
         self.graph = RDFGraph() if graph is None else graph
 
-        for prefix, uri in self.context.items():
+        for prefix, uri in self.get_context().items():
             self.graph.bind(prefix, uri)
 
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        required_attrs = ["rdf_type", "label", "context"]
-        for attr in required_attrs:
-            if not hasattr(cls, attr):
-                raise TypeError(f"Class {cls.__name__} must have attribute {attr}")
-
     def __str__(self) -> str:
-        return self.graph.serialize(format="json-ld", indent=4, context=self.context)
+        context = self.get_context()
+        return self.graph.serialize(format="json-ld", indent=4, context=context)
 
     def __add__(self, other):
         """Merge two graphs into one"""
@@ -62,10 +57,25 @@ class Graph:
             return False
         return (
             to_isomorphic(self.graph) == to_isomorphic(other.graph)
-            and self.rdf_type == other.rdf_type
-            and self.label == other.label
-            and self.context == other.context
+            and self.get_rdf_type() == other.get_rdf_type()
+            and self.get_label() == other.get_label()
+            and self.get_context() == other.get_context()
         )
+
+    def get_rdf_type(self) -> URIRef:
+        if not hasattr(self, "rdf_type"):
+            raise AttributeError("rdf_type is not defined")
+        return self.rdf_type
+
+    def get_label(self) -> str:
+        if not hasattr(self, "label"):
+            raise AttributeError("label is not defined")
+        return self.label
+
+    def get_context(self) -> dict[str, str]:
+        if not hasattr(self, "context"):
+            raise AttributeError("context is not defined")
+        return self.context
 
     @classmethod
     def create_empty(cls, id: str) -> Self:
@@ -82,8 +92,8 @@ class Graph:
 
     def to_json_ld(self) -> str:
         frame = {
-            "@context": self.context,
-            "@type": self.graph.namespace_manager.qname(self.rdf_type),
+            "@context": self.get_context(),
+            "@type": self.graph.namespace_manager.qname(self.get_rdf_type()),
         }
         json_ld_str = self.graph.serialize(format="json-ld")
         json_ld = json.loads(json_ld_str)
@@ -92,7 +102,7 @@ class Graph:
 
     @property
     def uri(self) -> URIRef:
-        node = next(self.graph.subjects(RDF.type, self.rdf_type), None)
+        node = next(self.graph.subjects(RDF.type, self.get_rdf_type()), None)
         if node is None:
             raise NodeDoesNotExist("Root node not found in the graph")
         return cast(URIRef, node)
@@ -158,3 +168,46 @@ class Catalog(Graph):
 class Dataset(Graph):
     rdf_type = DCAT.Dataset
     label = "d"
+
+
+class Metadata(Graph):
+    """Domain-specific metadata (subgraph of a dataset)"""
+
+    namespace = "dsmeta"
+
+    @staticmethod
+    def build_uri(schema_uri: str, id: str, row_index: int) -> URIRef:
+        return Namespace(schema_uri.rstrip("/"))[f"/{id}/{row_index}"]
+
+    @staticmethod
+    def build_type(schema_uri: str) -> URIRef:
+        return Namespace(schema_uri.rstrip("/"))["/Record"]
+
+    @classmethod
+    def create_bunch_from_df(
+        cls, schema_uri: str, id: str, df: pl.DataFrame
+    ) -> list[Self]:
+        instances = []
+
+        for i, row in enumerate(df.iter_rows(named=True)):
+            ns = Namespace(schema_uri)
+
+            node = cls.build_uri(schema_uri, id, i)
+            rdf_type = cls.build_type(schema_uri)
+
+            graph = RDFGraph()
+            graph.bind("dsmeta", schema_uri)
+            graph.add((node, RDF.type, rdf_type))
+
+            instance = cls(graph)
+            instance.rdf_type = rdf_type
+            instance.label = f"m-{id}-{i}"
+            instance.context = {**cls.context, instance.namespace: schema_uri}
+
+            for key, value in row.items():
+                if value is not None:
+                    instance.set_attribute(ns[key], Literal(value))
+
+            instances.append(instance)
+
+        return instances

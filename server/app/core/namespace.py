@@ -12,6 +12,7 @@ class DSPACE(DefinedNamespace):
     isShared: URIRef
     isDeleted: URIRef
     extraMetadata: URIRef
+    metadataFilename: URIRef
     operationValue: URIRef
     operation: URIRef
     filters: URIRef

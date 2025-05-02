@@ -361,19 +361,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /datasets/:
+  /datasets/{filename}/:
     post:
       tags:
       - Datasets
       summary: Save Dataset
       description: Create or update a dataset
       operationId: save_dataset
+      parameters:
+      - name: filename
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Filename
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Dataset'
-        required: true
       responses:
         '200':
           description: Successful Response
