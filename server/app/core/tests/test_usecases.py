@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -53,8 +54,9 @@ class TestDatasetsUsecases:
         return Mock()
 
     @pytest.fixture
-    def mmio_data(self):
-        return b"name,surname,height,weight\nDeirdre,Patterson,174,68\n"
+    def csv_data(self):
+        file_path = Path(__file__).parent / "fixtures" / "mmio.csv"
+        return file_path.read_bytes()
 
     @pytest.fixture
     def oca_uri(self):
@@ -62,7 +64,7 @@ class TestDatasetsUsecases:
 
     @freeze_time("2017-05-21T09:23:00+00:00")
     @pytest.mark.asyncio
-    async def test_save(self, repositories, mmio_data, oca_uri):
+    async def test_save(self, repositories, csv_data, oca_uri):
         id = "http://example.com/1"
         user = user_factory()
         person = Person.from_user(user)
@@ -76,7 +78,7 @@ class TestDatasetsUsecases:
         repositories.persons.get = AsyncMock(return_value=person)
         repositories.catalogs.save = AsyncMock()
         repositories.datasets.get = AsyncMock(return_value=dataset)
-        repositories.files.read = AsyncMock(return_value=mmio_data)
+        repositories.files.read = AsyncMock(return_value=csv_data)
 
         usecase = DatasetsUsecases(repositories)
 
@@ -110,23 +112,8 @@ class TestDatasetsUsecases:
         ) in dataset.graph
         assert (
             metadata_uri,
-            URIRef(f"{oca_uri}patientFirstName"),
-            Literal("Deirdre"),
-        ) in dataset.graph
-        assert (
-            metadata_uri,
-            URIRef(f"{oca_uri}patientLastName"),
-            Literal("Patterson"),
-        ) in dataset.graph
-        assert (
-            metadata_uri,
-            URIRef(f"{oca_uri}patientHeight"),
-            Literal(174),
-        ) in dataset.graph
-        assert (
-            metadata_uri,
-            URIRef(f"{oca_uri}patientWeight"),
-            Literal(68),
+            URIRef(f"{oca_uri}hasAge"),
+            Literal(True),
         ) in dataset.graph
 
         assert catalog.get_attribute(DCAT.dataset) == dataset.uri
@@ -134,7 +121,7 @@ class TestDatasetsUsecases:
         assert result == dataset
 
     @pytest.mark.asyncio
-    async def test_save_with_new_publisher(self, repositories, mmio_data, oca_uri):
+    async def test_save_with_new_publisher(self, repositories, csv_data, oca_uri):
         id = "http://example.com/1"
         user = user_factory()
         catalog = Catalog.create("Test title", "Test description")
@@ -145,7 +132,7 @@ class TestDatasetsUsecases:
         repositories.persons.get = AsyncMock(side_effect=NodeDoesNotExist)
         repositories.catalogs.save = AsyncMock()
         repositories.datasets.get = AsyncMock(return_value=dataset)
-        repositories.files.read = AsyncMock(return_value=mmio_data)
+        repositories.files.read = AsyncMock(return_value=csv_data)
 
         usecase = DatasetsUsecases(repositories)
 
@@ -159,7 +146,7 @@ class TestDatasetsUsecases:
         assert (publisher, RDF.type, FOAF.Person) in catalog.graph
 
     @pytest.mark.asyncio
-    async def test_save_if_it_is_shared_alredy(self, repositories, mmio_data, oca_uri):
+    async def test_save_if_it_is_shared_alredy(self, repositories, csv_data, oca_uri):
         id = "http://example.com/1"
         user = user_factory()
         catalog = Catalog.create("Test title", "Test description")
@@ -171,7 +158,7 @@ class TestDatasetsUsecases:
         repositories.persons.get = AsyncMock(side_effect=NodeDoesNotExist)
         repositories.catalogs.save = AsyncMock()
         repositories.datasets.get = AsyncMock(return_value=dataset)
-        repositories.files.read = AsyncMock(return_value=mmio_data)
+        repositories.files.read = AsyncMock(return_value=csv_data)
 
         usecase = DatasetsUsecases(repositories)
 

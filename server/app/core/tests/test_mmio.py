@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import polars as pl
 import pytest
 
@@ -13,7 +15,8 @@ def default_schema_uri():
 class TestMMIO:
     @pytest.fixture
     def csv_data(self):
-        return b"name,surname,height,weight\nDeirdre,Patterson,174,68\n"
+        file_path = Path(__file__).parent / "fixtures" / "mmio.csv"
+        return file_path.read_bytes()
 
     @pytest.fixture
     def mmio_instance(self, csv_data):
@@ -27,26 +30,100 @@ class TestMMIO:
         assert isinstance(data.records[0], pl.DataFrame)
 
         df = data.records[0]
-        assert df.shape == (1, 4)
-        assert df.columns == ["name", "surname", "height", "weight"]
-        assert df[0, "name"] == "Deirdre"
-        assert df[0, "surname"] == "Patterson"
-        assert df[0, "height"] == 174
-        assert df[0, "weight"] == 68
+        assert df.shape == (1, 20)
+        assert df.columns == [
+            "age",
+            "sex",
+            "gender",
+            "ethnicity",
+            "previous_myocardial_infarction",
+            "stroke",
+            "chronic_obstructive_pulmonary_disease",
+            "asthma",
+            "atrial_fibrillation",
+            "peripheral_artery_disease",
+            "hypertension",
+            "diabetes",
+            "hypercholesterolemia",
+            "chronic_kidney_disease",
+            "height",
+            "waist_hip_ratio",
+            "waist_height_ratio",
+            "sbp",
+            "pulse_rate",
+            "smoking_history",
+        ]
+
+        assert df[0, "age"] is True
+        assert df[0, "sex"] is True
+        assert df[0, "gender"] is True
+        assert df[0, "ethnicity"] is False
+        assert df[0, "previous_myocardial_infarction"] is True
+        assert df[0, "stroke"] is True
+        assert df[0, "chronic_obstructive_pulmonary_disease"] is True
+        assert df[0, "asthma"] is True
+        assert df[0, "atrial_fibrillation"] is False
+        assert df[0, "peripheral_artery_disease"] is False
+        assert df[0, "hypertension"] is True
+        assert df[0, "diabetes"] is True
+        assert df[0, "hypercholesterolemia"] is True
+        assert df[0, "chronic_kidney_disease"] is False
+        assert df[0, "height"] is True
+        assert df[0, "waist_hip_ratio"] is True
+        assert df[0, "waist_height_ratio"] is False
+        assert df[0, "sbp"] is False
+        assert df[0, "pulse_rate"] is False
+        assert df[0, "smoking_history"] is False
 
     def test_mmio_transform(self, mmio_instance, default_schema_uri):
         transformed = mmio_instance.transform_to(default_schema_uri)
-        assert transformed.records[0].columns == [
-            "patientFirstName",
-            "patientLastName",
-            "patientHeight",
-            "patientWeight",
-        ]
+
         df = transformed.records[0]
-        assert df[0, "patientFirstName"] == "Deirdre"
-        assert df[0, "patientLastName"] == "Patterson"
-        assert df[0, "patientHeight"] == 174
-        assert df[0, "patientWeight"] == 68
+        assert df.shape == (1, 20)
+
+        assert df.columns == [
+            "hasAge",
+            "hasSex",
+            "hasGender",
+            "hasEthnicity",
+            "hasMyocardialInfarction",
+            "hasStroke",
+            "hasCOPD",
+            "hasAsthma",
+            "hasAtrialFibrillation",
+            "hasPeripheralArteryDisease",
+            "hasHypertension",
+            "hasDiabetes",
+            "hasHypercholesterolemia",
+            "hasChronicKidneyDisease",
+            "hasHeight",
+            "hasWaistHipRatio",
+            "hasWaistHeightRatio",
+            "hasSystolicBloodPressure",
+            "hasPulseRate",
+            "hasSmokingHistory",
+        ]
+
+        assert df[0, "hasAge"] is True
+        assert df[0, "hasSex"] is True
+        assert df[0, "hasGender"] is True
+        assert df[0, "hasEthnicity"] is False
+        assert df[0, "hasMyocardialInfarction"] is True
+        assert df[0, "hasStroke"] is True
+        assert df[0, "hasCOPD"] is True
+        assert df[0, "hasAsthma"] is True
+        assert df[0, "hasAtrialFibrillation"] is False
+        assert df[0, "hasPeripheralArteryDisease"] is False
+        assert df[0, "hasHypertension"] is True
+        assert df[0, "hasDiabetes"] is True
+        assert df[0, "hasHypercholesterolemia"] is True
+        assert df[0, "hasChronicKidneyDisease"] is False
+        assert df[0, "hasHeight"] is True
+        assert df[0, "hasWaistHipRatio"] is True
+        assert df[0, "hasWaistHeightRatio"] is False
+        assert df[0, "hasSystolicBloodPressure"] is False
+        assert df[0, "hasPulseRate"] is False
+        assert df[0, "hasSmokingHistory"] is False
 
 
 def test_mmio_data_to_entities(default_schema_uri):
