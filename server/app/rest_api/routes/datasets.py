@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from classy_fastapi import Routable, delete, get, post
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Path, status
 
 from app.core import entities, usecases
 from app.core.exceptions import NodeDoesNotExist
@@ -42,11 +42,15 @@ class DatasetsRoutes(Routable):
     )
     async def save_dataset(
         self,
-        filename: str,
         dataset: Dataset,
         user: Annotated[entities.User, Depends(get_user)],
         usecases: usecases.DatasetsUsecases = Depends(get_usecases),
         settings: Settings = Depends(get_settings),
+        filename: str = Path(
+            ...,
+            description="The name of the uploaded MMIO file.",
+            examples=["mmio-sample.csv"],
+        ),
     ) -> JSONLDResponse:
         """Create or update a dataset"""
 

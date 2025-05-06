@@ -98,11 +98,9 @@ class CatalogRoutes(Routable):
             {
               "dcat:dataset": {
                 "extraMetadata": {
-                  "@type": "med:Diagnoses",
-                  "med:hasDiagnosis": {
-                    "@type": "med:Diagnosis",
-                    "med:code": "I10"
-                  }
+                  "@type": "med:Record",
+                  "med:hasAsthma": true,
+                  "med:hasSex": true
                 }
               }
             }
@@ -149,92 +147,56 @@ class CatalogRoutes(Routable):
             {
                 "dcat:dataset": {
                     "extraMetadata": {
-                        "@type": "med:Patient",
-                        "med:height": {
-                            "@value": "180",
-                            "@type": "xsd:integer"
+                        "@type": "med:Record",
+                        "med:hasAsthma": {
+                            "@type": "xsd:boolean",
+                            "@value": true
                         }
                     }
                 }
             }
         ```
 
-        - <b>Incomplete filter structure:</b> All datasets with diagnosis code I10
-        will be found.
+        - <b>Incomplete filter structure:</b> All datasets with hasAsthma=true will
+        be found.
         ```json
             {
-                "@type": "med:Diagnosis",
-                "med:code": "I10"
-            }
-        ```
-        ```json
-            {
-                "@type": "med:Diagnoses",
-                "med:hasDiagnosis": {
-                    "@type": "med:Diagnosis",
-                    "med:code": "I10"
-                }
+                "@type": "med:Record",
+                "med:hasAsthma": true
             }
         ```
 
-        - <b>Multiple conditions:</b> All datasets with identifier 123 <b>AND</b>
-        diagnosis code I10 will be found.
+        - <b>Multiple conditions:</b> All datasets with identifier=123 <b>AND</b>
+        hasAsthma=true <b>AND</b> hasSex=true will be found.
         ```json
             {
                 "dcat:dataset": {
                     "dcterms:identifier": "123",
                     "extraMetadata": {
-                        "@type": "med:Diagnoses",
-                        "med:hasDiagnosis": {
-                            "@type": "med:Diagnosis",
-                            "med:code": "I10"
-                        }
+                        "@type": "med:Record",
+                        "med:hasAsthma": true,
+                        "med:hasSex": true
                     }
                 }
             }
         ```
 
-        - <b>Multiple conditions:</b> All datasets with patient height 180 <b>AND</b>
-        diagnosis code I10 will be found.
+        - <b>Multiple values:</b> All datasets will be found for which the attribute
+        hasAsthma is true <b>OR</b> false.
         ```json
             {
                 "dcat:dataset": {
                     "extraMetadata": [
                         {
-                            "@type": "med:Patient",
-                            "med:height": {
-                                "@value": "180",
-                                "@type": "xsd:integer"
-                            }
-                        },
-                        {
-                            "@type": "med:Diagnoses",
-                            "med:hasDiagnosis": {
-                                "@type": "med:Diagnosis",
-                                "med:code": "I10"
-                            }
-                        }
-                    ]
-                }
-            }
-        ```
-
-        - <b>Multiple values:</b> All datasets will be found for which the patient's
-        height is 190 <b>OR</b> 180.
-        ```json
-            {
-                "dcat:dataset": {
-                    "extraMetadata": [
-                        {
-                            "@type": "med:Patient",
-                            "med:height": [
+                            "@type": "med:Record",
+                            "med:hasAsthma": [
                                 {
-                                    "@value": "190",
-                                    "@type": "xsd:integer"
+                                    "@value": true,
+                                    "@type": "xsd:boolean"
                                 },
                                 {
-                                    "@value": "180",
-                                    "@type": "xsd:integer"
+                                    "@value": false,
+                                    "@type": "xsd:boolean"
                                 }
                             ]
                         }

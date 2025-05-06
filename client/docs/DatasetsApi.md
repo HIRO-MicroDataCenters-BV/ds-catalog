@@ -171,7 +171,7 @@ configuration = ds_catalog.Configuration(
 with ds_catalog.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = ds_catalog.DatasetsApi(api_client)
-    filename = 'filename_example' # str | 
+    filename = 'filename_example' # str | The name of the uploaded MMIO file.
     request_body = None # Dict[str, object] | 
 
     try:
@@ -190,7 +190,7 @@ with ds_catalog.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **filename** | **str**|  | 
+ **filename** | **str**| The name of the uploaded MMIO file. | 
  **request_body** | [**Dict[str, object]**](object.md)|  | 
 
 ### Return type

@@ -17,8 +17,9 @@ from pydantic import validate_call, Field, StrictFloat, StrictStr, StrictInt
 from typing import Any, Dict, List, Optional, Tuple, Union
 from typing_extensions import Annotated
 
-from pydantic import StrictStr
+from pydantic import Field, StrictStr
 from typing import Any, Dict
+from typing_extensions import Annotated
 
 from ds_catalog.api_client import ApiClient, RequestSerialized
 from ds_catalog.api_response import ApiResponse
@@ -570,7 +571,7 @@ class DatasetsApi:
     @validate_call
     def save_dataset(
         self,
-        filename: StrictStr,
+        filename: Annotated[StrictStr, Field(description="The name of the uploaded MMIO file.")],
         request_body: Dict[str, Any],
         _request_timeout: Union[
             None,
@@ -589,7 +590,7 @@ class DatasetsApi:
 
         Create or update a dataset
 
-        :param filename: (required)
+        :param filename: The name of the uploaded MMIO file. (required)
         :type filename: str
         :param request_body: (required)
         :type request_body: Dict[str, object]
@@ -642,7 +643,7 @@ class DatasetsApi:
     @validate_call
     def save_dataset_with_http_info(
         self,
-        filename: StrictStr,
+        filename: Annotated[StrictStr, Field(description="The name of the uploaded MMIO file.")],
         request_body: Dict[str, Any],
         _request_timeout: Union[
             None,
@@ -661,7 +662,7 @@ class DatasetsApi:
 
         Create or update a dataset
 
-        :param filename: (required)
+        :param filename: The name of the uploaded MMIO file. (required)
         :type filename: str
         :param request_body: (required)
         :type request_body: Dict[str, object]
@@ -714,7 +715,7 @@ class DatasetsApi:
     @validate_call
     def save_dataset_without_preload_content(
         self,
-        filename: StrictStr,
+        filename: Annotated[StrictStr, Field(description="The name of the uploaded MMIO file.")],
         request_body: Dict[str, Any],
         _request_timeout: Union[
             None,
@@ -733,7 +734,7 @@ class DatasetsApi:
 
         Create or update a dataset
 
-        :param filename: (required)
+        :param filename: The name of the uploaded MMIO file. (required)
         :type filename: str
         :param request_body: (required)
         :type request_body: Dict[str, object]
