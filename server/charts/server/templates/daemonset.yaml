@@ -37,10 +37,9 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: kubernetes.io/role
-                    operator: NotIn
-                    values:
-                      - master
+                  # Exclude control-plane nodes
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
         {{- end }}
       containers:
         - name: {{ .Chart.Name }}
