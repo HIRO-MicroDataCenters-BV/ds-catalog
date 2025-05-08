@@ -1,77 +1,64 @@
 {{- if eq .Values.deploymentMode "daemonset" }}
-# This is a DaemonSet
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: {{ include "app.fullname" . }}
+  namespace: nextgen
   labels:
-    {{- include "app.labels" . | nindent 4 }}
+    app: {{ include "app.name" . }}
 spec:
   selector:
     matchLabels:
-      {{- include "app.selectorLabels" . | nindent 6 }}
+      app: {{ include "app.name" . }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
-        {{- include "app.labels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
+        app: {{ include "app.name" . }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "app.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        - name: {{ .Values.image.pullSecret }}
+
       affinity:
-        {{- if .Values.affinity }}
-        {{- toYaml .Values.affinity | nindent 8 }}
-        {{- else }}
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  # Exclude control-plane nodes
                   - key: node-role.kubernetes.io/control-plane
                     operator: DoesNotExist
-        {{- end }}
-      containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: {{ include "app.name" . | lower }}
+                topologyKey: kubernetes.io/hostname
+
+      {{- if .Values.migrate.enabled }}
+      initContainers:
+        - name: migrate-db
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command: {{ .Values.container.command }}
-          args:
-            {{- toYaml .Values.container.args | nindent 12 }}
+          command: ["sh", "-c", "poetry run python -m app.migrate_db"]
+          env:
+            {{- include "app.commonEnv" . | nindent 12 }}
+      {{- end }}
+
+      containers:
+        - name: catalog
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: {{ toYaml .Values.container.command | nindent 12 }}
+          args: {{ toYaml .Values.container.args | nindent 12 }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
-              protocol: TCP
-          livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
-          readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+              hostPort: {{ .Values.service.port }}
           env:
             {{- include "app.commonEnv" . | nindent 12 }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+          resources:
+
+            {{- toYaml .Values.resources | nindent 12 }}
 {{- end }}

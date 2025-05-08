@@ -5,7 +5,7 @@ image:
   tag: ""
   pullPolicy: IfNotPresent
 
-imagePullSecrets: []
+imagePullSecrets: ""
 nameOverride: ""
 fullnameOverride: "ds-catalog"
 
@@ -50,7 +50,7 @@ catalog:
 database:
   protocol: bolt
   # host: "my-neo4j-semantics.nextgen.svc.cluster.local"  # Full DNS
-  host: "localhost"
+  host: "127.0.0.1"
   port: 7687
   name: neo4j
   username: neo4j
