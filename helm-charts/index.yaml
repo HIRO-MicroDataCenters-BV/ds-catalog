@@ -52,6 +52,16 @@ entries:
     - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.1.1-dev.103.feature-validato.45a14b71.tgz
     version: 0.1.1-dev.103.feature-validato.45a14b71
   - apiVersion: v2
+    appVersion: 0.1.1-dev.103.develop.755a8c0a
+    created: "2025-05-09T13:15:18.270775171Z"
+    description: Data Space Catalog
+    digest: 62ab50ab370717a5575b2537191ea11bb5f0d9b0c81152c3923d0d44e31c31a8
+    name: ds-catalog
+    type: application
+    urls:
+    - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.1.1-dev.103.develop.755a8c0a.tgz
+    version: 0.1.1-dev.103.develop.755a8c0a
+  - apiVersion: v2
     appVersion: 0.1.1-dev.102.feature-validato.240e68e9
     created: "2025-05-09T11:58:50.23180367Z"
     description: Data Space Catalog
@@ -1021,4 +1031,4 @@ entries:
     urls:
     - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.1.0-dev.1.main.9da9e949.tgz
     version: 0.1.0-dev.1.main.9da9e949
-generated: "2025-05-09T12:04:29.554285815Z"
+generated: "2025-05-09T13:15:18.270197468Z"
