@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from rdflib import DCTERMS
 
 from app.core.entities import Catalog, CatalogFilters
-from app.core.exceptions import ErrorConstructingQuery
+from app.core.exceptions import ErrorConstructingQuery, GraphValidationError
 from app.core.tests.factories import user_factory
 from app.rest_api.depends import get_user
 
@@ -66,5 +66,26 @@ class TestCatalogRoutes:
 
         response = client.post("/catalog/", json={})
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert response.json() == {"detail": error_message}
+
+    def test_get_local_catalog_if_graph_is_not_valid(self):
+        error_code = "test_code"
+        error_message = "Test error"
+        details = [{"node": "some node"}]
+
+        error = GraphValidationError(error_code, error_message, details)
+        usecases.get_local_catalog = AsyncMock(side_effect=error)
+
+        response = client.post("/catalog/", json={})
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert response.json() == {
+            "detail": [
+                {
+                    "code": error_code,
+                    "message": error_message,
+                    "details": details,
+                }
+            ]
+        }

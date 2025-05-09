@@ -1,5 +1,5 @@
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
 from freezegun import freeze_time
@@ -7,7 +7,7 @@ from rdflib import DCAT, DCTERMS, FOAF, RDF, Literal, URIRef
 
 from ..context import Context, SaveDatasetContext
 from ..entities import Catalog, Dataset, Metadata, Person
-from ..exceptions import NodeDoesNotExist
+from ..exceptions import GraphValidationError, NodeDoesNotExist
 from ..namespace import DSPACE
 from ..repository.queries import FilterDatasetByID, FilterPersonByID
 from ..repository.query_builder import catalog_filter_to_query
@@ -20,13 +20,28 @@ from ..usecases import (
 from .factories import catalog_filters_factory, namespace_factory, user_factory
 
 
+@pytest.fixture
+def validator_instance():
+    validator_instance = MagicMock()
+    validator_instance.validate = Mock(return_value=None)
+    return validator_instance
+
+
+@pytest.fixture
+def validator_class(validator_instance):
+    ValidatorClass = MagicMock(return_value=validator_instance)
+    return ValidatorClass
+
+
 class TestCatalogUsecases:
     @pytest.fixture
     def repositories(self):
         return Mock()
 
     @pytest.mark.asyncio
-    async def test_get_local_catalog(self, repositories):
+    async def test_get_local_catalog(
+        self, repositories, validator_class, validator_instance
+    ):
         expected_result = Mock()
         namespaces = namespace_factory()
 
@@ -37,15 +52,41 @@ class TestCatalogUsecases:
 
         filters = catalog_filters_factory()
         context = Context(user=user_factory())
-        result = await usecase.get_local_catalog(filters, context)
+        result = await usecase.get_local_catalog(
+            filters,
+            context,
+            validator_class=validator_class,
+        )
 
         assert result == expected_result
+
+        validator_class.assert_called_once_with()
+        validator_instance.validate.assert_called_once_with(filters)
 
         repositories.get_namespaces.assert_called_once()
         repositories.catalogs.get.assert_called_once()
 
         [query] = repositories.catalogs.get.call_args[0]
         assert query == catalog_filter_to_query(filters, namespaces)
+
+    @pytest.mark.asyncio
+    async def test_get_local_catalog_if_graph_is_not_valid(
+        self, repositories, validator_class, validator_instance
+    ):
+        error = GraphValidationError("test_code", "Test error", [])
+        validator_instance.validate = Mock(side_effect=error)
+
+        usecase = CatalogUsecases(repositories)
+
+        filters = catalog_filters_factory()
+        context = Context(user=user_factory())
+
+        with pytest.raises(GraphValidationError):
+            await usecase.get_local_catalog(
+                filters,
+                context,
+                validator_class=validator_class,
+            )
 
 
 class TestDatasetsUsecases:
@@ -59,14 +100,25 @@ class TestDatasetsUsecases:
         return file_path.read_bytes()
 
     @pytest.fixture
-    def oca_uri(self):
-        return "http://oca.example.org/123/"
+    def user(self):
+        return user_factory()
+
+    @pytest.fixture
+    def context(self, user):
+        return SaveDatasetContext(
+            user=user,
+            oca_uri="http://oca.example.org/123/",
+            shacl_url="http://example.org/shacl.ttl",
+            ontology_url="http://example.org/dcat.ttl",
+        )
 
     @freeze_time("2017-05-21T09:23:00+00:00")
     @pytest.mark.asyncio
-    async def test_save(self, repositories, csv_data, oca_uri):
+    async def test_save(
+        self, repositories, csv_data, context, validator_class, validator_instance
+    ):
         id = "http://example.com/1"
-        user = user_factory()
+        user = context["user"]
         person = Person.from_user(user)
         catalog = Catalog.create("Test title", "Test description")
         dataset = Dataset.create_empty(id)
@@ -82,8 +134,20 @@ class TestDatasetsUsecases:
 
         usecase = DatasetsUsecases(repositories)
 
-        context = SaveDatasetContext(user=user, oca_uri=oca_uri)
-        result = await usecase.save(dataset, filename, context)
+        result = await usecase.save(
+            dataset,
+            filename,
+            context,
+            validator_class=validator_class,
+        )
+
+        assert result == dataset
+
+        validator_class.assert_called_once_with(
+            shacl_url=context["shacl_url"],
+            ontology_url=context["ontology_url"],
+        )
+        validator_instance.validate.assert_called_once_with(dataset)
 
         repositories.catalogs.get.assert_called_once_with()
         repositories.persons.get.assert_called_once()
@@ -102,6 +166,7 @@ class TestDatasetsUsecases:
 
         assert result.get_attribute(DSPACE.metadataFilename) == Literal(filename)
 
+        oca_uri = context["oca_uri"]
         metadata_uri = Metadata.build_uri(oca_uri, f"{mmio_id}/0", 0)
         assert result.get_attribute(DSPACE.extraMetadata) == metadata_uri
 
@@ -118,12 +183,11 @@ class TestDatasetsUsecases:
 
         assert catalog.get_attribute(DCAT.dataset) == dataset.uri
 
-        assert result == dataset
-
     @pytest.mark.asyncio
-    async def test_save_with_new_publisher(self, repositories, csv_data, oca_uri):
+    async def test_save_with_new_publisher(
+        self, repositories, csv_data, context, validator_class
+    ):
         id = "http://example.com/1"
-        user = user_factory()
         catalog = Catalog.create("Test title", "Test description")
         dataset = Dataset.create_empty(id)
         dataset.set_attribute(DCTERMS.identifier, id)
@@ -136,19 +200,24 @@ class TestDatasetsUsecases:
 
         usecase = DatasetsUsecases(repositories)
 
-        context = SaveDatasetContext(user=user, oca_uri=oca_uri)
-        result = await usecase.save(dataset, "test_file.mmio", context)
+        result = await usecase.save(
+            dataset,
+            "test_file.mmio",
+            context,
+            validator_class=validator_class,
+        )
 
         assert result == dataset
 
-        publisher = URIRef(user["id"])
+        publisher = URIRef(context["user"]["id"])
         assert result.get_attribute(DCTERMS.publisher) == publisher
         assert (publisher, RDF.type, FOAF.Person) in catalog.graph
 
     @pytest.mark.asyncio
-    async def test_save_if_it_is_shared_alredy(self, repositories, csv_data, oca_uri):
+    async def test_save_if_it_is_shared_alredy(
+        self, repositories, csv_data, context, validator_class
+    ):
         id = "http://example.com/1"
-        user = user_factory()
         catalog = Catalog.create("Test title", "Test description")
         dataset = Dataset.create_empty(id)
         dataset.set_attribute(DCTERMS.identifier, id)
@@ -162,11 +231,34 @@ class TestDatasetsUsecases:
 
         usecase = DatasetsUsecases(repositories)
 
-        context = SaveDatasetContext(user=user, oca_uri=oca_uri)
-        result = await usecase.save(dataset, "test_file.mmio", context)
+        result = await usecase.save(
+            dataset,
+            "test_file.mmio",
+            context,
+            validator_class=validator_class,
+        )
 
         assert result == dataset
         assert result.get_attribute(DSPACE.isShared) == Literal(True)
+
+    @pytest.mark.asyncio
+    async def test_save_if_graph_is_not_valid(
+        self, repositories, context, validator_class, validator_instance
+    ):
+        error = GraphValidationError("test_code", "Test error", [])
+        validator_instance.validate = Mock(side_effect=error)
+
+        usecase = DatasetsUsecases(repositories)
+
+        dataset = Dataset.create_empty("test-id")
+
+        with pytest.raises(GraphValidationError):
+            await usecase.save(
+                dataset,
+                "test.csv",
+                context,
+                validator_class=validator_class,
+            )
 
     @pytest.mark.asyncio
     async def test_get(self, repositories):

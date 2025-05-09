@@ -1,7 +1,11 @@
+from typing import Callable
+
 from abc import ABC, abstractmethod
 
 from pyshacl import validate as pyshacl_validate
-from rdflib import DCAT, URIRef
+from rdflib import DCAT
+from rdflib import Graph as RDFGraph
+from rdflib import URIRef
 from rdflib.namespace import RDF, SH
 
 from .entities import Graph
@@ -80,15 +84,17 @@ class SHACLValidator(IValidator):
         self,
         shacl_url: str | None = None,
         ontology_url: str | None = None,
+        shacl_validator: Callable[..., tuple[bool, RDFGraph, str]] = pyshacl_validate,
     ) -> None:
-        self.shacl_url = shacl_url
-        self.ontology_url = ontology_url
+        self._shacl_url = shacl_url
+        self._ontology_url = ontology_url
+        self._shacl_validator = shacl_validator
 
     def validate(self, entity: Graph) -> None:
-        r = pyshacl_validate(
+        r = self._shacl_validator(
             entity.graph,
-            shacl_graph=self.shacl_url,
-            ont_graph=self.ontology_url,
+            shacl_graph=self._shacl_url,
+            ont_graph=self._ontology_url,
             inference="rdfs",
             abort_on_first=False,
             allow_infos=False,
@@ -105,7 +111,8 @@ class SHACLValidator(IValidator):
             for result in results_graph.subjects(RDF.type, SH.ValidationResult):
                 error = {}
                 for p, o in results_graph.predicate_objects(subject=result):
-                    pred = p.split("#")[-1] if "#" in p else p.split("/")[-1]
+                    p_ = str(p)
+                    pred = p_.split("#")[-1] if "#" in p_ else p_.split("/")[-1]
                     error[pred] = str(o)
                 errors.append(error)
 
@@ -118,7 +125,7 @@ class SHACLValidator(IValidator):
 
 class BaseValidatorService(IValidatorService):
     def get_validators(self) -> list[IValidator]:
-        if not hasattr(self, "validators") or self.validators is None:
+        if not hasattr(self, "validators") or len(self.validators) == 0:
             raise RuntimeError(
                 "No validators configured. Please ensure 'validators' are set."
             )
