@@ -2,9 +2,10 @@ from typing import Annotated
 
 from classy_fastapi import Routable, post
 from fastapi import Depends, HTTPException, status
+from fastapi.exceptions import RequestValidationError
 
 from app.core import entities, usecases
-from app.core.exceptions import ErrorConstructingQuery
+from app.core.exceptions import ErrorConstructingQuery, GraphValidationError
 from app.core.repository import Repositories
 
 from ..depends import get_repositories, get_user
@@ -206,16 +207,29 @@ class CatalogRoutes(Routable):
         ```
 
         """
+
+        filters_entity = filters.to_entity()
+
         try:
-            filters_entity = filters.to_entity()
             entity = await usecases.get_local_catalog(
                 filters_entity, context={"user": user}
             )
         except ErrorConstructingQuery as err:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=str(err),
             )
+        except GraphValidationError as err:
+            raise RequestValidationError(
+                errors=[
+                    {
+                        "code": err.code,
+                        "message": err.message,
+                        "details": err.details,
+                    }
+                ]
+            )
+
         return JSONLDResponse(entity)
 
 

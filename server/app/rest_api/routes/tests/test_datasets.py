@@ -5,9 +5,10 @@ from fastapi.testclient import TestClient
 from rdflib import DCTERMS
 
 from app.core.entities import Dataset
-from app.core.exceptions import NodeDoesNotExist
+from app.core.exceptions import GraphValidationError, NodeDoesNotExist
 from app.core.tests.factories import user_factory
 from app.rest_api.depends import get_user
+from app.rest_api.strings import FILE_NOT_FOUND
 from app.settings import Settings, get_settings
 
 from ..datasets import get_usecases, routes
@@ -15,6 +16,9 @@ from ..datasets import get_usecases, routes
 usecases = Mock()
 
 oca_uri = "http://oca.example.org/123/"
+shacl_url = "http://example.org/shacl.ttl"
+ontology_url = "http://example.org/dcat.ttl"
+
 user = user_factory()
 
 dataset = Dataset.create_empty("http://example.com/1")
@@ -23,7 +27,11 @@ dataset.set_attribute(DCTERMS.title, "Test Dataset")
 
 
 def override_get_settings():
-    return Settings(oca_uri=oca_uri)
+    return Settings(
+        oca_uri=oca_uri,
+        shacl_url=shacl_url,
+        ontology_url=ontology_url,
+    )
 
 
 def override_get_user():
@@ -68,6 +76,39 @@ class TestDatasetsRoutes:
         assert usecases.save.call_args[1]["context"] == {
             "user": user,
             "oca_uri": oca_uri,
+            "shacl_url": shacl_url,
+            "ontology_url": ontology_url,
+        }
+
+    def test_save_dataset_if_file_not_found(self):
+        usecases.save = AsyncMock(side_effect=FileNotFoundError)
+
+        data = dataset.to_json_ld()
+        response = client.post("/datasets/test.csv/", content=data)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"detail": FILE_NOT_FOUND}
+
+    def test_save_dataset_if_graph_is_not_valid(self):
+        error_code = "test_code"
+        error_message = "Test error"
+        details = [{"node": "some node"}]
+
+        error = GraphValidationError(error_code, error_message, details)
+        usecases.save = AsyncMock(side_effect=error)
+
+        data = dataset.to_json_ld()
+        response = client.post("/datasets/test.csv/", content=data)
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert response.json() == {
+            "detail": [
+                {
+                    "code": error_code,
+                    "message": error_message,
+                    "details": details,
+                }
+            ]
         }
 
     def test_get_dataset(self):

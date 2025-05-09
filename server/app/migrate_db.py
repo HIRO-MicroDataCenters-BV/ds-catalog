@@ -67,7 +67,7 @@ async def configure_db(db_driver: DatabaseDriver) -> None:
 
 async def upload_ontology(db_driver: DatabaseDriver) -> None:
     await db_driver.execute_query(
-        'CALL n10s.onto.import.fetch("https://www.w3.org/ns/dcat.ttl", "Turtle");'
+        f'CALL n10s.onto.import.fetch("{settings.ontology_url}", "Turtle");'
     )
 
 
