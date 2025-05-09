@@ -3,8 +3,15 @@ from rdflib import DCAT, DCTERMS, RDF, Literal, URIRef
 from app.core import entities
 from app.core.namespace import DSPACE
 
-from ..serializers import CatalogFilters, Dataset, HealthCheck
+from ..serializers import CatalogFilters, Dataset, ErrorResponse, HealthCheck
 from .factories import UserFactory
+
+
+class TestErrorResponse:
+    def test_common(self) -> None:
+        error_message = "Test error"
+        error_response = ErrorResponse(detail=error_message)
+        assert error_response.detail == error_message
 
 
 class TestHealthCheck:

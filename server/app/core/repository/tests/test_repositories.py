@@ -275,23 +275,23 @@ class TestFilesRepository:
             await repository.create(file_mock, filename)
 
     @pytest.mark.asyncio
-    async def test_get_success(self, tmp_path):
+    async def test_get_file_path_success(self, tmp_path):
         filename = "testfile.txt"
         file_path = tmp_path / filename
         file_path.touch()
 
         repository = FilesRepository(upload_folder=str(tmp_path))
-        result = await repository.get(filename)
+        result = await repository.get_file_path(filename)
 
         assert result == str(file_path)
 
     @pytest.mark.asyncio
-    async def test_get_if_file_not_found(self, tmp_path):
+    async def test_get_file_path_if_file_not_found(self, tmp_path):
         filename = "testfile.txt"
         repository = FilesRepository(upload_folder=str(tmp_path))
 
         with pytest.raises(FileNotFoundError):
-            await repository.get(filename)
+            await repository.get_file_path(filename)
 
     @pytest.mark.asyncio
     async def test_delete_success(self, tmp_path):
@@ -311,6 +311,19 @@ class TestFilesRepository:
 
         with pytest.raises(FileNotFoundError):
             await repository.delete(filename)
+
+    @pytest.mark.asyncio
+    async def test_read_success(self, tmp_path):
+        filename = "testfile.txt"
+        file_path = tmp_path / filename
+        file_content = b"Test content"
+        with file_path.open("wb") as f:
+            f.write(file_content)
+
+        repository = FilesRepository(upload_folder=str(tmp_path))
+        result = await repository.read(filename)
+
+        assert result == file_content
 
 
 class TestRepositories:

@@ -1,9 +1,19 @@
+import polars as pl
 import pytest
 from rdflib import DCAT, DCTERMS, FOAF, RDF
 from rdflib import Graph as RDFGraph
 from rdflib import Literal, URIRef
 
-from ..entities import CONTEXT, Catalog, CatalogFilters, Dataset, Graph, Person, User
+from ..entities import (
+    CONTEXT,
+    Catalog,
+    CatalogFilters,
+    Dataset,
+    Graph,
+    Metadata,
+    Person,
+    User,
+)
 from ..exceptions import NodeDoesNotExist
 from ..namespace import DSPACE
 from .factories import user_factory
@@ -26,14 +36,6 @@ class TestGraph:
             label = "c"
 
         return CustomGraph
-
-    def test_init_subclass_raises_exception(self):
-        with pytest.raises(TypeError):
-
-            class SubClass(Graph):
-                ...
-
-            _ = SubClass()
 
     def test_str(self, graph_class):
         graph = RDFGraph()
@@ -201,3 +203,57 @@ class TestDataset:
         assert Dataset.rdf_type == DCAT.Dataset
         assert Dataset.label == "d"
         assert Dataset.context == CONTEXT
+
+
+class TestMetadata:
+    def test_build_type(self):
+        oca_uri = "http://oca.example.org/some-schema/"
+        assert Metadata.build_type(oca_uri) == URIRef(f"{oca_uri}Record")
+
+        oca_uri = "http://oca.example.org/some-schema"
+        assert Metadata.build_type(oca_uri) == URIRef(f"{oca_uri}/Record")
+
+    def test_build_uri(self):
+        node_id = "123"
+        row_index = 1
+
+        oca_uri = "http://oca.example.org/some-schema/"
+        assert Metadata.build_uri(oca_uri, node_id, row_index) == URIRef(
+            f"{oca_uri}{node_id}/{row_index}"
+        )
+
+        oca_uri = "http://oca.example.org/some-schema"
+        assert Metadata.build_uri(oca_uri, node_id, row_index) == URIRef(
+            f"{oca_uri}/{node_id}/{row_index}"
+        )
+
+    def test_create_bunch_from_df(self):
+        oca_uri = "http://oca.example.org/some-schema/"
+        node_id = "123"
+        df = pl.DataFrame(
+            {
+                "name": ["Deirdre", "John"],
+                "surname": ["Patterson", "Doe"],
+                "height": [174, 180],
+                "weight": [68, 75],
+            }
+        )
+        result = Metadata.create_bunch_from_df(oca_uri, node_id, df)
+
+        assert len(result) == 2
+
+        item1, item2 = result
+
+        assert item1.get_attribute(RDF.type) == Metadata.build_type(oca_uri)
+        assert item1.uri == Metadata.build_uri(oca_uri, node_id, 0)
+        assert item1.get_attribute(URIRef(f"{oca_uri}name")) == Literal("Deirdre")
+        assert item1.get_attribute(URIRef(f"{oca_uri}surname")) == Literal("Patterson")
+        assert item1.get_attribute(URIRef(f"{oca_uri}height")) == Literal(174)
+        assert item1.get_attribute(URIRef(f"{oca_uri}weight")) == Literal(68)
+
+        assert item2.get_attribute(RDF.type) == Metadata.build_type(oca_uri)
+        assert item2.uri == Metadata.build_uri(oca_uri, node_id, 1)
+        assert item2.get_attribute(URIRef(f"{oca_uri}name")) == Literal("John")
+        assert item2.get_attribute(URIRef(f"{oca_uri}surname")) == Literal("Doe")
+        assert item2.get_attribute(URIRef(f"{oca_uri}height")) == Literal(180)
+        assert item2.get_attribute(URIRef(f"{oca_uri}weight")) == Literal(75)

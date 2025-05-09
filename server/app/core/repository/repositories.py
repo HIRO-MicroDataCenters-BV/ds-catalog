@@ -75,11 +75,15 @@ class IFilesRepository(ABC):
         ...
 
     @abstractmethod
-    async def get(self, filename: str) -> str:
+    async def get_file_path(self, filename: str) -> str:
         ...
 
     @abstractmethod
     async def delete(self, filename: str) -> None:
+        ...
+
+    @abstractmethod
+    async def read(self, filename: str) -> bytes:
         ...
 
 
@@ -200,7 +204,7 @@ class FilesRepository(IFilesRepository):
         with file_path.open("wb") as f:
             f.write(file.read())
 
-    async def get(self, filename: str) -> str:
+    async def get_file_path(self, filename: str) -> str:
         file_path = self._get_file_path(filename)
         if not file_path.exists():
             raise FileNotFoundError(f"File {filename} not found")
@@ -211,6 +215,12 @@ class FilesRepository(IFilesRepository):
         if not file_path.exists():
             raise FileNotFoundError(f"File {filename} not found")
         file_path.unlink()
+
+    async def read(self, filename: str) -> bytes:
+        file_path = self._get_file_path(filename)
+        if not file_path.exists():
+            raise FileNotFoundError(f"File {filename} not found")
+        return file_path.read_bytes()
 
 
 # --- Repositories class ---

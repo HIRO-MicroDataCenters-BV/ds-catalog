@@ -8,8 +8,9 @@ from rdflib.namespace import DCTERMS
 
 from app.core.exceptions import NodeDoesNotExist
 
-from .context import Context
-from .entities import Catalog, CatalogFilters, Dataset, Person
+from .context import Context, SaveDatasetContext
+from .entities import Catalog, CatalogFilters, Dataset, Metadata, Person, User
+from .mmio import MMIO, mmio_data_to_entities
 from .namespace import DSPACE
 from .repository import Repositories
 from .repository.queries import FilterDatasetByID, FilterPersonByID
@@ -39,7 +40,9 @@ class ICatalogUsecases(IUsecases):
 
 class IDatasetsUsecases(IUsecases):
     @abstractmethod
-    async def save(self, data: Dataset, context: Context) -> Dataset:
+    async def save(
+        self, data: Dataset, filename: str, context: SaveDatasetContext
+    ) -> Dataset:
         ...
 
     @abstractmethod
@@ -89,7 +92,12 @@ class CatalogUsecases(BaseUsecases, ICatalogUsecases):
 
 
 class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
-    async def save(self, dataset: Dataset, context: Context) -> Dataset:
+    async def save(
+        self,
+        dataset: Dataset,
+        filename: str,
+        context: SaveDatasetContext,
+    ) -> Dataset:
         """Create or update a dataset"""
 
         # Get the local catalog
@@ -97,11 +105,14 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
 
         # Get or create the person
         user = context["user"]
-        query = FilterPersonByID(user["id"])
-        try:
-            person = await self.repositories.persons.get(query)
-        except NodeDoesNotExist:
-            person = Person.from_user(user)
+        person = await self._get_or_create_person(user)
+
+        # Add metadata from the MMIO file
+        metadata_items = await self._build_mmio_metadata(filename, context["oca_uri"])
+        for metadata in metadata_items:
+            dataset += metadata
+            dataset.set_attribute(DSPACE.extraMetadata, metadata.uri)
+        dataset.set_attribute(DSPACE.metadataFilename, filename)
 
         # Set the additional attributes for the dataset
         is_shared = dataset.get_attribute(DSPACE.isShared)
@@ -133,6 +144,23 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         query = FilterDatasetByID(id)
         await self.repositories.datasets.delete(query)
 
+    async def _build_mmio_metadata(
+        self, filename: str, schema_uri: str
+    ) -> list[Metadata]:
+        metadata = await self.repositories.files.read(filename)
+        mmio = MMIO(metadata)
+        mmio_id = filename  # TODO: Use a unique ID from the MMIO file
+        transformed_data = mmio.transform_to(schema_uri)
+        return mmio_data_to_entities(schema_uri, mmio_id, transformed_data)
+
+    async def _get_or_create_person(self, user: User) -> Person:
+        query = FilterPersonByID(user["id"])
+        try:
+            person = await self.repositories.persons.get(query)
+        except NodeDoesNotExist:
+            person = Person.from_user(user)
+        return person
+
 
 class DatasetSharingUsecases(BaseUsecases, IDatasetSharingUsecases):
     async def share(self, id: str, context: Context) -> None:
@@ -157,7 +185,7 @@ class MMIOsUsecases(BaseUsecases, IMMIOsUsecases):
 
     async def get(self, filename: str, context: Context) -> str:
         """Get a MMIO file"""
-        return await self.repositories.files.get(filename)
+        return await self.repositories.files.get_file_path(filename)
 
     async def delete(self, filename: str, context: Context) -> None:
         """Delete a MMIO file"""

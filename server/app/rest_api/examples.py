@@ -106,54 +106,85 @@ base_dataset_body_example: dict[str, Any] = {
         }
     ],
     "dcat:inSeries": {"@id": "https://example.com/series/541"},
-    "dspace:extraMetadata": [],
 }
 
 dataset_body_example: dict[str, Any] = {
     **base_dataset_body_example,
-    "dspace:extraMetadata": [
-        {
-            "@id": "https://example.com/metadata/1",
-            "@type": "http://med.example.org/Patient",
-            "http://med.example.org/birthDate": {
-                "@type": "xsd:string",
-                "@value": "1990-05-20",
-            },
-            "http://med.example.org/height": {"@type": "xsd:long", "@value": "180"},
-            "http://med.example.org/sex": {"@type": "xsd:string", "@value": "M"},
-            "http://med.example.org/weight": {"@type": "xsd:long", "@value": "75"},
+    "dspace:extraMetadata": {
+        "@id": "http://oca.example.org/123/mmio-sample.csv/0/0",
+        "@type": "http://oca.example.org/123/Record",
+        "http://oca.example.org/123/hasAge": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/hasAsthma": {
+            "@type": "xsd:boolean",
+            "@value": True,
         },
-        {
-            "@id": "https://example.com/metadata/2",
-            "@type": "http://med.example.org/Diagnoses",
-            "http://med.example.org/hasDiagnosis": [
-                {
-                    "@id": "https://example.com" "/diagnosis/1",
-                    "@type": "http://med.example.org/Diagnosis",
-                    "http://med.example.org/code": {
-                        "@type": "xsd:string",
-                        "@value": "I10",
-                    },
-                    "http://med.example.org/description": {
-                        "@type": "xsd:string",
-                        "@value": "Essential (primary) hypertension",
-                    },
-                },
-                {
-                    "@id": "https://example.com" "/diagnosis/2",
-                    "@type": "http://med.example.org/Diagnosis",
-                    "http://med.example.org/code": {
-                        "@type": "xsd:string",
-                        "@value": "E11",
-                    },
-                    "http://med.example.org/description": {
-                        "@type": "xsd:string",
-                        "@value": "Type 2 diabetes mellitus",
-                    },
-                },
-            ],
+        "http://oca.example.org/123/hasAtrialFibrillation": {
+            "@type": "xsd:boolean",
+            "@value": False,
         },
-    ],
+        "http://oca.example.org/123/hasCOPD": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/hasChronicKidneyDisease": {
+            "@type": "xsd:boolean",
+            "@value": False,
+        },
+        "http://oca.example.org/123/hasDiabetes": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/hasEthnicity": {
+            "@type": "xsd:boolean",
+            "@value": False,
+        },
+        "http://oca.example.org/123/hasGender": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/hasHeight": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/hasHypercholesterolemia": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/hasHypertension": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/hasMyocardialInfarction": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/hasPeripheralArteryDisease": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/hasPulseRate": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/hasSex": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/hasSmokingHistory": {
+            "@type": "xsd:boolean",
+            "@value": False,
+        },
+        "http://oca.example.org/123/hasStroke": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/hasSystolicBloodPressure": {
+            "@type": "xsd:boolean",
+            "@value": False,
+        },
+        "http://oca.example.org/123/hasWaistHeightRatio": {
+            "@type": "xsd:boolean",
+            "@value": False,
+        },
+        "http://oca.example.org/123/hasWaistHipRatio": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+    },
     "dcterms:issued": {"@type": "xsd:string", "@value": "2025-03-13"},
     "dcterms:publisher": {
         "@id": "https://example.com/person/123",
@@ -162,6 +193,7 @@ dataset_body_example: dict[str, Any] = {
     },
     "dspace:isShared": {"@type": "xsd:boolean", "@value": False},
     "dspace:isDeleted": {"@type": "xsd:boolean", "@value": False},
+    "dspace:metadataFilename": {"@type": "xsd:string", "@value": "mmio-sample.csv"},
 }
 
 dataset_example: dict[str, Any] = {
@@ -170,45 +202,8 @@ dataset_example: dict[str, Any] = {
 }
 
 dataset_input_example: dict[str, Any] = {
-    "@context": {
-        **context_example,
-        "med": "http://med.example.org/",
-    },
+    "@context": context_example,
     **base_dataset_body_example,
-    "dspace:extraMetadata": [
-        {
-            "@id": "https://example.com/metadata/1",
-            "@type": "med:Patient",
-            "med:birthDate": {"@type": "xsd:string", "@value": "1990-05-20"},
-            "med:height": {"@type": "xsd:long", "@value": "180"},
-            "med:sex": {"@type": "xsd:string", "@value": "M"},
-            "med:weight": {"@type": "xsd:long", "@value": "75"},
-        },
-        {
-            "@id": "https://example.com/metadata/2",
-            "@type": "med:Diagnoses",
-            "med:hasDiagnosis": [
-                {
-                    "@id": "https://example.com" "/diagnosis/1",
-                    "@type": "med:Diagnosis",
-                    "med:code": {"@type": "xsd:string", "@value": "I10"},
-                    "med:description": {
-                        "@type": "xsd:string",
-                        "@value": "Essential (primary) hypertension",
-                    },
-                },
-                {
-                    "@id": "https://example.com" "/diagnosis/2",
-                    "@type": "med:Diagnosis",
-                    "med:code": {"@type": "xsd:string", "@value": "E11"},
-                    "med:description": {
-                        "@type": "xsd:string",
-                        "@value": "Type 2 diabetes mellitus",
-                    },
-                },
-            ],
-        },
-    ],
 }
 
 catalog_example: dict[str, Any] = {
@@ -235,15 +230,16 @@ catalog_filters_example: dict[str, Any] = {
     "@context": {
         "@vocab": "http://data-space.org/",
         "dcat": "http://www.w3.org/ns/dcat#",
-        "med": "http://med.example.org/",
+        "med": "http://oca.example.org/123/",
     },
     "@type": "Filters",
     "filters": [
         {
             "dcat:dataset": {
                 "extraMetadata": {
-                    "@type": "med:Diagnoses",
-                    "med:hasDiagnosis": {"@type": "med:Diagnosis", "med:code": "I10"},
+                    "@type": "med:Record",
+                    "med:hasAsthma": True,
+                    "med:hasSex": True,
                 }
             }
         }
