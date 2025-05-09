@@ -8,16 +8,22 @@ from app.core.entities import Dataset
 from app.core.exceptions import NodeDoesNotExist
 from app.core.tests.factories import user_factory
 from app.rest_api.depends import get_user
+from app.settings import Settings, get_settings
 
 from ..datasets import get_usecases, routes
 
 usecases = Mock()
 
+oca_uri = "http://oca.example.org/123/"
 user = user_factory()
 
 dataset = Dataset.create_empty("http://example.com/1")
 dataset.set_attribute(DCTERMS.identifier, "1")
 dataset.set_attribute(DCTERMS.title, "Test Dataset")
+
+
+def override_get_settings():
+    return Settings(oca_uri=oca_uri)
 
 
 def override_get_user():
@@ -33,23 +39,36 @@ app.include_router(routes.router)
 
 app.dependency_overrides[get_user] = override_get_user
 app.dependency_overrides[get_usecases] = override_get_usecases
+app.dependency_overrides[get_settings] = override_get_settings
 
 client = TestClient(app)
 
 
 class TestDatasetsRoutes:
     def test_save_dataset(self):
+        filename = "test.csv"
         usecases.save = AsyncMock(return_value=dataset)
 
         data = dataset.to_json_ld()
-        response = client.post("/datasets/", content=data)
+        response = client.post(f"/datasets/{filename}/", content=data)
 
         assert response.status_code == status.HTTP_200_OK
         assert Dataset.from_json_ld(response.text) == dataset
 
         usecases.save.assert_called_once()
+
+        args = usecases.save.call_args[0]
+        kwargs = usecases.save.call_args[1]
+
+        assert len(args) == 2
+        assert len(kwargs) == 1
+
         assert usecases.save.call_args[0][0] == dataset
-        assert usecases.save.call_args[1]["context"] == {"user": user}
+        assert usecases.save.call_args[0][1] == filename
+        assert usecases.save.call_args[1]["context"] == {
+            "user": user,
+            "oca_uri": oca_uri,
+        }
 
     def test_get_dataset(self):
         usecases.get = AsyncMock(return_value=dataset)

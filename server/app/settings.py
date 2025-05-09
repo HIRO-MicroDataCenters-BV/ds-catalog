@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     test_database: Database = Database()
 
     catalog: Catalog = Catalog()
+    oca_uri: str = "http://oca.example.org/123/"
 
 
 def get_settings() -> Settings:

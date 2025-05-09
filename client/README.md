@@ -120,7 +120,7 @@ Class | Method | HTTP request | Description
 *CatalogApi* | [**get_catalog**](docs/CatalogApi.md#get_catalog) | **POST** /catalog/ | Get Local Catalog
 *DatasetsApi* | [**delete_dataset**](docs/DatasetsApi.md#delete_dataset) | **DELETE** /datasets/{id}/ | Delete Dataset
 *DatasetsApi* | [**get_dataset**](docs/DatasetsApi.md#get_dataset) | **GET** /datasets/{id}/ | Get Dataset
-*DatasetsApi* | [**save_dataset**](docs/DatasetsApi.md#save_dataset) | **POST** /datasets/ | Save Dataset
+*DatasetsApi* | [**save_dataset**](docs/DatasetsApi.md#save_dataset) | **POST** /datasets/{filename}/ | Save Dataset
 *MMIOApi* | [**delete_mmio_file**](docs/MMIOApi.md#delete_mmio_file) | **DELETE** /mmio/{filename}/ | Delete Mmio File
 *MMIOApi* | [**get_mmio_file**](docs/MMIOApi.md#get_mmio_file) | **GET** /mmio/{filename}/ | Get Mmio File
 *MMIOApi* | [**save_mmio_file**](docs/MMIOApi.md#save_mmio_file) | **POST** /mmio/ | Save Mmio File

@@ -37,6 +37,14 @@ readinessProbe:
     path: /health-check/
     port: http
 
+persistence:
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  storageClass: ""
+  mountPath: /code/uploads
+
 catalog:
   title: Catalog
   description: My Local Catalog

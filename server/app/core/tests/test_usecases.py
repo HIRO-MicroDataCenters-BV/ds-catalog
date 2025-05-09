@@ -1,11 +1,12 @@
+from pathlib import Path
 from unittest.mock import AsyncMock, Mock
 
 import pytest
 from freezegun import freeze_time
 from rdflib import DCAT, DCTERMS, FOAF, RDF, Literal, URIRef
 
-from ..context import Context
-from ..entities import Catalog, Dataset, Person
+from ..context import Context, SaveDatasetContext
+from ..entities import Catalog, Dataset, Metadata, Person
 from ..exceptions import NodeDoesNotExist
 from ..namespace import DSPACE
 from ..repository.queries import FilterDatasetByID, FilterPersonByID
@@ -52,25 +53,37 @@ class TestDatasetsUsecases:
     def repositories(self):
         return Mock()
 
+    @pytest.fixture
+    def csv_data(self):
+        file_path = Path(__file__).parent / "fixtures" / "mmio.csv"
+        return file_path.read_bytes()
+
+    @pytest.fixture
+    def oca_uri(self):
+        return "http://oca.example.org/123/"
+
     @freeze_time("2017-05-21T09:23:00+00:00")
     @pytest.mark.asyncio
-    async def test_save(self, repositories):
+    async def test_save(self, repositories, csv_data, oca_uri):
         id = "http://example.com/1"
         user = user_factory()
         person = Person.from_user(user)
         catalog = Catalog.create("Test title", "Test description")
         dataset = Dataset.create_empty(id)
         dataset.set_attribute(DCTERMS.identifier, id)
+        filename = "test_file.mmio"
+        mmio_id = filename
 
         repositories.catalogs.get = AsyncMock(return_value=catalog)
         repositories.persons.get = AsyncMock(return_value=person)
         repositories.catalogs.save = AsyncMock()
         repositories.datasets.get = AsyncMock(return_value=dataset)
+        repositories.files.read = AsyncMock(return_value=csv_data)
 
         usecase = DatasetsUsecases(repositories)
 
-        context = Context(user=user)
-        result = await usecase.save(dataset, context)
+        context = SaveDatasetContext(user=user, oca_uri=oca_uri)
+        result = await usecase.save(dataset, filename, context)
 
         repositories.catalogs.get.assert_called_once_with()
         repositories.persons.get.assert_called_once()
@@ -78,6 +91,7 @@ class TestDatasetsUsecases:
         repositories.catalogs.save.assert_called_once_with(catalog)
         repositories.datasets.get.assert_called_once()
         assert repositories.datasets.get.call_args[0][0] == FilterDatasetByID(id)
+        repositories.files.read.assert_called_once_with(filename)
 
         assert result.get_attribute(DSPACE.isDeleted) == Literal(False)
         assert result.get_attribute(DSPACE.isShared) == Literal(False)
@@ -86,12 +100,28 @@ class TestDatasetsUsecases:
         )
         assert result.get_attribute(DCTERMS.publisher) == person.uri
 
+        assert result.get_attribute(DSPACE.metadataFilename) == Literal(filename)
+
+        metadata_uri = Metadata.build_uri(oca_uri, f"{mmio_id}/0", 0)
+        assert result.get_attribute(DSPACE.extraMetadata) == metadata_uri
+
+        assert (
+            metadata_uri,
+            RDF.type,
+            Metadata.build_type(oca_uri),
+        ) in dataset.graph
+        assert (
+            metadata_uri,
+            URIRef(f"{oca_uri}hasAge"),
+            Literal(True),
+        ) in dataset.graph
+
         assert catalog.get_attribute(DCAT.dataset) == dataset.uri
 
         assert result == dataset
 
     @pytest.mark.asyncio
-    async def test_save_with_new_publisher(self, repositories):
+    async def test_save_with_new_publisher(self, repositories, csv_data, oca_uri):
         id = "http://example.com/1"
         user = user_factory()
         catalog = Catalog.create("Test title", "Test description")
@@ -102,11 +132,12 @@ class TestDatasetsUsecases:
         repositories.persons.get = AsyncMock(side_effect=NodeDoesNotExist)
         repositories.catalogs.save = AsyncMock()
         repositories.datasets.get = AsyncMock(return_value=dataset)
+        repositories.files.read = AsyncMock(return_value=csv_data)
 
         usecase = DatasetsUsecases(repositories)
 
-        context = Context(user=user)
-        result = await usecase.save(dataset, context)
+        context = SaveDatasetContext(user=user, oca_uri=oca_uri)
+        result = await usecase.save(dataset, "test_file.mmio", context)
 
         assert result == dataset
 
@@ -115,7 +146,7 @@ class TestDatasetsUsecases:
         assert (publisher, RDF.type, FOAF.Person) in catalog.graph
 
     @pytest.mark.asyncio
-    async def test_save_if_it_is_shared_alredy(self, repositories):
+    async def test_save_if_it_is_shared_alredy(self, repositories, csv_data, oca_uri):
         id = "http://example.com/1"
         user = user_factory()
         catalog = Catalog.create("Test title", "Test description")
@@ -127,11 +158,12 @@ class TestDatasetsUsecases:
         repositories.persons.get = AsyncMock(side_effect=NodeDoesNotExist)
         repositories.catalogs.save = AsyncMock()
         repositories.datasets.get = AsyncMock(return_value=dataset)
+        repositories.files.read = AsyncMock(return_value=csv_data)
 
         usecase = DatasetsUsecases(repositories)
 
-        context = Context(user=user)
-        result = await usecase.save(dataset, context)
+        context = SaveDatasetContext(user=user, oca_uri=oca_uri)
+        result = await usecase.save(dataset, "test_file.mmio", context)
 
         assert result == dataset
         assert result.get_attribute(DSPACE.isShared) == Literal(True)
@@ -238,14 +270,14 @@ class TestMMIOsUsecases:
         filename = "test_file.mmio"
         file_path = "/file-path"
 
-        repositories.files.get = AsyncMock(return_value=file_path)
+        repositories.files.get_file_path = AsyncMock(return_value=file_path)
 
         usecase = MMIOsUsecases(repositories)
 
         context = Context(user=user_factory())
         result = await usecase.get(filename, context)
 
-        repositories.files.get.assert_called_once_with(filename)
+        repositories.files.get_file_path.assert_called_once_with(filename)
         assert result == file_path
 
     @pytest.mark.asyncio

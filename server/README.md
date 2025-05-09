@@ -33,6 +33,8 @@ Python 3.12+
 
     DS__CATALOG__TITLE="Local catalog"
     DS__CATALOG__DESCRIPTION="My local catalog"
+
+    DS__OCA_URI="http://oca.example.org/123/"  # Default local OCA bundle
     ```
 
 4. Initialize the database:
@@ -91,6 +93,7 @@ Requirements:
 6. To delete the deployment:
     ```bash
     helm delete catalog
+    kubectl delete pvc catalog-ds-catalog-uploads
     ```
 
 ### Production
