@@ -15,6 +15,12 @@ from .namespace import DSPACE
 from .repository import Repositories
 from .repository.queries import FilterDatasetByID, FilterPersonByID
 from .repository.query_builder import catalog_filter_to_query
+from .validators import (
+    CatalogFiltersValidatorService,
+    DatasetValidatorService,
+    IDatasetValidatorService,
+    IValidatorService,
+)
 
 
 class IUsecases(ABC):
@@ -83,9 +89,16 @@ class IMMIOsUsecases(IUsecases):
 
 class CatalogUsecases(BaseUsecases, ICatalogUsecases):
     async def get_local_catalog(
-        self, filters: CatalogFilters, context: Context
+        self,
+        filters: CatalogFilters,
+        context: Context,
+        validator_class: type[IValidatorService] = CatalogFiltersValidatorService,
     ) -> Catalog:
         """Get the local catalog"""
+
+        validator = validator_class()
+        validator.validate(filters)
+
         namespaces = await self.repositories.get_namespaces()
         query = catalog_filter_to_query(filters, namespaces)
         return await self.repositories.catalogs.get(query)
@@ -97,8 +110,16 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         dataset: Dataset,
         filename: str,
         context: SaveDatasetContext,
+        validator_class: type[IDatasetValidatorService] = DatasetValidatorService,
     ) -> Dataset:
         """Create or update a dataset"""
+
+        # Validate the input dataset
+        validator = validator_class(
+            shacl_url=context["shacl_url"],
+            ontology_url=context["ontology_url"],
+        )
+        validator.validate(dataset)
 
         # Get the local catalog
         catalog = await self.repositories.catalogs.get()
