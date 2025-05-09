@@ -29,8 +29,6 @@ class JsonLD(BaseModel):
 
 
 class CatalogFilters(JsonLD):
-    # TODO: Validate the data
-
     model_config = ConfigDict(
         json_schema_extra={
             "examples": [
@@ -45,8 +43,6 @@ class CatalogFilters(JsonLD):
 
 
 class Dataset(JsonLD):
-    # TODO: Validate the data
-
     model_config = ConfigDict(
         json_schema_extra={
             "examples": [

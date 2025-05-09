@@ -2,9 +2,10 @@ from typing import Annotated
 
 from classy_fastapi import Routable, delete, get, post
 from fastapi import Depends, HTTPException, Path, status
+from fastapi.exceptions import RequestValidationError
 
 from app.core import entities, usecases
-from app.core.exceptions import NodeDoesNotExist
+from app.core.exceptions import GraphValidationError, NodeDoesNotExist
 from app.core.repository import Repositories
 from app.settings import Settings, get_settings
 
@@ -63,12 +64,24 @@ class DatasetsRoutes(Routable):
                 context={
                     "user": user,
                     "oca_uri": settings.oca_uri,
+                    "shacl_url": settings.shacl_url,
+                    "ontology_url": settings.ontology_url,
                 },
             )
         except FileNotFoundError:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=FILE_NOT_FOUND,
+            )
+        except GraphValidationError as err:
+            raise RequestValidationError(
+                errors=[
+                    {
+                        "code": err.code,
+                        "message": err.message,
+                        "details": err.details,
+                    }
+                ]
             )
 
         return JSONLDResponse(output_entity)

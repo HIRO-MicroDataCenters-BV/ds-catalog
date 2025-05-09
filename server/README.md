@@ -35,6 +35,10 @@ Python 3.12+
     DS__CATALOG__DESCRIPTION="My local catalog"
 
     DS__OCA_URI="http://oca.example.org/123/"  # Default local OCA bundle
+  
+    DS__ONTOLOGY_URL="https://www.w3.org/ns/dcat.ttl"  # Default ontology (DCAT-3 or DCAT-AP)
+    DS__SHACL_URL="https://semiceu.github.io/DCAT-AP/releases/3.0.0/shacl/dcat-ap-SHACL.ttl"  # Default validation SHACL schema
+
     ```
 
 4. Initialize the database:
