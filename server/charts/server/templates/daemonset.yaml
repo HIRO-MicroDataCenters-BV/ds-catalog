@@ -1,0 +1,64 @@
+{{- if eq .Values.deploymentMode "daemonset" }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "app.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ include "app.name" . }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ include "app.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "app.name" . }}
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}
+
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: {{ include "app.name" . | lower }}
+                topologyKey: kubernetes.io/hostname
+
+      {{- if .Values.migrate.enabled }}
+      initContainers:
+        - name: migrate-db
+          image: "{{ include "app.image" . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["sh", "-c", "poetry run python -m app.migrate_db"]
+          env:
+            {{- include "app.commonEnv" . | nindent 12 }}
+      {{- end }}
+
+      containers:
+        - name: catalog
+          image: "{{ include "app.image" . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: {{ toYaml .Values.container.command | nindent 12 }}
+          args: {{ toYaml .Values.container.args | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              hostPort: {{ .Values.service.port }}
+          env:
+            {{- include "app.commonEnv" . | nindent 12 }}
+          resources:
+
+            {{- toYaml .Values.resources | nindent 12 }}
+{{- end }}
