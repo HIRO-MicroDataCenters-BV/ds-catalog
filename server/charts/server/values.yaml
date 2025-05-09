@@ -5,9 +5,10 @@ image:
   tag: ""
   pullPolicy: IfNotPresent
 
-imagePullSecrets: []
+imagePullSecrets: ""
 nameOverride: ""
-fullnameOverride: ""
+fullnameOverride: "ds-catalog"
+
 
 serviceAccount:
   create: true
@@ -22,20 +23,25 @@ podSecurityContext: {}
 
 securityContext: {}
 
+container:
+  command: ["uvicorn"]
+  args: ["app.main:app", "--host", "0.0.0.0", "--port", "8081"]
+
 service:
   type: ClusterIP
-  port: 80
+  port: 8081
 
 resources: {}
 
 livenessProbe:
   httpGet:
     path: /health-check/
-    port: http
+    port: 8081
+
 readinessProbe:
   httpGet:
     path: /health-check/
-    port: http
+    port: 8081
 
 persistence:
   enabled: true
@@ -50,12 +56,24 @@ catalog:
   description: My Local Catalog
 
 database:
-  protocol: neo4j
-  host: localhost
+  protocol: bolt
+  host: "127.0.0.1"
   port: 7687
   name: neo4j
   username: neo4j
-  password: your_password
+  password: "123456789"  # Must match Neo4j's password
 
 migrate:
   enabled: false
+
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "250m"
+  limits:
+    memory: "128Mi"
+    cpu: "500m"
+
+namespace: nextgen
+
+deploymentMode: daemonset  # or "deployment"
