@@ -79,3 +79,11 @@ Create the name of the service account to use
 - name: DS__DATABASE__PASSWORD
   value: "{{ .Values.database.password }}"
 {{- end }}
+
+
+{{/*
+Create the image name
+*/}}
+{{- define "app.image" -}}
+{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+{{- end }}

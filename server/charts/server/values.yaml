@@ -49,7 +49,6 @@ catalog:
 
 database:
   protocol: bolt
-  # host: "my-neo4j-semantics.nextgen.svc.cluster.local"  # Full DNS
   host: "127.0.0.1"
   port: 7687
   name: neo4j
@@ -57,7 +56,7 @@ database:
   password: "123456789"  # Must match Neo4j's password
 
 migrate:
-  enabled: true
+  enabled: false
 
 resources:
   requests:
@@ -66,5 +65,7 @@ resources:
   limits:
     memory: "128Mi"
     cpu: "500m"
+
+namespace: nextgen
 
 deploymentMode: daemonset  # or "deployment"

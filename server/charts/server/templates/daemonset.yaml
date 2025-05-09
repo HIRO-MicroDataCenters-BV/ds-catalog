@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: {{ include "app.fullname" . }}
-  namespace: nextgen
+  namespace: {{ .Values.namespace }}
   labels:
     app: {{ include "app.name" . }}
 spec:
@@ -39,7 +39,7 @@ spec:
       {{- if .Values.migrate.enabled }}
       initContainers:
         - name: migrate-db
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ include "app.image" . }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["sh", "-c", "poetry run python -m app.migrate_db"]
           env:
@@ -48,7 +48,7 @@ spec:
 
       containers:
         - name: catalog
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ include "app.image" . }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: {{ toYaml .Values.container.command | nindent 12 }}
           args: {{ toYaml .Values.container.args | nindent 12 }}
