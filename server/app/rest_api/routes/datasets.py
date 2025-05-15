@@ -50,7 +50,7 @@ class DatasetsRoutes(Routable):
         filename: str = Path(
             ...,
             description="The name of the uploaded MMIO file.",
-            examples=["mmio-sample.csv"],
+            examples=["mmio-sample.tar"],
         ),
     ) -> JSONLDResponse:
         """Create or update a dataset"""
