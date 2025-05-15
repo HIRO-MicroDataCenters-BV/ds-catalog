@@ -5,7 +5,7 @@ from fastapi import Depends, HTTPException, Path, status
 from fastapi.exceptions import RequestValidationError
 
 from app.core import entities, usecases
-from app.core.exceptions import GraphValidationError, NodeDoesNotExist
+from app.core.exceptions import ErrorParsingMMIO, GraphValidationError, NodeDoesNotExist
 from app.core.repository import Repositories
 from app.settings import Settings, get_settings
 
@@ -72,6 +72,11 @@ class DatasetsRoutes(Routable):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=FILE_NOT_FOUND,
+            )
+        except ErrorParsingMMIO as err:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=str(err),
             )
         except GraphValidationError as err:
             raise RequestValidationError(

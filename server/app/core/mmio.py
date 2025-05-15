@@ -1,89 +1,215 @@
-from typing import Any, Self
+from typing import Any, Callable, Protocol, Self
 
+import io
+import json
+import tarfile
+import tempfile
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from pathlib import Path
 
-import m2io_tmp as mmio
+import m2io_nextgen as mmio
 import polars as pl
 
 from .entities import Metadata
+from .exceptions import ErrorParsingMMIO
 
 
-class Data(ABC):
-    records: list[pl.DataFrame]
+class MMIOReaderOCABundle(Protocol):
+    def is_reference(self) -> bool:
+        ...
 
-    @abstractmethod
-    def to(self, standard: dict[str, Any]) -> Self:
-        """Transform data to a different standard"""
+    def is_bundle(self) -> bool:
         ...
 
 
-class MMIOType(ABC):
-    data: Data
+@dataclass
+class MMIOReaderID:
+    value: str
 
+
+@dataclass
+class MMIOReaderModality:
+    id: MMIOReaderID
+    modality_type: str
+    media_type: str
+    oca_bundle: MMIOReaderOCABundle
+
+
+@dataclass
+class MMIOReaderResult:
+    modalities: list[MMIOReaderModality]
+
+
+MMIOReader = Callable[[str], MMIOReaderResult]
+
+
+class OCABundle:
+    _digest: str
+    _attribute_names: list[str]
+
+    def __init__(self, bundle_str: str) -> None:
+        try:
+            bundle = json.loads(bundle_str)
+        except json.JSONDecodeError:
+            raise ErrorParsingMMIO("The bundle file contains invalid JSON")
+
+        try:
+            self._digest = bundle["bundle"]["digest"]
+            self._attribute_names = list(
+                bundle["bundle"]["capture_base"]["attributes"].keys()
+            )
+        except Exception as err:
+            raise ErrorParsingMMIO(f"Invalid bundle: {err}")
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, OCABundle):
+            return False
+        return self.digest == other.digest
+
+    @property
+    def digest(self) -> str:
+        return self._digest
+
+    @property
+    def attribute_names(self) -> list[str]:
+        return self._attribute_names
+
+
+@dataclass
+class Modality:
+    id: str
+    modality_type: str
+    media_type: str
+    oca_bundle: OCABundle | None
+
+
+@dataclass
+class MMIOParsedData:
+    id: str
+    modalities: list[Modality]
+
+
+class IMMIOParser(ABC):
     @abstractmethod
-    def infer_semantics(self, data: pl.DataFrame) -> Data:
-        """Infer semantics of the data"""
+    def parse(self, data: bytes) -> MMIOParsedData:
         ...
 
-    @abstractmethod
-    def ingest(self, data: pl.DataFrame) -> None:
-        """Ingest data into MMIO"""
-        ...
 
-    @abstractmethod
-    def link(self, standard: str, linkage: dict[str, str]) -> None:
-        """Link data to a standard"""
-        ...
+class TarMMIOParser(IMMIOParser):
+    def parse(self, data: bytes, mmio_reader: MMIOReader = mmio.open) -> MMIOParsedData:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            try:
+                with tarfile.open(fileobj=io.BytesIO(data)) as tar:
+                    tar.extractall(path=tmp_dir)
+            except tarfile.ReadError:
+                raise ErrorParsingMMIO("The file is not a valid tar archive")
+
+            mmio_file = Path(tmp_dir, "mmio.json")
+            try:
+                mmio_str = mmio_file.read_text()
+            except FileNotFoundError:
+                raise ErrorParsingMMIO("File mmio.json not found in archive")
+            except OSError:
+                raise ErrorParsingMMIO("Unable to read mmio.json file")
+
+            try:
+                mmio_dict = json.loads(mmio_str)
+            except json.JSONDecodeError:
+                raise ErrorParsingMMIO("The mmio.json file contains invalid JSON")
+
+            if not isinstance(mmio_dict, dict):
+                raise ErrorParsingMMIO("The mmio.json file must contain a JSON object")
+            if "id" not in mmio_dict or not mmio_dict["id"]:
+                raise ErrorParsingMMIO("The mmio.json file is missing the ID")
+
+            id = mmio_dict["id"]
+
+            bundles = self._parse_bundle_files(tmp_dir)
+
+            try:
+                mmio_obj = mmio_reader(mmio_str)
+            except Exception as err:
+                raise ErrorParsingMMIO(f"Invalid MMIO: {err}")
+
+            modalities = self._parse_modalities(bundles, mmio_obj.modalities)
+
+            return MMIOParsedData(id=id, modalities=modalities)
+
+    def _parse_bundle_files(self, dir_path: str) -> dict[str, OCABundle]:
+        result = {}
+        bundle_files = Path(dir_path).glob("*.bundles")
+        for bundle_file in bundle_files:
+            bundle = OCABundle(bundle_file.read_text())
+            result[bundle.digest] = bundle
+        return result
+
+    def _parse_modalities(
+        self, bundles_store: dict[str, OCABundle], modalities: list[MMIOReaderModality]
+    ) -> list[Modality]:
+        result = []
+        for modality in modalities:
+            if modality.oca_bundle.is_reference():
+                ref = str(modality.oca_bundle)
+                oca_bundle = bundles_store.get(ref)
+            elif modality.oca_bundle.is_bundle():
+                oca_bundle = OCABundle(str(modality.oca_bundle))
+            else:
+                oca_bundle = None
+
+            result.append(
+                Modality(
+                    id=modality.id.value,
+                    modality_type=modality.modality_type,
+                    media_type=modality.media_type,
+                    oca_bundle=oca_bundle,
+                )
+            )
+        return result
 
 
 class MMIO:
-    _mmio: MMIOType
+    _id: str
+    _modalities: list[Modality]
 
-    def __init__(self, csv: bytes) -> None:
-        # TODO: Implement. It is a mock for now
-        df = pl.read_csv(csv)
-        self._mmio = mmio.infer_semantics(df)
-        self._mmio.ingest(df)
-        self._mmio.link(
-            "Standard1@1.0",
-            linkage={
-                "age": "hasAge",
-                "sex": "hasSex",
-                "gender": "hasGender",
-                "ethnicity": "hasEthnicity",
-                "previous_myocardial_infarction": "hasMyocardialInfarction",
-                "stroke": "hasStroke",
-                "chronic_obstructive_pulmonary_disease": "hasCOPD",
-                "asthma": "hasAsthma",
-                "atrial_fibrillation": "hasAtrialFibrillation",
-                "peripheral_artery_disease": "hasPeripheralArteryDisease",
-                "hypertension": "hasHypertension",
-                "diabetes": "hasDiabetes",
-                "hypercholesterolemia": "hasHypercholesterolemia",
-                "chronic_kidney_disease": "hasChronicKidneyDisease",
-                "height": "hasHeight",
-                "waist_hip_ratio": "hasWaistHipRatio",
-                "waist_height_ratio": "hasWaistHeightRatio",
-                "sbp": "hasSystolicBloodPressure",
-                "pulse_rate": "hasPulseRate",
-                "smoking_history": "hasSmokingHistory",
-            },
-        )
+    def __init__(
+        self, mmio_data: bytes, parser: type[IMMIOParser] = TarMMIOParser
+    ) -> None:
+        parsed_data = parser().parse(mmio_data)
+        self._id = parsed_data.id
+        self._modalities = parsed_data.modalities
 
     def __str__(self) -> str:
-        return str(self._mmio.data.records)
+        return self.id
 
-    def get_data(self) -> Data:
-        return self._mmio.data
+    @property
+    def id(self) -> str:
+        return self._id
 
-    def transform_to(self, uri: str) -> Data:
-        # TODO: Implement. It is a mock for now
-        return self._mmio.data.to({"standard": "Standard1@1.0"})
+    @property
+    def modalities(self) -> list[Modality]:
+        return self._modalities
+
+    def transform_to(self, schema_uri: str) -> Self:
+        # TODO: Implement
+        return self
 
 
-def mmio_data_to_entities(schema_uri: str, mmio_id: str, data: Data) -> list[Metadata]:
+def mmio_available_attrs(mmio_obj: MMIO) -> list[pl.DataFrame]:
     result = []
-    for i, record in enumerate(data.records):
+    for modality in mmio_obj.modalities:
+        bundle = modality.oca_bundle
+        if bundle is not None:
+            df = pl.DataFrame({attr: [True] for attr in bundle.attribute_names})
+            result.append(df)
+    return result
+
+
+def mmio_data_to_entities(
+    schema_uri: str, mmio_id: str, data: list[pl.DataFrame]
+) -> list[Metadata]:
+    result = []
+    for i, record in enumerate(data):
         id = f"{mmio_id}/{i}"
         result += Metadata.create_bunch_from_df(schema_uri, id, record)
     return result

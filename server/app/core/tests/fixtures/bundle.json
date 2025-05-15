@@ -1,0 +1,17 @@
+{
+  "v": "OCAA11JSON0027bd_",
+  "bundle": {
+    "v": "OCAS20JSON0027a0_",
+    "digest": "EB-d473DxvmtISCVwL2AC_qGHdMNdMdFWeSq7jhMupys",
+    "capture_base": {
+      "digest": "EM_bfMi0Mx03-AEePdi5vKa5PhO8ZHczc3uNsVzxjysm",
+      "type": "capture_base/2.0.0",
+      "attributes": {
+        "age": "Numeric",
+        "bmi": "Numeric"
+      }
+    },
+    "overlays": {}
+  },
+  "dependencies": []
+}

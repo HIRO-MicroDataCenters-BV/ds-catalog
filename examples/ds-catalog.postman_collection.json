@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "8eb8e65d-f8d1-485e-8859-9926fd74e6c1",
+		"_postman_id": "85194812-e74b-4e1b-a832-f66e3ed3078b",
 		"name": "ds-catalog",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "35990741"
@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"@context\": {\r\n    \"@vocab\": \"http://data-space.org/\",\r\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\r\n    \"med\": \"http://oca.example.org/123/\"\r\n  },\r\n  \"@type\": \"Filters\",\r\n  \"filters\": [\r\n    {\r\n      \"dcat:dataset\": {\r\n        \"extraMetadata\": {\r\n          \"@type\": \"med:Record\",\r\n          \"med:hasAsthma\": true,\r\n          \"med:hasSex\": true\r\n        }\r\n      }\r\n    }\r\n  ]\r\n}",
+							"raw": "{\r\n  \"@context\": {\r\n    \"@vocab\": \"http://data-space.org/\",\r\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\r\n    \"med\": \"http://oca.example.org/123/\"\r\n  },\r\n  \"@type\": \"Filters\",\r\n  \"filters\": [\r\n    {\r\n      \"dcat:dataset\": {\r\n        \"extraMetadata\": {\r\n          \"@type\": \"med:Record\",\r\n          \"med:age\": true,\r\n          \"med:bmi\": true\r\n        }\r\n      }\r\n    }\r\n  ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -57,7 +57,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "postman-cloud:///1f02a552-80c3-4200-81da-1d586202310c"
+									"src": "postman-cloud:///1f030a20-a868-4a70-bc7f-eeca1ed1dc37"
 								}
 							]
 						},
@@ -85,7 +85,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:8000/mmio/mmio-sample.csv",
+							"raw": "http://127.0.0.1:8000/mmio/mmio-sample.tar",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -96,7 +96,7 @@
 							"port": "8000",
 							"path": [
 								"mmio",
-								"mmio-sample.csv"
+								"mmio-sample.tar"
 							]
 						}
 					},
@@ -108,7 +108,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:8000/mmio/MMIO-sample.csv",
+							"raw": "http://127.0.0.1:8000/mmio/mmio-sample.tar",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -119,7 +119,7 @@
 							"port": "8000",
 							"path": [
 								"mmio",
-								"MMIO-sample.csv"
+								"mmio-sample.tar"
 							]
 						}
 					},
@@ -175,7 +175,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://127.0.0.1:8000/datasets/mmio-sample.csv",
+							"raw": "http://127.0.0.1:8000/datasets/mmio-sample.tar",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -186,7 +186,7 @@
 							"port": "8000",
 							"path": [
 								"datasets",
-								"mmio-sample.csv"
+								"mmio-sample.tar"
 							]
 						}
 					},

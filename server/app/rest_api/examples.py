@@ -111,76 +111,217 @@ base_dataset_body_example: dict[str, Any] = {
 dataset_body_example: dict[str, Any] = {
     **base_dataset_body_example,
     "dspace:extraMetadata": {
-        "@id": "http://oca.example.org/123/mmio-sample.csv/0/0",
+        "@id": "http://oca.example.org/123/"
+        "EI2z8E6zYvMF_yvquoUJedWi0rKpQsscPf7JlBgIDoOm/0/0",
         "@type": "http://oca.example.org/123/Record",
-        "http://oca.example.org/123/hasAge": {"@type": "xsd:boolean", "@value": True},
-        "http://oca.example.org/123/hasAsthma": {
+        "http://oca.example.org/123/age": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/alanine_aminotransferase": {
             "@type": "xsd:boolean",
             "@value": True,
         },
-        "http://oca.example.org/123/hasAtrialFibrillation": {
-            "@type": "xsd:boolean",
-            "@value": False,
-        },
-        "http://oca.example.org/123/hasCOPD": {"@type": "xsd:boolean", "@value": True},
-        "http://oca.example.org/123/hasChronicKidneyDisease": {
-            "@type": "xsd:boolean",
-            "@value": False,
-        },
-        "http://oca.example.org/123/hasDiabetes": {
+        "http://oca.example.org/123/albumin": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/alcohol_intake": {
             "@type": "xsd:boolean",
             "@value": True,
         },
-        "http://oca.example.org/123/hasEthnicity": {
-            "@type": "xsd:boolean",
-            "@value": False,
-        },
-        "http://oca.example.org/123/hasGender": {
+        "http://oca.example.org/123/alkaline_phosphatase": {
             "@type": "xsd:boolean",
             "@value": True,
         },
-        "http://oca.example.org/123/hasHeight": {
+        "http://oca.example.org/123/aspartate_aminotransferase": {
             "@type": "xsd:boolean",
             "@value": True,
         },
-        "http://oca.example.org/123/hasHypercholesterolemia": {
+        "http://oca.example.org/123/asthma": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/atrial_fibrillation": {
             "@type": "xsd:boolean",
             "@value": True,
         },
-        "http://oca.example.org/123/hasHypertension": {
+        "http://oca.example.org/123/bmi": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/c_reactive_protein": {
             "@type": "xsd:boolean",
             "@value": True,
         },
-        "http://oca.example.org/123/hasMyocardialInfarction": {
+        "http://oca.example.org/123/calcium": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/chronic_kidney_disease": {
             "@type": "xsd:boolean",
             "@value": True,
         },
-        "http://oca.example.org/123/hasPeripheralArteryDisease": {
+        "http://oca.example.org/123/chronic_obstructive_pulmonary_disease": {
             "@type": "xsd:boolean",
             "@value": True,
         },
-        "http://oca.example.org/123/hasPulseRate": {
+        "http://oca.example.org/123/creatinine": {
             "@type": "xsd:boolean",
             "@value": True,
         },
-        "http://oca.example.org/123/hasSex": {"@type": "xsd:boolean", "@value": True},
-        "http://oca.example.org/123/hasSmokingHistory": {
-            "@type": "xsd:boolean",
-            "@value": False,
-        },
-        "http://oca.example.org/123/hasStroke": {
+        "http://oca.example.org/123/creatinine_in_urine": {
             "@type": "xsd:boolean",
             "@value": True,
         },
-        "http://oca.example.org/123/hasSystolicBloodPressure": {
+        "http://oca.example.org/123/dbp": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/diabetes": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/dietary_habits": {
             "@type": "xsd:boolean",
-            "@value": False,
+            "@value": True,
         },
-        "http://oca.example.org/123/hasWaistHeightRatio": {
+        "http://oca.example.org/123/eGFR": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/education": {
             "@type": "xsd:boolean",
-            "@value": False,
+            "@value": True,
         },
-        "http://oca.example.org/123/hasWaistHipRatio": {
+        "http://oca.example.org/123/ethnicity": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/ffmi": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/fmi": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/gamma_glutamyl_transferase": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/gender": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/glycated_haemoglobin": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/haemoglobin": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/hdl_cholesterol": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/height": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/hypercholesterolemia": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/hypertension": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/ldl_cholesterol": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/mean_corpuscular_haemoglobin": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/mean_corpuscular_haemoglobin_concentration": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/p_duration": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/patient_id": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/peripheral_artery_disease": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/physical_activity_IPAQ_score": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/platelet_count": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/potassium_in_urine": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/pp_interval": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/previous_myocardial_infarction": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/pulse_rate": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/qrs_duration": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/qt_interval": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/qtc_interval": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/r_axis": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/red_blood_cell_distribution_width": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/sbp": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/sex": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/sleep_duration": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/smoking_history": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/sodium_in_urine": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/stroke": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/t_axis": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/time_using_computer": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/time_watching_TV": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/total_bilirubin": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/townsend_deprivation_index": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/triglycerides": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/urate": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/urea": {"@type": "xsd:boolean", "@value": True},
+        "http://oca.example.org/123/ventricular_rate": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/vitamin_d": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/waist_height_ratio": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/waist_hip_ratio": {
+            "@type": "xsd:boolean",
+            "@value": True,
+        },
+        "http://oca.example.org/123/white_blood_cell_count": {
             "@type": "xsd:boolean",
             "@value": True,
         },
@@ -193,7 +334,7 @@ dataset_body_example: dict[str, Any] = {
     },
     "dspace:isShared": {"@type": "xsd:boolean", "@value": False},
     "dspace:isDeleted": {"@type": "xsd:boolean", "@value": False},
-    "dspace:metadataFilename": {"@type": "xsd:string", "@value": "mmio-sample.csv"},
+    "dspace:metadataFilename": {"@type": "xsd:string", "@value": "mmio-sample.tar"},
 }
 
 dataset_example: dict[str, Any] = {
@@ -238,8 +379,8 @@ catalog_filters_example: dict[str, Any] = {
             "dcat:dataset": {
                 "extraMetadata": {
                     "@type": "med:Record",
-                    "med:hasAsthma": True,
-                    "med:hasSex": True,
+                    "med:age": True,
+                    "med:bmi": True,
                 }
             }
         }
