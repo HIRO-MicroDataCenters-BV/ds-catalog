@@ -153,7 +153,7 @@ class TarMMIOParser(IMMIOParser):
                 ref = str(modality.oca_bundle)
                 oca_bundle = bundles_store.get(ref)
             elif modality.oca_bundle.is_bundle():
-                oca_bundle = OCABundle(str(modality.oca_bundle))
+                oca_bundle = OCABundle(f'{{"bundle": {modality.oca_bundle}}}')
             else:
                 oca_bundle = None
 
