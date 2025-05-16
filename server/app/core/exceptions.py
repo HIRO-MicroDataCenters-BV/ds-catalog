@@ -1,3 +1,7 @@
+class ErrorParsingMMIO(Exception):
+    ...
+
+
 class ErrorSavingData(Exception):
     ...
 

@@ -17,7 +17,12 @@ from ..usecases import (
     DatasetsUsecases,
     MMIOsUsecases,
 )
-from .factories import catalog_filters_factory, namespace_factory, user_factory
+from .factories import (
+    catalog_filters_factory,
+    namespace_factory,
+    tar_factory,
+    user_factory,
+)
 
 
 @pytest.fixture
@@ -95,9 +100,10 @@ class TestDatasetsUsecases:
         return Mock()
 
     @pytest.fixture
-    def csv_data(self):
-        file_path = Path(__file__).parent / "fixtures" / "mmio.csv"
-        return file_path.read_bytes()
+    def mmio_tar(self):
+        mmio_data = (Path(__file__).parent / "fixtures" / "mmio.json").read_text()
+        bundle_data = (Path(__file__).parent / "fixtures" / "bundle.json").read_text()
+        return tar_factory({"mmio.json": mmio_data, "test.bundles": bundle_data})
 
     @pytest.fixture
     def user(self):
@@ -115,7 +121,12 @@ class TestDatasetsUsecases:
     @freeze_time("2017-05-21T09:23:00+00:00")
     @pytest.mark.asyncio
     async def test_save(
-        self, repositories, csv_data, context, validator_class, validator_instance
+        self,
+        repositories,
+        mmio_tar,
+        context,
+        validator_class,
+        validator_instance,
     ):
         id = "http://example.com/1"
         user = context["user"]
@@ -123,14 +134,14 @@ class TestDatasetsUsecases:
         catalog = Catalog.create("Test title", "Test description")
         dataset = Dataset.create_empty(id)
         dataset.set_attribute(DCTERMS.identifier, id)
-        filename = "test_file.mmio"
-        mmio_id = filename
+        filename = "mmio.tar"
+        mmio_id = "EI2z8E6zYvMF_yvquoUJedWi0rKpQsscPf7JlBgIDoOm"  # from fixture
 
         repositories.catalogs.get = AsyncMock(return_value=catalog)
         repositories.persons.get = AsyncMock(return_value=person)
         repositories.catalogs.save = AsyncMock()
         repositories.datasets.get = AsyncMock(return_value=dataset)
-        repositories.files.read = AsyncMock(return_value=csv_data)
+        repositories.files.read = AsyncMock(return_value=mmio_tar)
 
         usecase = DatasetsUsecases(repositories)
 
@@ -170,22 +181,15 @@ class TestDatasetsUsecases:
         metadata_uri = Metadata.build_uri(oca_uri, f"{mmio_id}/0", 0)
         assert result.get_attribute(DSPACE.extraMetadata) == metadata_uri
 
-        assert (
-            metadata_uri,
-            RDF.type,
-            Metadata.build_type(oca_uri),
-        ) in dataset.graph
-        assert (
-            metadata_uri,
-            URIRef(f"{oca_uri}hasAge"),
-            Literal(True),
-        ) in dataset.graph
+        assert (metadata_uri, RDF.type, Metadata.build_type(oca_uri)) in dataset.graph
+        assert (metadata_uri, URIRef(f"{oca_uri}age"), Literal(True)) in dataset.graph
+        assert (metadata_uri, URIRef(f"{oca_uri}bmi"), Literal(True)) in dataset.graph
 
         assert catalog.get_attribute(DCAT.dataset) == dataset.uri
 
     @pytest.mark.asyncio
     async def test_save_with_new_publisher(
-        self, repositories, csv_data, context, validator_class
+        self, repositories, mmio_tar, context, validator_class
     ):
         id = "http://example.com/1"
         catalog = Catalog.create("Test title", "Test description")
@@ -196,13 +200,13 @@ class TestDatasetsUsecases:
         repositories.persons.get = AsyncMock(side_effect=NodeDoesNotExist)
         repositories.catalogs.save = AsyncMock()
         repositories.datasets.get = AsyncMock(return_value=dataset)
-        repositories.files.read = AsyncMock(return_value=csv_data)
+        repositories.files.read = AsyncMock(return_value=mmio_tar)
 
         usecase = DatasetsUsecases(repositories)
 
         result = await usecase.save(
             dataset,
-            "test_file.mmio",
+            "mmio.tar",
             context,
             validator_class=validator_class,
         )
@@ -215,7 +219,7 @@ class TestDatasetsUsecases:
 
     @pytest.mark.asyncio
     async def test_save_if_it_is_shared_alredy(
-        self, repositories, csv_data, context, validator_class
+        self, repositories, mmio_tar, context, validator_class
     ):
         id = "http://example.com/1"
         catalog = Catalog.create("Test title", "Test description")
@@ -227,13 +231,13 @@ class TestDatasetsUsecases:
         repositories.persons.get = AsyncMock(side_effect=NodeDoesNotExist)
         repositories.catalogs.save = AsyncMock()
         repositories.datasets.get = AsyncMock(return_value=dataset)
-        repositories.files.read = AsyncMock(return_value=csv_data)
+        repositories.files.read = AsyncMock(return_value=mmio_tar)
 
         usecase = DatasetsUsecases(repositories)
 
         result = await usecase.save(
             dataset,
-            "test_file.mmio",
+            "mmio.tar",
             context,
             validator_class=validator_class,
         )

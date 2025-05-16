@@ -48,9 +48,8 @@ class TestUriToCypher:
     def test_missing_prefix(self):
         uri = "http://unknown.org/Entity"
         namespaces = {"dcat": "http://www.w3.org/ns/dcat#"}
-        with pytest.raises(ErrorConstructingQuery) as exc_info:
-            uri_to_cypher(uri, namespaces)
-        assert "No known prefix for" in str(exc_info.value)
+        result = uri_to_cypher(uri, namespaces)
+        assert result == "Entity"
 
 
 @pytest.mark.parametrize(

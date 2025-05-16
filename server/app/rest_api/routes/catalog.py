@@ -100,8 +100,8 @@ class CatalogRoutes(Routable):
               "dcat:dataset": {
                 "extraMetadata": {
                   "@type": "med:Record",
-                  "med:hasAsthma": true,
-                  "med:hasSex": true
+                  "med:age": true,
+                  "med:bmi": true
                 }
               }
             }
@@ -149,7 +149,7 @@ class CatalogRoutes(Routable):
                 "dcat:dataset": {
                     "extraMetadata": {
                         "@type": "med:Record",
-                        "med:hasAsthma": {
+                        "med:age": {
                             "@type": "xsd:boolean",
                             "@value": true
                         }
@@ -158,39 +158,39 @@ class CatalogRoutes(Routable):
             }
         ```
 
-        - <b>Incomplete filter structure:</b> All datasets with hasAsthma=true will
+        - <b>Incomplete filter structure:</b> All datasets with age=true will
         be found.
         ```json
             {
                 "@type": "med:Record",
-                "med:hasAsthma": true
+                "med:age": true
             }
         ```
 
         - <b>Multiple conditions:</b> All datasets with identifier=123 <b>AND</b>
-        hasAsthma=true <b>AND</b> hasSex=true will be found.
+        age=true <b>AND</b> bmi=true will be found.
         ```json
             {
                 "dcat:dataset": {
                     "dcterms:identifier": "123",
                     "extraMetadata": {
                         "@type": "med:Record",
-                        "med:hasAsthma": true,
-                        "med:hasSex": true
+                        "med:age": true,
+                        "med:bmi": true
                     }
                 }
             }
         ```
 
         - <b>Multiple values:</b> All datasets will be found for which the attribute
-        hasAsthma is true <b>OR</b> false.
+        age is true <b>OR</b> false.
         ```json
             {
                 "dcat:dataset": {
                     "extraMetadata": [
                         {
                             "@type": "med:Record",
-                            "med:hasAsthma": [
+                            "med:age": [
                                 {
                                     "@value": true,
                                     "@type": "xsd:boolean"

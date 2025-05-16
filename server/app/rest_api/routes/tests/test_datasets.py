@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from rdflib import DCTERMS
 
 from app.core.entities import Dataset
-from app.core.exceptions import GraphValidationError, NodeDoesNotExist
+from app.core.exceptions import ErrorParsingMMIO, GraphValidationError, NodeDoesNotExist
 from app.core.tests.factories import user_factory
 from app.rest_api.depends import get_user
 from app.rest_api.strings import FILE_NOT_FOUND
@@ -89,7 +89,17 @@ class TestDatasetsRoutes:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"detail": FILE_NOT_FOUND}
 
-    def test_save_dataset_if_graph_is_not_valid(self):
+    def test_save_dataset_if_mmio_is_invalid(self):
+        error_message = "test error"
+        usecases.save = AsyncMock(side_effect=ErrorParsingMMIO(error_message))
+
+        data = dataset.to_json_ld()
+        response = client.post("/datasets/test.csv/", content=data)
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert response.json() == {"detail": error_message}
+
+    def test_save_dataset_if_graph_is_invalid(self):
         error_code = "test_code"
         error_message = "Test error"
         details = [{"node": "some node"}]
