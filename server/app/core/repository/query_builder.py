@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from rdflib import DCAT, RDF, BNode
 from rdflib import Graph as RDFGraph
 from rdflib import Literal, Node, URIRef
-from rdflib.namespace import Namespace, NamespaceManager
+from rdflib.namespace import Namespace, NamespaceManager, split_uri
 
 from app.core.namespace import DSPACE
 
@@ -46,7 +46,8 @@ def uri_to_cypher(uri: str, namespaces: dict[str, str]) -> str:
     try:
         prefix, _, name = namespace_manager.compute_qname(URIRef(uri), generate=False)
     except KeyError:
-        raise ErrorConstructingQuery(f"No known prefix for {uri}")
+        _, name = split_uri(URIRef(uri))
+        prefix = ""
 
     return build_cypher_qname(prefix, name)
 

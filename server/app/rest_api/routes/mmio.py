@@ -33,7 +33,7 @@ class MMIOsRoutes(Routable):
                     "Location": {
                         "description": "URL to download the file",
                         "schema": {"type": "string"},
-                        "example": "/mmio/12345",
+                        "example": "/mmio/mmio-sample.tar",
                     }
                 },
             },

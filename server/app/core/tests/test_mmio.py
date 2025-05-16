@@ -1,145 +1,279 @@
 from pathlib import Path
+from unittest.mock import Mock
 
 import polars as pl
 import pytest
 
 from ..entities import Metadata
-from ..mmio import MMIO, mmio_data_to_entities
+from ..exceptions import ErrorParsingMMIO
+from ..mmio import (
+    MMIO,
+    IMMIOParser,
+    MMIOParsedData,
+    Modality,
+    OCABundle,
+    TarMMIOParser,
+    mmio_available_attrs,
+    mmio_data_to_entities,
+)
+from .factories import tar_factory
 
 
 @pytest.fixture
-def default_schema_uri():
-    return "http://oca.example.org/some-schema/"
+def mmio_data():
+    file_path = Path(__file__).parent / "fixtures" / "mmio.json"
+    return file_path.read_text()
+
+
+@pytest.fixture
+def bundle_data():
+    file_path = Path(__file__).parent / "fixtures" / "bundle.json"
+    return file_path.read_text()
+
+
+class TestOCABundle:
+    def test_valid_json(self, bundle_data):
+        bundle = OCABundle(bundle_data)
+        assert bundle.digest == "EB-d473DxvmtISCVwL2AC_qGHdMNdMdFWeSq7jhMupys"
+        assert set(bundle.attribute_names) == {"age", "bmi"}
+
+    def test_invalid_json(self):
+        invalid_json = "{]"
+        with pytest.raises(ErrorParsingMMIO, match="invalid JSON"):
+            OCABundle(invalid_json)
+
+    def test_missing_bundle_key(self):
+        json_missing_bundle = '{"not_bundle": {}}'
+        with pytest.raises(ErrorParsingMMIO, match="Invalid bundle"):
+            OCABundle(json_missing_bundle)
+
+    def test_missing_digest(self):
+        json_missing_digest = """
+        {
+            "bundle": {
+                "capture_base": {
+                    "attributes": {
+                        "attr1": {}
+                    }
+                }
+            }
+        }
+        """
+        with pytest.raises(ErrorParsingMMIO, match="Invalid bundle"):
+            OCABundle(json_missing_digest)
+
+    def test_missing_attributes(self):
+        json_missing_attributes = """
+        {
+            "bundle": {
+                "digest": "xyz789",
+                "capture_base": {}
+            }
+        }
+        """
+        with pytest.raises(ErrorParsingMMIO, match="Invalid bundle"):
+            OCABundle(json_missing_attributes)
+
+    def test_comparison(self, bundle_data):
+        other = """
+        {
+            "bundle": {
+                "digest": "zxc123",
+                "capture_base": {
+                    "attributes": {
+                        "name": {},
+                        "age": {},
+                        "email": {}
+                    }
+                }
+            }
+        }
+        """
+        assert OCABundle(bundle_data) == OCABundle(bundle_data)
+        assert OCABundle(bundle_data) != OCABundle(other)
+
+
+class TestTarMMIOParser:
+    def test_success(self, mmio_data, bundle_data):
+        tar_bytes = tar_factory({"mmio.json": mmio_data, "test.bundles": bundle_data})
+
+        parser = TarMMIOParser()
+        result = parser.parse(tar_bytes)
+
+        assert result.id == "EI2z8E6zYvMF_yvquoUJedWi0rKpQsscPf7JlBgIDoOm"
+        assert len(result.modalities) == 1
+        assert result.modalities[0] == Modality(
+            id="EEORbmaaCrfby9K7MH9MY4W6YQTMPQGfyVgSm9MX-_MA",
+            modality_type="binary",
+            media_type="application/octet-stream",
+            oca_bundle=OCABundle(bundle_data),
+        )
+
+    def test_invalid_tar(self):
+        parser = TarMMIOParser()
+        with pytest.raises(ErrorParsingMMIO, match="not a valid tar archive"):
+            parser.parse(b"not a tar")
+
+    def test_missing_mmio_json(self, bundle_data):
+        tar_bytes = tar_factory(
+            {
+                "test.bundles": bundle_data,
+            }
+        )
+
+        parser = TarMMIOParser()
+        with pytest.raises(ErrorParsingMMIO, match="mmio.json not found"):
+            parser.parse(tar_bytes)
+
+    def test_invalid_json(self, bundle_data):
+        tar_bytes = tar_factory(
+            {
+                "mmio.json": "{]",
+                "test.bundles": bundle_data,
+            }
+        )
+
+        parser = TarMMIOParser()
+        with pytest.raises(ErrorParsingMMIO, match="invalid JSON"):
+            parser.parse(tar_bytes)
+
+    def test_invalid_json_object(self, bundle_data):
+        tar_bytes = tar_factory(
+            {
+                "mmio.json": "[]",
+                "test.bundles": bundle_data,
+            }
+        )
+
+        parser = TarMMIOParser()
+        with pytest.raises(ErrorParsingMMIO, match="must contain a JSON object"):
+            parser.parse(tar_bytes)
+
+    def test_missing_id(self, bundle_data):
+        tar_bytes = tar_factory(
+            {
+                "mmio.json": "{}",
+                "test.bundles": bundle_data,
+            }
+        )
+
+        parser = TarMMIOParser()
+        with pytest.raises(ErrorParsingMMIO, match="missing the ID"):
+            parser.parse(tar_bytes)
+
+    def test_invalid_mmio(self, mmio_data, bundle_data):
+        mock_mmio_reader = Mock(side_effect=Exception())
+        tar_bytes = tar_factory({"mmio.json": mmio_data, "test.bundles": bundle_data})
+
+        parser = TarMMIOParser()
+        with pytest.raises(ErrorParsingMMIO, match="Invalid MMIO"):
+            parser.parse(tar_bytes, mmio_reader=mock_mmio_reader)
 
 
 class TestMMIO:
     @pytest.fixture
-    def csv_data(self):
-        file_path = Path(__file__).parent / "fixtures" / "mmio.csv"
-        return file_path.read_bytes()
+    def mmio_bytes(self):
+        return b"fake-mmio-data"
 
     @pytest.fixture
-    def mmio_instance(self, csv_data):
-        return MMIO(csv_data)
+    def modalities(self):
+        return [Mock(), Mock()]
 
-    def test_mmio_get_data(self, mmio_instance):
-        data = mmio_instance.get_data()
+    @pytest.fixture
+    def fake_parser(self, modalities):
+        parser = Mock(spec=IMMIOParser)
+        parser_instance = parser.return_value
+        parser_instance.parse.return_value = MMIOParsedData(
+            id="test-id",
+            modalities=modalities,
+        )
+        return parser
 
-        assert isinstance(data.records, list)
-        assert len(data.records) == 1
-        assert isinstance(data.records[0], pl.DataFrame)
+    def test_mmio_initialization(self, mmio_bytes, modalities, fake_parser):
+        mmio = MMIO(mmio_bytes, parser=fake_parser)
+        assert mmio.id == "test-id"
+        assert len(mmio.modalities) == 2
+        assert mmio.modalities == modalities
+        fake_parser.return_value.parse.assert_called_once_with(mmio_bytes)
 
-        df = data.records[0]
-        assert df.shape == (1, 20)
-        assert df.columns == [
-            "age",
-            "sex",
-            "gender",
-            "ethnicity",
-            "previous_myocardial_infarction",
-            "stroke",
-            "chronic_obstructive_pulmonary_disease",
-            "asthma",
-            "atrial_fibrillation",
-            "peripheral_artery_disease",
-            "hypertension",
-            "diabetes",
-            "hypercholesterolemia",
-            "chronic_kidney_disease",
-            "height",
-            "waist_hip_ratio",
-            "waist_height_ratio",
-            "sbp",
-            "pulse_rate",
-            "smoking_history",
+    def test_mmio_str(self, mmio_bytes, fake_parser):
+        mmio = MMIO(mmio_bytes, parser=fake_parser)
+        assert str(mmio) == "test-id"
+
+    def test_id(self, mmio_bytes, fake_parser):
+        mmio = MMIO(mmio_bytes, parser=fake_parser)
+        assert mmio.id == "test-id"
+
+    def test_modalities(self, mmio_bytes, modalities, fake_parser):
+        mmio = MMIO(mmio_bytes, parser=fake_parser)
+        assert mmio.modalities == modalities
+
+
+class TestMMIOAvailableAttrs:
+    @pytest.fixture
+    def mock_bundle(self):
+        bundle = Mock()
+        bundle.attribute_names = ["attr1", "attr2"]
+        return bundle
+
+    @pytest.fixture
+    def modality_with_bundle(self, mock_bundle):
+        modality = Mock()
+        modality.oca_bundle = mock_bundle
+        return modality
+
+    @pytest.fixture
+    def modality_without_bundle(self):
+        modality = Mock()
+        modality.oca_bundle = None
+        return modality
+
+    def test_with_bundle(self, modality_with_bundle):
+        mmio = Mock()
+        mmio.modalities = [modality_with_bundle]
+
+        result = mmio_available_attrs(mmio)
+
+        assert len(result) == 1
+        assert isinstance(result[0], pl.DataFrame)
+        assert result[0].columns == ["attr1", "attr2"]
+        assert result[0].height == 1
+        assert result[0].row(0) == (True, True)
+
+    def test_multiple_modalities(self, modality_with_bundle, modality_without_bundle):
+        mmio = Mock()
+        mmio.modalities = [
+            modality_with_bundle,
+            modality_without_bundle,
+            modality_with_bundle,
         ]
 
-        assert df[0, "age"] is True
-        assert df[0, "sex"] is True
-        assert df[0, "gender"] is True
-        assert df[0, "ethnicity"] is False
-        assert df[0, "previous_myocardial_infarction"] is True
-        assert df[0, "stroke"] is True
-        assert df[0, "chronic_obstructive_pulmonary_disease"] is True
-        assert df[0, "asthma"] is True
-        assert df[0, "atrial_fibrillation"] is False
-        assert df[0, "peripheral_artery_disease"] is False
-        assert df[0, "hypertension"] is True
-        assert df[0, "diabetes"] is True
-        assert df[0, "hypercholesterolemia"] is True
-        assert df[0, "chronic_kidney_disease"] is False
-        assert df[0, "height"] is True
-        assert df[0, "waist_hip_ratio"] is True
-        assert df[0, "waist_height_ratio"] is False
-        assert df[0, "sbp"] is False
-        assert df[0, "pulse_rate"] is False
-        assert df[0, "smoking_history"] is False
+        result = mmio_available_attrs(mmio)
+        assert len(result) == 2  # one modality is without bundle
+        for df in result:
+            assert isinstance(df, pl.DataFrame)
+            assert df.columns == ["attr1", "attr2"]
 
-    def test_mmio_transform(self, mmio_instance, default_schema_uri):
-        transformed = mmio_instance.transform_to(default_schema_uri)
-
-        df = transformed.records[0]
-        assert df.shape == (1, 20)
-
-        assert df.columns == [
-            "hasAge",
-            "hasSex",
-            "hasGender",
-            "hasEthnicity",
-            "hasMyocardialInfarction",
-            "hasStroke",
-            "hasCOPD",
-            "hasAsthma",
-            "hasAtrialFibrillation",
-            "hasPeripheralArteryDisease",
-            "hasHypertension",
-            "hasDiabetes",
-            "hasHypercholesterolemia",
-            "hasChronicKidneyDisease",
-            "hasHeight",
-            "hasWaistHipRatio",
-            "hasWaistHeightRatio",
-            "hasSystolicBloodPressure",
-            "hasPulseRate",
-            "hasSmokingHistory",
-        ]
-
-        assert df[0, "hasAge"] is True
-        assert df[0, "hasSex"] is True
-        assert df[0, "hasGender"] is True
-        assert df[0, "hasEthnicity"] is False
-        assert df[0, "hasMyocardialInfarction"] is True
-        assert df[0, "hasStroke"] is True
-        assert df[0, "hasCOPD"] is True
-        assert df[0, "hasAsthma"] is True
-        assert df[0, "hasAtrialFibrillation"] is False
-        assert df[0, "hasPeripheralArteryDisease"] is False
-        assert df[0, "hasHypertension"] is True
-        assert df[0, "hasDiabetes"] is True
-        assert df[0, "hasHypercholesterolemia"] is True
-        assert df[0, "hasChronicKidneyDisease"] is False
-        assert df[0, "hasHeight"] is True
-        assert df[0, "hasWaistHipRatio"] is True
-        assert df[0, "hasWaistHeightRatio"] is False
-        assert df[0, "hasSystolicBloodPressure"] is False
-        assert df[0, "hasPulseRate"] is False
-        assert df[0, "hasSmokingHistory"] is False
+    def test_all_bundles_are_none(self, modality_without_bundle):
+        mmio = Mock()
+        mmio.modalities = [modality_without_bundle, modality_without_bundle]
+        result = mmio_available_attrs(mmio)
+        assert result == []
 
 
-def test_mmio_data_to_entities(default_schema_uri):
+def test_mmio_data_to_entities():
+    schema_uri = "http://oca.example.org/some-schema/"
     mmio_id = "123"
-    csv_data = (
-        b"name,surname,height,weight\n"
-        + b"Deirdre,Patterson,174,68\n"
-        + b"Luis,Hembree,181,79\n"
-    )
-    mmio_instance = MMIO(csv_data)
-    data = mmio_instance.get_data()
+    data = [
+        pl.DataFrame({"attr1": [True, True], "attr2": [True, True]}),
+        pl.DataFrame({"attr3": [True], "attr4": [True]}),
+    ]
 
-    results = mmio_data_to_entities(default_schema_uri, mmio_id, data)
+    results = mmio_data_to_entities(schema_uri, mmio_id, data)
 
-    assert len(results) == 2
+    assert len(results) == 3
 
-    metadata1, metadata2 = results
-    assert metadata1.uri == Metadata.build_uri(default_schema_uri, f"{mmio_id}/{0}", 0)
-    assert metadata2.uri == Metadata.build_uri(default_schema_uri, f"{mmio_id}/{0}", 1)
+    metadata1, metadata2, metadata3 = results
+    assert metadata1.uri == Metadata.build_uri(schema_uri, f"{mmio_id}/{0}", 0)
+    assert metadata2.uri == Metadata.build_uri(schema_uri, f"{mmio_id}/{0}", 1)
+    assert metadata3.uri == Metadata.build_uri(schema_uri, f"{mmio_id}/{1}", 0)

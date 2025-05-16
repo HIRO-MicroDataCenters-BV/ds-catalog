@@ -10,7 +10,7 @@ from app.core.exceptions import NodeDoesNotExist
 
 from .context import Context, SaveDatasetContext
 from .entities import Catalog, CatalogFilters, Dataset, Metadata, Person, User
-from .mmio import MMIO, mmio_data_to_entities
+from .mmio import MMIO, mmio_available_attrs, mmio_data_to_entities
 from .namespace import DSPACE
 from .repository import Repositories
 from .repository.queries import FilterDatasetByID, FilterPersonByID
@@ -168,11 +168,11 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
     async def _build_mmio_metadata(
         self, filename: str, schema_uri: str
     ) -> list[Metadata]:
-        metadata = await self.repositories.files.read(filename)
-        mmio = MMIO(metadata)
-        mmio_id = filename  # TODO: Use a unique ID from the MMIO file
-        transformed_data = mmio.transform_to(schema_uri)
-        return mmio_data_to_entities(schema_uri, mmio_id, transformed_data)
+        mmio_bytes = await self.repositories.files.read(filename)
+        mmio = MMIO(mmio_bytes)
+        mmio = mmio.transform_to(schema_uri)
+        data = mmio_available_attrs(mmio)
+        return mmio_data_to_entities(schema_uri, mmio.id, data)
 
     async def _get_or_create_person(self, user: User) -> Person:
         query = FilterPersonByID(user["id"])
