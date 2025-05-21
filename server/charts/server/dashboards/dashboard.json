@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 139,
+  "id": 143,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -114,7 +114,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "increase(http_requests_total{job=\"ds-catalog\", instance=~\"$instance\"}[1m])",
+          "expr": "increase(http_requests_total{job=~\"$job\", instance=~\"$instance\"}[1m])",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -249,7 +249,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (status) (rate(http_requests_total{job=\"ds-catalog\", instance=~\"$instance\"}[1m]))",
+          "expr": "sum by (status) (rate(http_requests_total{job=~\"$job\", instance=~\"$instance\"}[1m]))",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -258,7 +258,7 @@
           "refId": "A"
         }
       ],
-      "title": "Request per minute",
+      "title": "Statuses",
       "type": "timeseries"
     },
     {
@@ -354,7 +354,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "http_request_duration_seconds_sum{job=\"ds-catalog\", instance=~\"$instance\", handler!=\"none\"} / http_request_duration_seconds_count{job=\"ds-catalog\", instance=~\"$instance\"}",
+          "expr": "http_request_duration_seconds_sum{job=~\"$job\", instance=~\"$instance\", handler!=\"none\"} / http_request_duration_seconds_count{job=~\"$job\", instance=~\"$instance\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -457,7 +457,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(process_cpu_seconds_total{job=\"ds-catalog\", instance=~\"$instance\"}[1m])",
+          "expr": "rate(process_cpu_seconds_total{job=~\"$job\", instance=~\"$instance\"}[1m])",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -559,7 +559,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "process_resident_memory_bytes{job=\"ds-catalog\", instance=~\"$instance\"}",
+          "expr": "process_resident_memory_bytes{job=~\"$job\", instance=~\"$instance\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -572,11 +572,35 @@
       "type": "timeseries"
     }
   ],
-  "refresh": "3s",
+  "refresh": "5s",
   "schemaVersion": 39,
   "tags": [],
   "templating": {
     "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "ds-catalog",
+          "value": "ds-catalog"
+        },
+        "definition": "label_values({namespace=\"nextgen\"},job)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Job",
+        "multi": false,
+        "name": "job",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values({namespace=\"nextgen\"},job)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "/ds-.+/",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
       {
         "allValue": "",
         "current": {
@@ -592,7 +616,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values({job=\"ds-catalog\"},instance)",
+        "definition": "label_values({job=~\"$job\"},instance)",
         "hide": 0,
         "includeAll": true,
         "label": "Instance",
@@ -601,7 +625,7 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values({job=\"ds-catalog\"},instance)",
+          "query": "label_values({job=~\"$job\"},instance)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -633,7 +657,7 @@
     ]
   },
   "timezone": "",
-  "title": "Data Space Catalog",
+  "title": "Data Space API",
   "uid": "_eX4mpl3",
   "version": 1,
   "weekStart": ""

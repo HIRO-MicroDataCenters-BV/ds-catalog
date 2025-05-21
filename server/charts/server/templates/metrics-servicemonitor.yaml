@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     release: rancher-monitoring
+    {{- include "app.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
