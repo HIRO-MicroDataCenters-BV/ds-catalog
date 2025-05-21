@@ -1,0 +1,12 @@
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Flow
+metadata:
+  name: {{ include "app.fullname" . }}-flow
+  namespace: {{ .Values.namespace }}
+spec:
+  match:
+    - select:
+        labels:
+          app.kubernetes.io/name: {{ include "app.fullname" . }}
+  outputRefs:
+    - {{ include "app.fullname" . }}-output

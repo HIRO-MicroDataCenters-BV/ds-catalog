@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-dashboard
+  namespace: cattle-dashboards
+  labels:
+    grafana_dashboard: "1"
+data:
+  ds-catalog-dashboard.json: |-
+{{ .Files.Get "dashboards/dashboard.json" | indent 4 }}

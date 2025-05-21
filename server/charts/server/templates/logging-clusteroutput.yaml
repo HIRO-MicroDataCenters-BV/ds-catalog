@@ -1,0 +1,9 @@
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Output
+metadata:
+  name: {{ include "app.fullname" . }}-output
+  namespace: {{ .Values.namespace }}
+spec:
+  loki:
+    configure_kubernetes_labels: true
+    url: http://loki.loki-stack.svc:3100

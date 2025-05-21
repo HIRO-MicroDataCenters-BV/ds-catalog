@@ -14,11 +14,14 @@ spec:
     metadata:
       labels:
         app: {{ include "app.name" . }}
+        {{- include "app.labels" . | nindent 8 }}
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      {{- with .Values.image.pullSecret }}
       imagePullSecrets:
         - name: {{ .Values.image.pullSecret }}
+      {{- end }}
 
       affinity:
         nodeAffinity:
