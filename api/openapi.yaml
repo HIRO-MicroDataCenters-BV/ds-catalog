@@ -68,24 +68,21 @@ paths:
         : {\n            \"extraMetadata\": {\n                \"@type\": \"med:Record\"\
         ,\n                \"med:age\": {\n                    \"@type\": \"xsd:boolean\"\
         ,\n                    \"@value\": true\n                }\n            }\n\
-        \        }\n    }\n```\n\n- <b>Incomplete filter structure:</b> All datasets\
-        \ with age=true will\nbe found.\n```json\n    {\n        \"@type\": \"med:Record\"\
-        ,\n        \"med:age\": true\n    }\n```\n\n- <b>Multiple conditions:</b>\
-        \ All datasets with identifier=123 <b>AND</b>\nage=true <b>AND</b> bmi=true\
-        \ will be found.\n```json\n    {\n        \"dcat:dataset\": {\n          \
-        \  \"dcterms:identifier\": \"123\",\n            \"extraMetadata\": {\n  \
-        \              \"@type\": \"med:Record\",\n                \"med:age\": true,\n\
-        \                \"med:bmi\": true\n            }\n        }\n    }\n```\n\
-        \n- <b>Multiple values:</b> All datasets will be found for which the attribute\n\
-        age is true <b>OR</b> false.\n```json\n    {\n        \"dcat:dataset\": {\n\
-        \            \"extraMetadata\": [\n                {\n                   \
-        \ \"@type\": \"med:Record\",\n                    \"med:age\": [\n       \
-        \                 {\n                            \"@value\": true,\n     \
-        \                       \"@type\": \"xsd:boolean\"\n                     \
-        \   },\n                        {\n                            \"@value\"\
-        : false,\n                            \"@type\": \"xsd:boolean\"\n       \
-        \                 }\n                    ]\n                }\n          \
-        \  ]\n        }\n    }\n```"
+        \        }\n    }\n```\n\n- <b>Multiple conditions:</b> All datasets with\
+        \ identifier=123 <b>AND</b>\nage=true <b>AND</b> bmi=true will be found.\n\
+        ```json\n    {\n        \"dcat:dataset\": {\n            \"dcterms:identifier\"\
+        : \"123\",\n            \"extraMetadata\": {\n                \"@type\": \"\
+        med:Record\",\n                \"med:age\": true,\n                \"med:bmi\"\
+        : true\n            }\n        }\n    }\n```\n\n- <b>Multiple values:</b>\
+        \ All datasets will be found for which the attribute\nage is true <b>OR</b>\
+        \ false.\n```json\n    {\n        \"dcat:dataset\": {\n            \"extraMetadata\"\
+        : [\n                {\n                    \"@type\": \"med:Record\",\n \
+        \                   \"med:age\": [\n                        {\n          \
+        \                  \"@value\": true,\n                            \"@type\"\
+        : \"xsd:boolean\"\n                        },\n                        {\n\
+        \                            \"@value\": false,\n                        \
+        \    \"@type\": \"xsd:boolean\"\n                        }\n             \
+        \       ]\n                }\n            ]\n        }\n    }\n```"
       operationId: get_catalog
       requestBody:
         content:
