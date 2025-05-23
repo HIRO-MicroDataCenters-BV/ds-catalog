@@ -21,7 +21,7 @@ class DummyEntity(Graph):
 class TestHasNodeValidator:
     def test_no_nodes_found(self):
         graph = RDFGraph()
-        validator = HasNodeValidator(rdf_type=RDFType, root=False, single=False)
+        validator = HasNodeValidator(rdf_type=RDFType, single=False)
         with pytest.raises(GraphValidationError, match="No nodes with type"):
             validator.validate(DummyEntity(graph))
 
@@ -33,34 +33,15 @@ class TestHasNodeValidator:
         entity_with_single_node = DummyEntity.create_empty("test_id")
         entity_with_multiple_nodes = DummyEntity(graph)
 
-        validator = HasNodeValidator(rdf_type=RDFType, root=False, single=False)
+        validator = HasNodeValidator(rdf_type=RDFType, single=False)
         validator.validate(entity_with_multiple_nodes)
 
-        validator = HasNodeValidator(rdf_type=RDFType, root=False, single=True)
+        validator = HasNodeValidator(rdf_type=RDFType, single=True)
         validator.validate(entity_with_single_node)
 
-        validator = HasNodeValidator(rdf_type=RDFType, root=False, single=True)
+        validator = HasNodeValidator(rdf_type=RDFType, single=True)
         with pytest.raises(GraphValidationError, match="Expected exactly one node"):
             validator.validate(entity_with_multiple_nodes)
-
-    def test_root_param(self):
-        graph = RDFGraph()
-        graph.add((EX.subject1, RDF.type, EX.AnotherType))
-        graph.add((EX.subject2, RDF.type, RDFType))
-        graph.add((EX.subject1, EX.relation, EX.subject2))
-
-        entity_with_root_node = DummyEntity.create_empty("test_id")
-        entity_with_non_root_nodes = DummyEntity(graph)
-
-        validator = HasNodeValidator(rdf_type=RDFType, root=True, single=False)
-        validator.validate(entity_with_root_node)
-
-        validator = HasNodeValidator(rdf_type=RDFType, root=False, single=False)
-        validator.validate(entity_with_non_root_nodes)
-
-        validator = HasNodeValidator(rdf_type=RDFType, root=True, single=False)
-        with pytest.raises(GraphValidationError, match="No root node with type"):
-            validator.validate(entity_with_non_root_nodes)
 
 
 class TestSHACLValidator:
