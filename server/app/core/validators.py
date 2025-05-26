@@ -47,9 +47,8 @@ class IDatasetValidatorService(IValidatorService):
 
 
 class HasNodeValidator(IValidator):
-    def __init__(self, rdf_type: URIRef, root: bool, single: bool) -> None:
+    def __init__(self, rdf_type: URIRef, single: bool) -> None:
         self.rdf_type = rdf_type
-        self.root = root
         self.single = single
 
     def validate(self, entity: Graph) -> None:
@@ -67,15 +66,6 @@ class HasNodeValidator(IValidator):
                 "graph_validation_error",
                 f"Expected exactly one node with type {self.rdf_type}, "
                 f"found {len(subjects)}.",
-            )
-
-        if self.root:
-            for subj in subjects:
-                if not any(graph.triples((None, None, subj))):
-                    return
-            raise GraphValidationError(
-                "graph_validation_error",
-                f"No root node with type {self.rdf_type} found.",
             )
 
 
@@ -143,12 +133,12 @@ class DatasetValidatorService(BaseValidatorService, IDatasetValidatorService):
         ontology_url: str | None = None,
     ) -> None:
         self.validators = [
-            HasNodeValidator(rdf_type=DCAT.Dataset, root=True, single=True),
+            HasNodeValidator(rdf_type=DCAT.Dataset, single=True),
             SHACLValidator(shacl_url, ontology_url),
         ]
 
 
 class CatalogFiltersValidatorService(BaseValidatorService):
     validators = [
-        HasNodeValidator(rdf_type=DSPACE.Filters, root=True, single=True),
+        HasNodeValidator(rdf_type=DSPACE.Filters, single=True),
     ]

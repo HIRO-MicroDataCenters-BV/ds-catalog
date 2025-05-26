@@ -171,15 +171,15 @@ class FilterTree:
         self,
         rules: list[Callable[[Node | None, Node | None, Node | None], Triplet]],
     ) -> None:
-        if self.type is None:
-            for rel, child_list in self.children.items():
-                for child in child_list:
-                    for rule in rules:
-                        s, _, o = rule(self.type, rel, child.type)
-                        if s and s != self.type:
-                            self.type = s
-                        if o and o != child.type:
-                            child.type = o
+        for rel, child_list in self.children.items():
+            for child in child_list:
+                for rule in rules:
+                    s, _, o = rule(self.type, rel, child.type)
+                    if s and s != self.type:
+                        self.type = s
+                    if o and o != child.type:
+                        child.type = o
+                child.inference_types(rules)
 
 
 @dataclass
@@ -375,9 +375,7 @@ def catalog_filter_to_query(
 
     has_root_type = filter_tree.has_type(DCAT.Dataset)
     if not has_root_type:
-        query.add_optional_match(
-            f"({Dataset.label}:{uri_to_cypher(DCAT.Dataset, namespaces)})"
-        )
+        raise ErrorConstructingQuery("No relationship defined with dcat:Dataset")
 
     query.with_clause = Dataset.label
 
