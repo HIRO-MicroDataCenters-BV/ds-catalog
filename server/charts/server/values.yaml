@@ -31,8 +31,6 @@ service:
   type: ClusterIP
   port: 8081
 
-resources: {}
-
 livenessProbe:
   httpGet:
     path: /health-check/
@@ -77,3 +75,10 @@ resources:
 namespace: nextgen
 
 deploymentMode: daemonset  # or "deployment"
+
+ingress:
+  host: nextgen.hiro-develop.nl
+  nodes:
+    - nodeId: node1
+    - nodeId: node2
+    - nodeId: node3

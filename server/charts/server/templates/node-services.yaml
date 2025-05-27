@@ -1,0 +1,17 @@
+{{- range .Values.ingress.nodes }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "app.fullname" $ }}-{{ .nodeId }}
+  namespace: {{ $.Values.namespace | default $.Release.Namespace }}
+  labels:
+    {{- include "app.labels" $ | nindent 4 }}
+spec:
+  selector:
+    node-id: {{ .nodeId }}
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: {{ $.Values.service.port }}
+---
+{{- end }}

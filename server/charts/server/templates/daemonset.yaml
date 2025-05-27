@@ -14,11 +14,15 @@ spec:
     metadata:
       labels:
         app: {{ include "app.name" . }}
+        {{- include "app.labels" . | nindent 8 }}
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      {{- with .Values.image.pullSecret }}
       imagePullSecrets:
         - name: {{ .Values.image.pullSecret }}
+      {{- end }}
+      serviceAccountName: {{ include "app.serviceAccountName" . }}
 
       affinity:
         nodeAffinity:
@@ -36,15 +40,40 @@ spec:
                     app: {{ include "app.name" . | lower }}
                 topologyKey: kubernetes.io/hostname
 
-      {{- if .Values.migrate.enabled }}
       initContainers:
+        - name: {{ include "app.name" . }}-labeler
+          image: bitnami/kubectl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              NODE_NAME=$(echo $NODE_NAME)
+              POD_NAME=$(echo $POD_NAME)
+              POD_NAMESPACE=$(echo $POD_NAMESPACE)
+              NODE_LABEL=$(kubectl get node "$NODE_NAME" -o jsonpath='{.metadata.labels.node-id}')
+              kubectl label pod "$POD_NAME" node-id="$NODE_LABEL" -n "$POD_NAMESPACE" --overwrite
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
+        {{- if .Values.migrate.enabled }}
         - name: migrate-db
           image: "{{ include "app.image" . }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["sh", "-c", "poetry run python -m app.migrate_db"]
           env:
             {{- include "app.commonEnv" . | nindent 12 }}
-      {{- end }}
+        {{- end }}
 
       containers:
         - name: catalog

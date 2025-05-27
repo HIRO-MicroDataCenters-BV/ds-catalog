@@ -1,3 +1,0 @@
-OPTIONAL MATCH (n1:med__Diagnosis), (d:dcat__Dataset)
-WHERE n1.med__code = "I10"
-WITH d

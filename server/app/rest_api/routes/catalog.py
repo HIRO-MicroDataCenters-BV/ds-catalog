@@ -158,15 +158,6 @@ class CatalogRoutes(Routable):
             }
         ```
 
-        - <b>Incomplete filter structure:</b> All datasets with age=true will
-        be found.
-        ```json
-            {
-                "@type": "med:Record",
-                "med:age": true
-            }
-        ```
-
         - <b>Multiple conditions:</b> All datasets with identifier=123 <b>AND</b>
         age=true <b>AND</b> bmi=true will be found.
         ```json

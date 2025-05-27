@@ -167,7 +167,7 @@ class TestFilterTree:
         assert tree.has_type(URIRef("http://example.org/Unknown")) is False
 
     def test_inference_types(self):
-        def sample_rule(s, p, o):
+        def rule1(s, p, o):
             if p == URIRef("http://example.org/hasChild"):
                 return [
                     URIRef("http://example.org/Person"),
@@ -176,22 +176,52 @@ class TestFilterTree:
                 ]
             return s, p, o
 
+        def rule2(s, p, o):
+            if p == URIRef("http://example.org/hasSubChild"):
+                return [
+                    URIRef("http://example.org/Child"),
+                    p,
+                    URIRef("http://example.org/SubChild"),
+                ]
+            return s, p, o
+
         tree = FilterTree(
             type=None,
             children={
                 URIRef("http://example.org/hasChild"): [
-                    FilterTree(type=None, children={}, values={}),
+                    FilterTree(
+                        type=None,
+                        children={
+                            URIRef("http://example.org/hasSubChild"): [
+                                FilterTree(
+                                    type=None,
+                                    children={},
+                                    values={},
+                                ),
+                            ],
+                        },
+                        values={},
+                    ),
                 ],
             },
             values={},
         )
 
-        tree.inference_types([sample_rule])
+        tree.inference_types([rule1, rule2])
 
         assert tree.type == URIRef("http://example.org/Person")
-        assert tree.children[URIRef("http://example.org/hasChild")][0].type == URIRef(
-            "http://example.org/Child"
-        )
+        assert len(tree.children.keys()) == 1
+        assert URIRef("http://example.org/hasChild") in tree.children
+        assert len(tree.children[URIRef("http://example.org/hasChild")]) == 1
+
+        child = tree.children[URIRef("http://example.org/hasChild")][0]
+        assert child.type == URIRef("http://example.org/Child")
+        assert len(child.children.keys()) == 1
+        assert URIRef("http://example.org/hasSubChild") in child.children
+        assert len(child.children[URIRef("http://example.org/hasSubChild")]) == 1
+
+        sub_child = child.children[URIRef("http://example.org/hasSubChild")][0]
+        assert sub_child.type == URIRef("http://example.org/SubChild")
 
 
 class TestTraverseGraph:
@@ -370,7 +400,12 @@ class TestCatalogFilterToQuery:
         result = catalog_filter_to_query(filters, namespaces)
         snapshot_for_class.assert_match(str(result), "snapshot")
 
-    def test_without_root_node(self, snapshot_for_class, namespaces):
+    def test_when_no_filter_items(self, namespaces):
+        filters = catalog_filters_factory(filter_items=[])
+        result = catalog_filter_to_query(filters, namespaces)
+        assert result is None
+
+    def test_raises_error_without_root_node(self, namespaces):
         filters = catalog_filters_factory(
             filter_items=[
                 {
@@ -379,13 +414,11 @@ class TestCatalogFilterToQuery:
                 }
             ]
         )
-        result = catalog_filter_to_query(filters, namespaces)
-        snapshot_for_class.assert_match(str(result), "snapshot")
-
-    def test_when_no_filter_items(self, namespaces):
-        filters = catalog_filters_factory(filter_items=[])
-        result = catalog_filter_to_query(filters, namespaces)
-        assert result is None
+        with pytest.raises(
+            ErrorConstructingQuery,
+            match="No relationship defined with dcat:Dataset",
+        ):
+            catalog_filter_to_query(filters, namespaces)
 
     def test_raises_error_when_multiple_filter_items(self, namespaces):
         filters = catalog_filters_factory(filter_items=[{}, {}])
