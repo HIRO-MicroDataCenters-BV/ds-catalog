@@ -1,0 +1,338 @@
+{
+	"info": {
+		"_postman_id": "85194812-e74b-4e1b-a832-f66e3ed3078b",
+		"name": "ds-catalog",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "35990741"
+	},
+	"item": [
+		{
+			"name": "Catalog",
+			"item": [
+				{
+					"name": "get_local_catalog",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"@context\": {\r\n    \"@vocab\": \"http://data-space.org/\",\r\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\r\n    \"med\": \"http://oca.example.org/123/\"\r\n  },\r\n  \"@type\": \"Filters\",\r\n  \"filters\": [\r\n    {\r\n      \"dcat:dataset\": {\r\n        \"extraMetadata\": {\r\n          \"@type\": \"med:Record\",\r\n          \"med:age\": true,\r\n          \"med:bmi\": true\r\n        }\r\n      }\r\n    }\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/catalog/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"catalog",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "MMIOs",
+			"item": [
+				{
+					"name": "create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "postman-cloud:///1f030a20-a868-4a70-bc7f-eeca1ed1dc37"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/mmio/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"mmio",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/mmio/mmio-sample.tar",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"mmio",
+								"mmio-sample.tar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/mmio/mmio-sample.tar",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"mmio",
+								"mmio-sample.tar"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Datasets",
+			"item": [
+				{
+					"name": "get_dataset",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/datasets/abc-123-xyz/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"datasets",
+								"abc-123-xyz",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "save_dataset",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"@context\": {\r\n    \"dspace\": \"http://data-space.org/\",\r\n    \"xsd\": \"http://www.w3.org/2001/XMLSchema#\",\r\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\r\n    \"dcatap\": \"http://data.europa.eu/r5r/\",\r\n    \"dcterms\": \"http://purl.org/dc/terms/\",\r\n    \"spdx\": \"http://spdx.org/rdf/terms#\",\r\n    \"foaf\": \"http://xmlns.com/foaf/0.1/\",\r\n    \"skos\": \"http://www.w3.org/2004/02/skos/core#\",\r\n    \"med\": \"http://med.example.org/\"\r\n  },\r\n  \"@id\": \"https://example.com/dataset/789\",\r\n  \"@type\": \"dcat:Dataset\",\r\n  \"dcterms:identifier\": {\r\n    \"@type\": \"xsd:string\",\r\n    \"@value\": \"abc-123-xyz\"\r\n  },\r\n  \"dcterms:title\": [\r\n    {\r\n      \"@language\": \"en\",\r\n      \"@value\": \"SampleDatasetTitle\"\r\n    },\r\n    {\r\n      \"@language\": \"es\",\r\n      \"@value\": \"Título del conjunto de datos de muestra\"\r\n    }\r\n  ],\r\n  \"dcterms:description\": [\r\n    {\r\n      \"@language\": \"en\",\r\n      \"@value\": \"This dataset contains sample data for testing purposes.\"\r\n    },\r\n    {\r\n      \"@language\": \"es\",\r\n      \"@value\": \"Este conjunto de datos contiene datos de muestra para fines de prueba.\"\r\n    }\r\n  ],\r\n  \"dcat:keyword\": [\r\n    {\r\n      \"@type\": \"xsd:string\",\r\n      \"@value\": \"sample\"\r\n    },\r\n    {\r\n      \"@type\": \"xsd:string\",\r\n      \"@value\": \"data\"\r\n    }\r\n  ],\r\n  \"dcterms:license\": {\r\n    \"@type\": \"xsd:string\",\r\n    \"@value\": \"https://example.com/license/xyz\"\r\n  },\r\n  \"dcat:theme\": [\r\n    {\r\n      \"@id\": \"http://eurovoc.europa.eu/100142\",\r\n      \"@type\": \"skos:Concept\",\r\n      \"skos:prefLabel\": {\r\n        \"@value\": \"Agriculture\",\r\n        \"@language\": \"en\"\r\n      }\r\n    },\r\n    {\r\n      \"@id\": \"http://eurovoc.europa.eu/100141\",\r\n      \"@type\": \"skos:Concept\",\r\n      \"skos:prefLabel\": {\r\n        \"@value\": \"Health\",\r\n        \"@language\": \"en\"\r\n      }\r\n    }\r\n  ],\r\n  \"dcat:distribution\": {\r\n    \"@id\": \"https://example.com/distribution/489\",\r\n    \"@type\": \"dcat:Distribution\",\r\n    \"dcterms:description\": {\r\n      \"@language\": \"en\",\r\n      \"@value\": \"This is a sample distribution.\"\r\n    },\r\n    \"dcat:byteSize\": {\r\n      \"@value\": 1024,\r\n      \"@type\": \"xsd:nonNegativeInteger\"\r\n    },\r\n    \"dcat:format\": {\r\n      \"@value\": \"application/json\",\r\n      \"@type\": \"xsd:string\"\r\n    },\r\n    \"dcatap:availability\": [\r\n      {\r\n        \"@id\": \"http://data.europa.eu/r5r/AVAILABLE\",\r\n        \"@type\": \"skos:Concept\",\r\n        \"skos:prefLabel\": {\r\n          \"@value\": \"Available\",\r\n          \"@language\": \"en\"\r\n        }\r\n      }\r\n    ],\r\n    \"spdx:checksum\": {\r\n      \"@type\": \"spdx:Checksum\",\r\n      \"spdx:algorithm\": {\r\n        \"@id\": \"http://spdx.org/rdf/terms#SHA256\",\r\n        \"@type\": \"spdx:ChecksumAlgorithm\"\r\n      },\r\n      \"spdx:checksumValue\": {\r\n        \"@type\": \"xsd:hexBinary\",\r\n        \"@value\": \"3a7bd3e2360a3b5c1b2ef3b1a4e8f7a6\"\r\n      }\r\n    },\r\n    \"dcat:accessURL\": {\r\n      \"@id\": \"https://example.com/distribution/489/information\"\r\n    },\r\n    \"dcat:accessService\": [\r\n      {\r\n        \"@id\": \"https://example.com/dataservice/456\",\r\n        \"@type\": \"dcat:DataService\",\r\n        \"dcterms:title\": {\r\n          \"@language\": \"en\",\r\n          \"@value\": \"SampleDataService\"\r\n        },\r\n        \"dcat:endpointURL\": {\r\n          \"@id\": \"https://example.com/dataservice/456/download\"\r\n        }\r\n      }\r\n    ]\r\n  }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/datasets/mmio-sample.tar",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"datasets",
+								"mmio-sample.tar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete_dataset",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/datasets/abc-123-xyz/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"datasets",
+								"abc-123-xyz",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Sharing",
+			"item": [
+				{
+					"name": "share_dataset",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/datasets/abc-123-xyz/share/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"datasets",
+								"abc-123-xyz",
+								"share",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "unshare_dataset",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/datasets/abc-123-xyz/unshare/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"datasets",
+								"abc-123-xyz",
+								"unshare",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "health_check",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/health-check/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"health-check",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "metrics",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/metrics/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"metrics",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Database(BaseModel):
-    protocol: str = "neo4j"
+    protocol: str = "bolt"
     host: str = "localhost"
     port: int = 7687
     name: str = "neo4j"
@@ -30,6 +30,13 @@ class Settings(BaseSettings):
     test_database: Database = Database()
 
     catalog: Catalog = Catalog()
+
+    oca_uri: str = "http://oca.example.org/123/"
+
+    ontology_url: str = "https://www.w3.org/ns/dcat.ttl"
+    shacl_url: str = (
+        "https://semiceu.github.io/DCAT-AP/releases/3.0.0/shacl/dcat-ap-SHACL.ttl"
+    )
 
 
 def get_settings() -> Settings:

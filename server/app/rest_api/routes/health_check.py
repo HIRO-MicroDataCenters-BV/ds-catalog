@@ -1,6 +1,6 @@
 from classy_fastapi import Routable, get
 
-from ..serializers.health_check import HealthCheck
+from ..serializers import HealthCheck
 
 
 class HealthCheckRoutes(Routable):

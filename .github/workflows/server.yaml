@@ -74,15 +74,13 @@ jobs:
 
       - name: Verify OpenAPI spec has been updated
         run: |
-          cd "${{ github.workspace }}"
-          poetry run --directory server python ./tools/extract_openapi.py app.main:app --app-dir ./server --out ./api/openapi_generated.yaml --app_version_file ./VERSION
-          git diff --exit-code ./api/openapi.yaml ./api/openapi_generated.yaml
+          poetry run python ../tools/extract_openapi.py app.main:app --app-dir . --out ../api/openapi_generated.yaml --app_version_file ../VERSION
+          git diff --exit-code ../api/openapi.yaml ../api/openapi_generated.yaml
 
       - name: Verify client has been updated
         run: |
-          cd "${{ github.workspace }}"
-          poetry --directory server run python ./tools/client_generator/generate.py --file ./api/openapi.yaml
-          git diff --exit-code -- ./client
+          poetry run python ../tools/client_generator/generate.py ../api/openapi.yaml
+          git diff --exit-code -- ../client
 
   build_server:
     needs: [test_server]

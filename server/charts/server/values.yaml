@@ -5,9 +5,10 @@ image:
   tag: ""
   pullPolicy: IfNotPresent
 
-imagePullSecrets: []
+imagePullSecrets: ""
 nameOverride: ""
-fullnameOverride: ""
+fullnameOverride: "ds-catalog"
+
 
 serviceAccount:
   create: true
@@ -22,36 +23,62 @@ podSecurityContext: {}
 
 securityContext: {}
 
+container:
+  command: ["uvicorn"]
+  args: ["app.main:app", "--host", "0.0.0.0", "--port", "8081"]
+
 service:
   type: ClusterIP
-  port: 80
-
-resources: {}
+  port: 8081
 
 livenessProbe:
   httpGet:
     path: /health-check/
-    port: http
+    port: 8081
+
 readinessProbe:
   httpGet:
     path: /health-check/
-    port: http
+    port: 8081
+
+persistence:
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  storageClass: ""
+  mountPath: /code/uploads
 
 catalog:
   title: Catalog
   description: My Local Catalog
 
-neo4j:
-  enabled: true
-  neo4j:
-    name: neo4j
-    resources:
-      cpu: "0.5"
-      memory: "2Gi"
-    passwordFromSecret: "neo4j-secrets"
-  volumes:
-    data:
-      mode: defaultStorageClass
-      defaultStorageClass:
-        requests:
-          storage: 2Gi
+database:
+  protocol: bolt
+  host: "127.0.0.1"
+  port: 7687
+  name: neo4j
+  username: neo4j
+  password: "123456789"  # Must match Neo4j's password
+
+migrate:
+  enabled: false
+
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "250m"
+  limits:
+    memory: "128Mi"
+    cpu: "500m"
+
+namespace: nextgen
+
+deploymentMode: daemonset  # or "deployment"
+
+ingress:
+  host: nextgen.hiro-develop.nl
+  nodes:
+    - nodeId: node1
+    - nodeId: node2
+    - nodeId: node3

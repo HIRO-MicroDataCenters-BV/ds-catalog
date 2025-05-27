@@ -1,12 +1,13 @@
 from typing import TypedDict
 
-from .entities import Person
+from .entities import User
 
 
 class Context(TypedDict):
-    user: Person
+    user: User
 
 
-class CreateDatasetContext(Context):
-    catalog_title: str
-    catalog_description: str
+class SaveDatasetContext(Context):
+    oca_uri: str
+    shacl_url: str | None
+    ontology_url: str | None

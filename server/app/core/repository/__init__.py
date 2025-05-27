@@ -1,3 +1,3 @@
-from .repositories import ICatalogItemRepository, catalog_item_repo
+from .repositories import Repositories
 
-__all__ = ["ICatalogItemRepository", "catalog_item_repo"]
+__all__ = ["Repositories"]

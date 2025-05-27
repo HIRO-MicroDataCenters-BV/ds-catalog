@@ -1,5 +1,5 @@
 # Python client
-API version: 0.1.1
+API version: 0.2.0
 
 ## Requirements
 
@@ -48,26 +48,20 @@ poetry publish
 ## Client generator
 To generate the client, execute the following script from the project root folder
 ```bash
-poetry --directory server run python ./tools/client_generator/generate.py --file ./api/openapi.yaml
+poetry --directory server run python ./tools/client_generator/generate.py ./api/openapi.yaml
 ```
 
 ### Command
 ```bash
-generate.py [--file <a path or URL to a .yaml file>] [--asyncio]
+generate.py <file> [--asyncio]
 ```
 
 #### Arguments
-**--file**
+**file**
 Specifies the input OpenAPI specification file path or URL. This argument is required for generating the Python client. The input file can be either a local file path or a URL pointing to the OpenAPI schema.
 
 **--asyncio**
 Flag to indicate whether to generate asynchronous code. If this flag is provided, the generated Python client will include asynchronous features. By default, synchronous code is generated.
-
-#### Saving Arguments
-
-The script saves provided arguments for future use. Upon the initial execution, if no arguments are provided, the script will check if there are previously saved arguments in the specified file path. If saved arguments are found, they will be loaded and used for generating the client. If no saved arguments are found or if new arguments are provided, the script will save the provided arguments for future use.
-
-This mechanism ensures that users can omit specifying arguments on subsequent executions if the same arguments were used previously. Saved arguments are stored in a JSON file located at generator/args.json.
 
 #### Configuration
 You can change the name of the client package in the file `/tools/client_generator/config.json`.
@@ -77,11 +71,10 @@ Add file's paths to `client/.openapi-generator-ignore` so that it doesn't get ov
 #### Examples
 
 ```bash
-python generate.py --file https://<domain>/openapi.json
-python generate.py --file https://<domain>/openapi.json --asyncio
-python generate.py --file /<path>/openapi.yaml
-python generate.py --file /<path>/openapi.yaml --asyncio
-python generate.py
+python generate.py https://<domain>/openapi.json
+python generate.py https://<domain>/openapi.json --asyncio
+python generate.py /<path>/openapi.yaml
+python generate.py /<path>/openapi.yaml --asyncio
 ```
 
 ## Getting Started
@@ -105,16 +98,16 @@ configuration = ds_catalog.Configuration(
 # Enter a context with an instance of the API client
 with ds_catalog.ApiClient(configuration) as api_client:
     # Create an instance of the API class
-    api_instance = ds_catalog.DatasetsApi(api_client)
-    dataset_form = ds_catalog.DatasetForm() # DatasetForm | 
+    api_instance = ds_catalog.CatalogApi(api_client)
+    request_body = None # Dict[str, object] | 
 
     try:
-        # Create Dataset
-        api_response = api_instance.create_dataset(dataset_form)
-        print("The response of DatasetsApi->create_dataset:\n")
+        # Get Local Catalog
+        api_response = api_instance.get_catalog(request_body)
+        print("The response of CatalogApi->get_catalog:\n")
         pprint(api_response)
     except ApiException as e:
-        print("Exception when calling DatasetsApi->create_dataset: %s\n" % e)
+        print("Exception when calling CatalogApi->get_catalog: %s\n" % e)
 
 ```
 
@@ -124,32 +117,24 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*DatasetsApi* | [**create_dataset**](docs/DatasetsApi.md#create_dataset) | **POST** /datasets/ | Create Dataset
+*CatalogApi* | [**get_catalog**](docs/CatalogApi.md#get_catalog) | **POST** /catalog/ | Get Local Catalog
 *DatasetsApi* | [**delete_dataset**](docs/DatasetsApi.md#delete_dataset) | **DELETE** /datasets/{id}/ | Delete Dataset
 *DatasetsApi* | [**get_dataset**](docs/DatasetsApi.md#get_dataset) | **GET** /datasets/{id}/ | Get Dataset
-*DatasetsApi* | [**get_datasets**](docs/DatasetsApi.md#get_datasets) | **GET** /datasets/ | Get Datasets
-*DatasetsApi* | [**update_dataset**](docs/DatasetsApi.md#update_dataset) | **PATCH** /datasets/{id}/ | Update Dataset
-*ImportingApi* | [**import_dataset**](docs/ImportingApi.md#import_dataset) | **POST** /datasets/import/ | Import Dataset
+*DatasetsApi* | [**save_dataset**](docs/DatasetsApi.md#save_dataset) | **POST** /datasets/{filename}/ | Save Dataset
+*MMIOApi* | [**delete_mmio_file**](docs/MMIOApi.md#delete_mmio_file) | **DELETE** /mmio/{filename}/ | Delete Mmio File
+*MMIOApi* | [**get_mmio_file**](docs/MMIOApi.md#get_mmio_file) | **GET** /mmio/{filename}/ | Get Mmio File
+*MMIOApi* | [**save_mmio_file**](docs/MMIOApi.md#save_mmio_file) | **POST** /mmio/ | Save Mmio File
 *SharingApi* | [**share_dataset**](docs/SharingApi.md#share_dataset) | **POST** /datasets/{id}/share/ | Share Dataset
+*SharingApi* | [**unshare_dataset**](docs/SharingApi.md#unshare_dataset) | **POST** /datasets/{id}/unshare/ | Unhare Dataset
 *DefaultApi* | [**health_check**](docs/DefaultApi.md#health_check) | **GET** /health-check/ | Health check
 *DefaultApi* | [**metrics_metrics_get**](docs/DefaultApi.md#metrics_metrics_get) | **GET** /metrics | Metrics
 
 
 ## Documentation For Models
 
- - [Catalog](docs/Catalog.md)
- - [CatalogImportForm](docs/CatalogImportForm.md)
- - [Checksum](docs/Checksum.md)
- - [DataService](docs/DataService.md)
- - [Dataset](docs/Dataset.md)
- - [DatasetForm](docs/DatasetForm.md)
- - [DatasetImportForm](docs/DatasetImportForm.md)
- - [DatasetShareForm](docs/DatasetShareForm.md)
- - [Distribution](docs/Distribution.md)
+ - [ErrorResponse](docs/ErrorResponse.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
  - [HealthCheck](docs/HealthCheck.md)
- - [PaginatedResultDataset](docs/PaginatedResultDataset.md)
- - [Person](docs/Person.md)
  - [ValidationError](docs/ValidationError.md)
  - [ValidationErrorLocInner](docs/ValidationErrorLocInner.md)
 

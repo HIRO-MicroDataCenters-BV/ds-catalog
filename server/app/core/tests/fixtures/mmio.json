@@ -1,0 +1,16 @@
+{
+  "version": "0.1",
+  "id": "EI2z8E6zYvMF_yvquoUJedWi0rKpQsscPf7JlBgIDoOm",
+  "modalities": [
+    {
+      "id": "EEORbmaaCrfby9K7MH9MY4W6YQTMPQGfyVgSm9MX-_MA",
+      "modality_said": "EAM7ZpMK2LqcXZtGB6lqaPqsbbGlLyj1cky9e1yyi8z2",
+      "modality_type": "Binary",
+      "media_type": "application/octet-stream",
+      "oca_bundle": {
+        "type": "Reference",
+        "value": "EB-d473DxvmtISCVwL2AC_qGHdMNdMdFWeSq7jhMupys"
+      }
+    }
+  ]
+}

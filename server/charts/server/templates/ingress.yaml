@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "app.fullname" . }}-ingress
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  rules:
+    {{- range .Values.ingress.nodes }}
+    - host: ds-catalog.{{ .nodeId }}.{{ $.Values.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "app.fullname" $ }}-{{ .nodeId }}
+                port:
+                  number: 80
+    {{- end }}
+  tls:
+    - hosts:
+        {{- range .Values.ingress.nodes }}
+        - ds-catalog.{{ .nodeId }}.{{ $.Values.ingress.host }}
+        {{- end }}
+      secretName: {{ include "app.fullname" . }}-tls-secret

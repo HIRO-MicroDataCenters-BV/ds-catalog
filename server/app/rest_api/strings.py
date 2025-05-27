@@ -1,2 +1,5 @@
 DATASET_NOT_FOUND = "Dataset not found"
-DATASET_ALREDY_EXISTS = "A dataset with the same identifier already exists"
+
+FILE_ALREADY_EXISTS = "File already exists"
+FILE_NOT_FOUND = "File not found"
+FILE_NOT_SELECTED = "File not selected for uploading"

@@ -1,9 +1,9 @@
 # coding: utf-8
 
 """
-    Data Space Catalog
+    Data Space Catalog Service
 
-    The service provides a REST API for managing and sharing catalog data. Interacts with connector services to obtain information about data products.
+    The service provides a REST API for managing and sharing catalog items.
 
     The version of the OpenAPI document: 0.1.1
     Contact: all-hiro@hiro-microdatacenters.nl
@@ -18,12 +18,8 @@ import pprint
 import re  # noqa: F401
 import json
 
-from datetime import date
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr
-from typing import Any, ClassVar, Dict, List
-from ds_catalog.models.catalog import Catalog
-from ds_catalog.models.distribution import Distribution
-from ds_catalog.models.person import Person
+from pydantic import BaseModel, ConfigDict, Field
+from typing import Any, ClassVar, Dict, List, Optional
 from typing import Optional, Set
 from typing_extensions import Self
 
@@ -31,19 +27,9 @@ class Dataset(BaseModel):
     """
     Dataset
     """ # noqa: E501
-    identifier: StrictStr
-    title: StrictStr
-    description: StrictStr
-    keyword: List[StrictStr]
-    license: StrictStr
-    is_local: StrictBool = Field(alias="isLocal")
-    is_shared: StrictBool = Field(alias="isShared")
-    issued: date
-    theme: List[StrictStr]
-    catalog: Catalog
-    creator: Person
-    distribution: List[Distribution]
-    __properties: ClassVar[List[str]] = ["identifier", "title", "description", "keyword", "license", "isLocal", "isShared", "issued", "theme", "catalog", "creator", "distribution"]
+    context: Optional[Dict[str, Any]] = Field(default=None, alias="@context")
+    additional_properties: Dict[str, Any] = {}
+    __properties: ClassVar[List[str]] = ["@context"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -75,8 +61,10 @@ class Dataset(BaseModel):
         * `None` is only added to the output dict for nullable fields that
           were set at model initialization. Other fields with value `None`
           are ignored.
+        * Fields in `self.additional_properties` are added to the output dict.
         """
         excluded_fields: Set[str] = set([
+            "additional_properties",
         ])
 
         _dict = self.model_dump(
@@ -84,19 +72,11 @@ class Dataset(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of catalog
-        if self.catalog:
-            _dict['catalog'] = self.catalog.to_dict()
-        # override the default output from pydantic by calling `to_dict()` of creator
-        if self.creator:
-            _dict['creator'] = self.creator.to_dict()
-        # override the default output from pydantic by calling `to_dict()` of each item in distribution (list)
-        _items = []
-        if self.distribution:
-            for _item_distribution in self.distribution:
-                if _item_distribution:
-                    _items.append(_item_distribution.to_dict())
-            _dict['distribution'] = _items
+        # puts key-value pairs in additional_properties in the top level
+        if self.additional_properties is not None:
+            for _key, _value in self.additional_properties.items():
+                _dict[_key] = _value
+
         return _dict
 
     @classmethod
@@ -109,19 +89,13 @@ class Dataset(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "identifier": obj.get("identifier"),
-            "title": obj.get("title"),
-            "description": obj.get("description"),
-            "keyword": obj.get("keyword"),
-            "license": obj.get("license"),
-            "isLocal": obj.get("isLocal"),
-            "isShared": obj.get("isShared"),
-            "issued": obj.get("issued"),
-            "theme": obj.get("theme"),
-            "catalog": Catalog.from_dict(obj["catalog"]) if obj.get("catalog") is not None else None,
-            "creator": Person.from_dict(obj["creator"]) if obj.get("creator") is not None else None,
-            "distribution": [Distribution.from_dict(_item) for _item in obj["distribution"]] if obj.get("distribution") is not None else None
+            "@context": obj.get("@context")
         })
+        # store additional fields in additional_properties
+        for _key in obj.keys():
+            if _key not in cls.__properties:
+                _obj.additional_properties[_key] = obj.get(_key)
+
         return _obj
 
 

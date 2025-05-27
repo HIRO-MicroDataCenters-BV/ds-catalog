@@ -1,178 +1,342 @@
-from typing import Generator
+from unittest.mock import AsyncMock, Mock
 
 import pytest
+from rdflib import Graph as RDFGraph
+from rdflib.namespace import DCTERMS
 
-from app.core.exceptions import DatasetDoesNotExist
-from app.core.tests.factories import DatasetFactory
+from app.core.entities import Catalog, Dataset, Person
+from app.core.exceptions import ErrorSavingData, MultipleNodesFound, NodeDoesNotExist
+from app.core.namespace import DSPACE
 
-from ..models import (
-    CatalogNode,
-    ChecksumNode,
-    DataServiceNode,
-    DatasetNode,
-    DistributionNode,
-    PersonNode,
+from ..queries import Query
+from ..repositories import (
+    CatalogsRepository,
+    DatasetsRepository,
+    FilesRepository,
+    PersonsRepository,
+    Repositories,
 )
-from ..queries.catalog import DatasetsFilterByIdQuery
-from ..queries.list import OrderQuery
-from ..repositories import CatalogItemRepository
-from .helpers import clean_db, compare_sets_by_field, connect_db, mark_async_db_test
 
 
-@pytest.fixture(autouse=True, scope="session")
-def db_connection() -> Generator[None, None, None]:
-    connect_db()
-    yield
-    clean_db()
-
-
-@pytest.fixture(autouse=True)
-def clean_db_before_each_test() -> None:
-    clean_db()
-
-
-class TestCatalogItemRepository:
+class TestPersonsRepository:
     @pytest.fixture
-    def catalog_item_repo(self) -> CatalogItemRepository:
-        return CatalogItemRepository()
+    def repository(self):
+        db_driver = Mock()
+        repository = PersonsRepository(db_driver)
+        repository.neosemantics = Mock()
+        return repository
 
-    @mark_async_db_test
-    async def test_list(self, catalog_item_repo: CatalogItemRepository) -> None:
-        dataset_entities = DatasetFactory.batch(2)
-        for dataset_entity in dataset_entities:
-            await catalog_item_repo.create(dataset_entity)
+    @pytest.mark.asyncio
+    async def test_get(self, repository):
+        mock_graph = Mock()
+        mock_graph.subjects.return_value = [Mock()]
 
-        query = OrderQuery(order_by="title")
-        result = await catalog_item_repo.list(query)
+        repository.neosemantics.export = AsyncMock(return_value=mock_graph)
 
-        assert compare_sets_by_field(result, dataset_entities, "identifier")
+        query = Query()
+        result = await repository.get(query)
 
-    @mark_async_db_test
-    async def test_get(self, catalog_item_repo: CatalogItemRepository) -> None:
-        dataset_entity = DatasetFactory.build()
-        dataset_entity = await catalog_item_repo.create(dataset_entity)
+        repository.neosemantics.export.assert_called_once_with(
+            "MATCH (p:foaf__Person)-[r*0..]->(related)\n"
+            'WHERE all(rel IN r WHERE type(rel) <> "rdf__type")\n'
+            "RETURN p, r, related"
+        )
+        assert isinstance(result, Person)
+        assert result.graph == mock_graph
 
-        query = DatasetsFilterByIdQuery(id=dataset_entity.identifier)
-        result = await catalog_item_repo.get(query)
+    @pytest.mark.asyncio
+    async def test_node_does_not_exist(self, repository):
+        empty_graph = RDFGraph()
+        repository.neosemantics.export = AsyncMock(return_value=empty_graph)
+        query = Query()
+        with pytest.raises(NodeDoesNotExist):
+            await repository.get(query)
 
-        assert result == dataset_entity
+    @pytest.mark.asyncio
+    async def test_multiple_nodes_found(self, repository):
+        mock_graph = Mock()
+        repository.neosemantics.export = AsyncMock(return_value=mock_graph)
+        mock_graph.subjects.return_value = [Mock(), Mock()]
+        query = Query()
+        with pytest.raises(MultipleNodesFound):
+            await repository.get(query)
 
-    @mark_async_db_test
-    async def test_get_if_not_exist(
-        self, catalog_item_repo: CatalogItemRepository
-    ) -> None:
-        with pytest.raises(DatasetDoesNotExist):
-            query = DatasetsFilterByIdQuery(id="123")
-            await catalog_item_repo.get(query)
+    @pytest.mark.asyncio
+    async def test_save_success(self, repository):
+        repository.neosemantics.save = AsyncMock(return_value={"success": True})
+        obj = Mock()
+        await repository.save(obj)
+        repository.neosemantics.save.assert_called_once_with(obj.graph)
 
-    @mark_async_db_test
-    async def test_exists(self, catalog_item_repo: CatalogItemRepository) -> None:
-        dataset_entity = DatasetFactory.build()
+    @pytest.mark.asyncio
+    async def test_save_failure(self, repository):
+        repository.neosemantics.save = AsyncMock(
+            return_value={"success": False, "extra_info": "Error details"}
+        )
+        obj = Mock()
+        with pytest.raises(ErrorSavingData):
+            await repository.save(obj)
 
-        query = DatasetsFilterByIdQuery(id=dataset_entity.identifier)
-        result = await catalog_item_repo.exists(query)
-        assert result is False
 
-        await catalog_item_repo.create(dataset_entity)
+class TestCatalogsRepository:
+    @pytest.fixture
+    def repository(self):
+        db_driver = Mock()
+        repository = CatalogsRepository(db_driver)
+        repository.neosemantics = Mock()
+        return repository
 
-        result = await catalog_item_repo.exists(query)
-        assert result is True
+    @pytest.mark.asyncio
+    async def test_create(self, repository):
+        repository.neosemantics.save = AsyncMock()
 
-    @mark_async_db_test
-    async def test_create(self, catalog_item_repo: CatalogItemRepository) -> None:
-        dataset_entity = DatasetFactory.build()
-        dataset_entity = await catalog_item_repo.create(dataset_entity)
+        title = "Test Catalog"
+        description = "Test Description"
+        result = await repository.create(title, description)
 
-        dataset_node = await catalog_item_repo._get_node(dataset_entity)
+        repository.neosemantics.save.assert_called_once()
+        assert isinstance(result, Catalog)
+        assert str(result.get_attribute(DCTERMS.title)) == title
+        assert str(result.get_attribute(DCTERMS.description)) == description
 
-        assert dataset_node.title == dataset_entity.title
-        assert dataset_node.description == dataset_entity.description
-        assert dataset_node.keyword == dataset_entity.keyword
-        assert dataset_node.license == dataset_entity.license
-        assert dataset_node.theme == dataset_entity.theme
-        assert dataset_node.is_local == dataset_entity.is_local
-        assert dataset_node.is_shared == dataset_entity.is_shared
+    @pytest.mark.asyncio
+    async def test_get(self, repository):
+        mock_graph = Mock()
+        mock_graph.subjects.return_value = [Mock()]
 
-        creator_node = await dataset_node.creator.get()
-        assert creator_node is not None
-        assert creator_node.identifier == dataset_entity.creator.id
-        assert creator_node.name == dataset_entity.creator.name
+        repository.neosemantics.export = AsyncMock(return_value=mock_graph)
 
-        catalog_node = await dataset_node.catalog.get_or_none()
-        assert catalog_node is not None
-        assert catalog_node.identifier == dataset_entity.catalog.identifier
-        assert catalog_node.title == dataset_entity.catalog.title
-        assert catalog_node.description == dataset_entity.catalog.description
-        assert await catalog_node.creator.get() == creator_node
-        assert await catalog_node.dataset.all() == [dataset_node]
-        assert await catalog_node.service.all() == await dataset_node.services.all()
+        query = Query(
+            optional_match=[
+                "(d:dcat__Dataset)",
+                "(m1:ns0__Diagnosis)",
+            ],
+            where=['m1.ns0__code="I10"'],
+            with_clause="d",
+        )
+        result = await repository.get(query)
 
-        distribution_nodes = await dataset_node.distribution.all()
-        assert len(distribution_nodes) == len(dataset_entity.distribution) == 1
-        distribution_node = distribution_nodes[0]
-        distribution_entity = dataset_entity.distribution[0]
-        assert distribution_node.byte_size == distribution_entity.byte_size
-        assert distribution_node.media_type == distribution_entity.media_type
+        repository.neosemantics.export.assert_called_once_with(
+            "OPTIONAL MATCH (d:dcat__Dataset), (m1:ns0__Diagnosis)\n"
+            'WHERE m1.ns0__code="I10"\n'
+            "WITH d\n"
+            "MATCH (c:dcat__Catalog)\n"
+            "OPTIONAL MATCH (c)-[r0:dcat__dataset]->(d)-[r*0..]->(related)\n"
+            'WHERE all(rel IN r WHERE type(rel) <> "rdf__type") '
+            "AND d.dspace__isDeleted<>true\n"
+            "RETURN c, r0, d, r, related"
+        )
+        assert isinstance(result, Catalog)
+        assert result.graph == mock_graph
 
-        checksum_node = await distribution_node.checksum.get()
-        checksum_entity = distribution_entity.checksum
-        assert checksum_node.algorithm == checksum_entity.algorithm
-        assert checksum_node.checksum_value == checksum_entity.checksum_value
+    @pytest.mark.asyncio
+    async def test_node_does_not_exist(self, repository):
+        empty_graph = RDFGraph()
+        repository.neosemantics.export = AsyncMock(return_value=empty_graph)
+        query = Query()
+        with pytest.raises(NodeDoesNotExist):
+            await repository.get(query)
 
-        service_nodes = await distribution_node.access_service.all()
-        assert len(service_nodes) == len(distribution_entity.access_service) == 1
-        service_node = service_nodes[0]
-        service_entity = distribution_entity.access_service[0]
-        assert service_node.endpoint_url == service_entity.endpoint_url
+    @pytest.mark.asyncio
+    async def test_multiple_nodes_found(self, repository):
+        mock_graph = Mock()
+        repository.neosemantics.export = AsyncMock(return_value=mock_graph)
+        mock_graph.subjects.return_value = [Mock(), Mock()]
+        query = Query()
+        with pytest.raises(MultipleNodesFound):
+            await repository.get(query)
 
-    @mark_async_db_test
-    async def test_update(self, catalog_item_repo: CatalogItemRepository) -> None:
-        exists_entity = await catalog_item_repo.create(DatasetFactory.build())
-        await catalog_item_repo._get_node(exists_entity)
+    @pytest.mark.asyncio
+    async def test_save_success(self, repository):
+        repository.neosemantics.save = AsyncMock(return_value={"success": True})
+        obj = Mock()
+        await repository.save(obj)
+        repository.neosemantics.save.assert_called_once_with(obj.graph)
 
-        dataset_entity = DatasetFactory.build()
-        dataset_entity.identifier = exists_entity.identifier
+    @pytest.mark.asyncio
+    async def test_save_failure(self, repository):
+        repository.neosemantics.save = AsyncMock(
+            return_value={"success": False, "extra_info": "Error details"}
+        )
+        obj = Mock()
+        with pytest.raises(ErrorSavingData):
+            await repository.save(obj)
 
-        updated_entity = await catalog_item_repo.update(dataset_entity)
-        dataset_node = await catalog_item_repo._get_node(updated_entity)
 
-        assert updated_entity.model_dump() == dataset_entity.model_dump()
+class TestDatasetsRepository:
+    @pytest.fixture
+    def repository(self):
+        db_driver = Mock()
+        repository = DatasetsRepository(db_driver)
+        repository.neosemantics = Mock()
+        return repository
 
-        creator_node = await dataset_node.creator.get()
-        assert creator_node is not None
+    @pytest.mark.asyncio
+    async def test_get(self, repository):
+        mock_graph = Mock()
+        mock_graph.subjects.return_value = [Mock()]
 
-        catalog_node = await dataset_node.catalog.get_or_none()
-        assert catalog_node is not None
-        assert await catalog_node.creator.get() == creator_node
-        assert await catalog_node.dataset.all() == [dataset_node]
-        assert await catalog_node.service.all() == await dataset_node.services.all()
+        repository.neosemantics.export = AsyncMock(return_value=mock_graph)
 
-    @mark_async_db_test
-    async def test_delete_node(self, catalog_item_repo: CatalogItemRepository) -> None:
-        dataset_entity = DatasetFactory.build()
-        dataset_entity = await catalog_item_repo.create(dataset_entity)
+        query = Query()
+        result = await repository.get(query)
 
-        dataset_node = await catalog_item_repo._get_node(dataset_entity)
+        repository.neosemantics.export.assert_called_once_with(
+            "MATCH (d:dcat__Dataset)-[r*0..]->(related)\n"
+            'WHERE all(rel IN r WHERE type(rel) <> "rdf__type") '
+            "AND d.dspace__isDeleted<>true\n"
+            "RETURN d, r, related"
+        )
+        assert isinstance(result, Dataset)
+        assert result.graph == mock_graph
 
-        catalog_node = await dataset_node.catalog.get()
-        creator_node = await dataset_node.creator.get()
+    @pytest.mark.asyncio
+    async def test_node_does_not_exist(self, repository):
+        empty_graph = RDFGraph()
+        repository.neosemantics.export = AsyncMock(return_value=empty_graph)
+        query = Query()
+        with pytest.raises(NodeDoesNotExist):
+            await repository.get(query)
 
-        await catalog_item_repo.delete(dataset_entity)
+    @pytest.mark.asyncio
+    async def test_multiple_nodes_found(self, repository):
+        mock_graph = Mock()
+        repository.neosemantics.export = AsyncMock(return_value=mock_graph)
+        mock_graph.subjects.return_value = [Mock(), Mock()]
+        query = Query()
+        with pytest.raises(MultipleNodesFound):
+            await repository.get(query)
 
-        query = OrderQuery(order_by="")
-        result = await catalog_item_repo.list(query)
+    @pytest.mark.asyncio
+    async def test_save_success(self, repository):
+        repository.neosemantics.save = AsyncMock(return_value={"success": True})
+        obj = Mock()
+        await repository.save(obj)
+        repository.neosemantics.save.assert_called_once_with(obj.graph)
 
-        assert result == []
+    @pytest.mark.asyncio
+    async def test_save_failure(self, repository):
+        repository.neosemantics.save = AsyncMock(
+            return_value={"success": False, "extra_info": "Error details"}
+        )
+        obj = Mock()
+        with pytest.raises(ErrorSavingData):
+            await repository.save(obj)
 
-        assert await DatasetNode.nodes.all() == []
-        assert await ChecksumNode.nodes.all() == []
-        assert await DistributionNode.nodes.all() == []
-        assert await DataServiceNode.nodes.all() == []
+    @pytest.mark.asyncio
+    async def test_delete(self, repository):
+        mock_dataset = Mock()
+        repository.get = AsyncMock(return_value=mock_dataset)
+        repository.save = AsyncMock()
 
-        assert await catalog_node.dataset.all() == []
-        assert await catalog_node.service.all() == []
+        query = Query()
+        await repository.delete(query)
 
-        assert await CatalogNode.nodes.first() == catalog_node
-        assert await catalog_node.creator.get() == creator_node
+        repository.get.assert_called_once_with(query)
+        repository.save.assert_called_once_with(mock_dataset)
+        mock_dataset.set_attribute.assert_called_once_with(DSPACE.isDeleted, True)
 
-        assert await PersonNode.nodes.first() == creator_node
+
+class TestFilesRepository:
+    @pytest.mark.asyncio
+    async def test_get_file_path(self, tmp_path):
+        repository = FilesRepository(upload_folder=str(tmp_path))
+        result = repository._get_file_path("Test-File~!@#$%^&*()_+.txt")
+        assert result == tmp_path / "test-file~!@#$%^&*()_+.txt"
+
+    @pytest.mark.asyncio
+    async def test_create_success(self, tmp_path):
+        filename = "testfile.txt"
+        file_path = tmp_path / filename
+
+        file_content = b"Test content"
+        file_mock = Mock()
+        file_mock.read.return_value = file_content
+
+        assert not file_path.exists()
+
+        repository = FilesRepository(upload_folder=str(tmp_path))
+        await repository.create(file_mock, filename)
+
+        assert file_path.exists()
+        with file_path.open("rb") as f:
+            assert f.read() == file_content
+
+    @pytest.mark.asyncio
+    async def test_create_if_file_exists(self, tmp_path):
+        filename = "testfile.txt"
+        file_path = tmp_path / filename
+        file_path.touch()
+        file_mock = Mock()
+
+        repository = FilesRepository(upload_folder=str(tmp_path))
+
+        with pytest.raises(FileExistsError):
+            await repository.create(file_mock, filename)
+
+    @pytest.mark.asyncio
+    async def test_get_file_path_success(self, tmp_path):
+        filename = "testfile.txt"
+        file_path = tmp_path / filename
+        file_path.touch()
+
+        repository = FilesRepository(upload_folder=str(tmp_path))
+        result = await repository.get_file_path(filename)
+
+        assert result == str(file_path)
+
+    @pytest.mark.asyncio
+    async def test_get_file_path_if_file_not_found(self, tmp_path):
+        filename = "testfile.txt"
+        repository = FilesRepository(upload_folder=str(tmp_path))
+
+        with pytest.raises(FileNotFoundError):
+            await repository.get_file_path(filename)
+
+    @pytest.mark.asyncio
+    async def test_delete_success(self, tmp_path):
+        filename = "testfile.txt"
+        file_path = tmp_path / filename
+        file_path.touch()
+
+        repository = FilesRepository(upload_folder=str(tmp_path))
+
+        await repository.delete(filename)
+        assert not file_path.exists()
+
+    @pytest.mark.asyncio
+    async def test_delete_if_file_not_found(self, tmp_path):
+        filename = "testfile.txt"
+        repository = FilesRepository(upload_folder=str(tmp_path))
+
+        with pytest.raises(FileNotFoundError):
+            await repository.delete(filename)
+
+    @pytest.mark.asyncio
+    async def test_read_success(self, tmp_path):
+        filename = "testfile.txt"
+        file_path = tmp_path / filename
+        file_content = b"Test content"
+        with file_path.open("wb") as f:
+            f.write(file_content)
+
+        repository = FilesRepository(upload_folder=str(tmp_path))
+        result = await repository.read(filename)
+
+        assert result == file_content
+
+
+class TestRepositories:
+    @pytest.fixture
+    def repositories(self):
+        db_driver = Mock()
+        repositories = Repositories(db_driver)
+        repositories.neosemantics = Mock()
+        return repositories
+
+    @pytest.mark.asyncio
+    async def test_get_namespaces(self, repositories):
+        namespaces = Mock()
+        repositories.neosemantics.list_namespaces = AsyncMock(return_value=namespaces)
+        result = await repositories.get_namespaces()
+        assert result == namespaces

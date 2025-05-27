@@ -1,238 +1,390 @@
-from datetime import date
-from unittest.mock import AsyncMock, Mock
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
-from pydantic import AnyUrl
+from freezegun import freeze_time
+from rdflib import DCAT, DCTERMS, FOAF, RDF, Literal, URIRef
 
-from ..context import Context, CreateDatasetContext
-from ..entities import Catalog, Dataset, DatasetImport, NewDataset
-from ..exceptions import DatasetAlredyExists, DatasetDoesNotExist
-from ..repository.queries import DatasetsFilterByIdQuery
+from ..context import Context, SaveDatasetContext
+from ..entities import Catalog, Dataset, Metadata, Person
+from ..exceptions import GraphValidationError, NodeDoesNotExist
+from ..namespace import DSPACE
+from ..repository.queries import FilterDatasetByID, FilterPersonByID
+from ..repository.query_builder import catalog_filter_to_query
 from ..usecases import (
-    create_dataset,
-    delete_dataset,
-    get_dataset,
-    get_datasets_list,
-    import_dataset,
-    share_dataset,
-    update_dataset,
+    CatalogUsecases,
+    DatasetSharingUsecases,
+    DatasetsUsecases,
+    MMIOsUsecases,
 )
 from .factories import (
-    DatasetFactory,
-    DatasetImportFactory,
-    DatasetInputFactory,
-    PersonFactory,
+    catalog_filters_factory,
+    namespace_factory,
+    tar_factory,
+    user_factory,
 )
 
 
 @pytest.fixture
-def context():
-    return Context(user=PersonFactory.build())
+def validator_instance():
+    validator_instance = MagicMock()
+    validator_instance.validate = Mock(return_value=None)
+    return validator_instance
 
 
-class TestGetDatasetsList:
-    @pytest.mark.asyncio
-    async def test_common(self, context: Context) -> None:
-        entities = [
-            DatasetFactory.build(),
-            DatasetFactory.build(),
-        ]
-
-        query = Mock()
-        query.apply = AsyncMock()
-
-        repo = Mock()
-        repo.list = AsyncMock(return_value=entities)
-
-        result = await get_datasets_list(query, context, repo)
-
-        assert result == entities
-        repo.list.assert_called_once_with(query)
+@pytest.fixture
+def validator_class(validator_instance):
+    ValidatorClass = MagicMock(return_value=validator_instance)
+    return ValidatorClass
 
 
-class TestGetDataset:
-    @pytest.mark.asyncio
-    async def test_common(self, context: Context) -> None:
-        id = "1"
-        entity = DatasetFactory.build(identifier=id)
-
-        repo = Mock()
-        repo.get = AsyncMock(return_value=entity)
-
-        result = await get_dataset(id, context, repo)
-
-        assert result == entity
-        repo.get.assert_called_once_with(DatasetsFilterByIdQuery(id))
+class TestCatalogUsecases:
+    @pytest.fixture
+    def repositories(self):
+        return Mock()
 
     @pytest.mark.asyncio
-    async def test_not_found(self, context: Context) -> None:
-        repo = Mock()
-        repo.get = AsyncMock(side_effect=DatasetDoesNotExist)
+    async def test_get_local_catalog(
+        self, repositories, validator_class, validator_instance
+    ):
+        expected_result = Mock()
+        namespaces = namespace_factory()
 
-        with pytest.raises(DatasetDoesNotExist):
-            await get_dataset("1", context, repo)
+        repositories.get_namespaces = AsyncMock(return_value=namespaces)
+        repositories.catalogs.get = AsyncMock(return_value=expected_result)
 
+        usecase = CatalogUsecases(repositories)
 
-class TestCreateDataset:
-    @pytest.mark.asyncio
-    async def test_common(self) -> None:
-        catalog_title = "Test catalog"
-        catalog_description = "Test catalog description"
-
-        context = CreateDatasetContext(
-            user=PersonFactory.build(),
-            catalog_title=catalog_title,
-            catalog_description=catalog_description,
+        filters = catalog_filters_factory()
+        context = Context(user=user_factory())
+        result = await usecase.get_local_catalog(
+            filters,
+            context,
+            validator_class=validator_class,
         )
 
-        input = DatasetInputFactory.build()
-        output = DatasetFactory.build()
-        updated = NewDataset(
-            **input.model_dump(),
-            is_local=True,
-            is_shared=False,
-            creator=context["user"],
-            catalog=Catalog(
-                identifier=context["user"].id,
-                title=catalog_title,
-                description=catalog_description,
-            ),
-        )
+        assert result == expected_result
 
-        repo = Mock()
-        repo.create = AsyncMock(return_value=output)
+        validator_class.assert_called_once_with()
+        validator_instance.validate.assert_called_once_with(filters)
 
-        result = await create_dataset(input, context, repo)
+        repositories.get_namespaces.assert_called_once()
+        repositories.catalogs.get.assert_called_once()
 
-        assert result == output
-        repo.create.assert_called_once_with(updated)
-
-
-class TestUpdateDataset:
-    @pytest.mark.asyncio
-    async def test_common(self, context: Context) -> None:
-        id = "1"
-        input = DatasetInputFactory.build()
-        exists = DatasetFactory.build()
-        output = DatasetFactory.build()
-        updated = exists.model_validate(
-            {
-                **exists.model_dump(),
-                **input.model_dump(exclude_unset=True, exclude_defaults=True),
-            }
-        )
-
-        repo = Mock()
-        repo.get = AsyncMock(return_value=exists)
-        repo.update = AsyncMock(return_value=output)
-
-        result = await update_dataset(id, input, context, repo)
-
-        assert result == output
-        repo.get.assert_called_once_with(DatasetsFilterByIdQuery(id))
-        repo.update.assert_called_once_with(updated)
+        [query] = repositories.catalogs.get.call_args[0]
+        assert query == catalog_filter_to_query(filters, namespaces)
 
     @pytest.mark.asyncio
-    async def test_not_found(self, context: Context) -> None:
-        input = DatasetInputFactory.build()
+    async def test_get_local_catalog_if_graph_is_not_valid(
+        self, repositories, validator_class, validator_instance
+    ):
+        error = GraphValidationError("test_code", "Test error", [])
+        validator_instance.validate = Mock(side_effect=error)
 
-        repo = Mock()
-        repo.get = AsyncMock(side_effect=DatasetDoesNotExist)
+        usecase = CatalogUsecases(repositories)
 
-        with pytest.raises(DatasetDoesNotExist):
-            await update_dataset("1", input, context, repo)
+        filters = catalog_filters_factory()
+        context = Context(user=user_factory())
 
-
-class TestDeleteDataset:
-    @pytest.mark.asyncio
-    async def test_common(self, context: Context) -> None:
-        id = "1"
-        exists = DatasetFactory.build()
-
-        repo = Mock()
-        repo.get = AsyncMock(return_value=exists)
-        repo.delete = AsyncMock()
-
-        await delete_dataset(id, context, repo)
-
-        repo.get.assert_called_once_with(DatasetsFilterByIdQuery(id))
-        repo.delete.assert_called_once_with(exists)
-
-    @pytest.mark.asyncio
-    async def test_not_found(self, context: Context) -> None:
-        repo = Mock()
-        repo.get = AsyncMock(side_effect=DatasetDoesNotExist)
-
-        with pytest.raises(DatasetDoesNotExist):
-            await delete_dataset("1", context, repo)
-
-
-class TestShareDataset:
-    @pytest.mark.asyncio
-    async def test_common(self, context: Context) -> None:
-        id = "1"
-        marketplace_url = AnyUrl("http://example.com/1/")
-
-        exists = DatasetFactory.build(is_shared=False)
-        updated = DatasetFactory.build()
-        imported = DatasetFactory.build()
-
-        repo = Mock()
-        repo.get = AsyncMock(return_value=exists)
-        repo.update = AsyncMock(return_value=updated)
-
-        gateway = Mock()
-        gateway.share_dataset = AsyncMock(return_value=imported)
-
-        result = await share_dataset(id, marketplace_url, context, repo, gateway)
-
-        assert result == imported
-        gateway.share_dataset.assert_called_once_with(
-            DatasetImport(**exists.model_dump()),
-            marketplace_url,
-        )
-        repo.update.assert_called_once_with(
-            Dataset(
-                **exists.model_dump(exclude=set(["is_shared"])),
-                is_shared=True,
+        with pytest.raises(GraphValidationError):
+            await usecase.get_local_catalog(
+                filters,
+                context,
+                validator_class=validator_class,
             )
+
+
+class TestDatasetsUsecases:
+    @pytest.fixture
+    def repositories(self):
+        return Mock()
+
+    @pytest.fixture
+    def mmio_tar(self):
+        mmio_data = (Path(__file__).parent / "fixtures" / "mmio.json").read_text()
+        bundle_data = (Path(__file__).parent / "fixtures" / "bundle.json").read_text()
+        return tar_factory({"mmio.json": mmio_data, "test.bundles": bundle_data})
+
+    @pytest.fixture
+    def user(self):
+        return user_factory()
+
+    @pytest.fixture
+    def context(self, user):
+        return SaveDatasetContext(
+            user=user,
+            oca_uri="http://oca.example.org/123/",
+            shacl_url="http://example.org/shacl.ttl",
+            ontology_url="http://example.org/dcat.ttl",
         )
 
-
-class TestImportDataset:
+    @freeze_time("2017-05-21T09:23:00+00:00")
     @pytest.mark.asyncio
-    async def test_common(self, context: Context) -> None:
-        data = DatasetImportFactory.build()
-        created = DatasetFactory.build()
+    async def test_save(
+        self,
+        repositories,
+        mmio_tar,
+        context,
+        validator_class,
+        validator_instance,
+    ):
+        id = "http://example.com/1"
+        user = context["user"]
+        person = Person.from_user(user)
+        catalog = Catalog.create("Test title", "Test description")
+        dataset = Dataset.create_empty(id)
+        dataset.set_attribute(DCTERMS.identifier, id)
+        filename = "mmio.tar"
+        mmio_id = "EI2z8E6zYvMF_yvquoUJedWi0rKpQsscPf7JlBgIDoOm"  # from fixture
 
-        repo = Mock()
-        repo.exists = AsyncMock(return_value=False)
-        repo.create = AsyncMock(return_value=created)
+        repositories.catalogs.get = AsyncMock(return_value=catalog)
+        repositories.persons.get = AsyncMock(return_value=person)
+        repositories.catalogs.save = AsyncMock()
+        repositories.datasets.get = AsyncMock(return_value=dataset)
+        repositories.files.read = AsyncMock(return_value=mmio_tar)
 
-        result = await import_dataset(data, context, repo)
+        usecase = DatasetsUsecases(repositories)
 
-        assert result == created
-        repo.exists.assert_called_once_with(DatasetsFilterByIdQuery(data.identifier))
-        repo.create.assert_called_once_with(
-            Dataset(
-                **data.model_dump(exclude=set(["catalog"])),
-                is_local=False,
-                is_shared=False,
-                issued=date.today(),
-                creator=context["user"],
-                catalog=Catalog(
-                    **data.catalog.model_dump(),
-                    identifier=context["user"].id,
-                ),
+        result = await usecase.save(
+            dataset,
+            filename,
+            context,
+            validator_class=validator_class,
+        )
+
+        assert result == dataset
+
+        validator_class.assert_called_once_with(
+            shacl_url=context["shacl_url"],
+            ontology_url=context["ontology_url"],
+        )
+        validator_instance.validate.assert_called_once_with(dataset)
+
+        repositories.catalogs.get.assert_called_once_with()
+        repositories.persons.get.assert_called_once()
+        assert repositories.persons.get.call_args[0][0] == FilterPersonByID(user["id"])
+        repositories.catalogs.save.assert_called_once_with(catalog)
+        repositories.datasets.get.assert_called_once()
+        assert repositories.datasets.get.call_args[0][0] == FilterDatasetByID(id)
+        repositories.files.read.assert_called_once_with(filename)
+
+        assert result.get_attribute(DSPACE.isDeleted) == Literal(False)
+        assert result.get_attribute(DSPACE.isShared) == Literal(False)
+        assert result.get_attribute(DCTERMS.issued) == Literal(
+            "2017-05-21T09:23:00+00:00"
+        )
+        assert result.get_attribute(DCTERMS.publisher) == person.uri
+
+        assert result.get_attribute(DSPACE.metadataFilename) == Literal(filename)
+
+        oca_uri = context["oca_uri"]
+        metadata_uri = Metadata.build_uri(oca_uri, f"{mmio_id}/0", 0)
+        assert result.get_attribute(DSPACE.extraMetadata) == metadata_uri
+
+        assert (metadata_uri, RDF.type, Metadata.build_type(oca_uri)) in dataset.graph
+        assert (metadata_uri, URIRef(f"{oca_uri}age"), Literal(True)) in dataset.graph
+        assert (metadata_uri, URIRef(f"{oca_uri}bmi"), Literal(True)) in dataset.graph
+
+        assert catalog.get_attribute(DCAT.dataset) == dataset.uri
+
+    @pytest.mark.asyncio
+    async def test_save_with_new_publisher(
+        self, repositories, mmio_tar, context, validator_class
+    ):
+        id = "http://example.com/1"
+        catalog = Catalog.create("Test title", "Test description")
+        dataset = Dataset.create_empty(id)
+        dataset.set_attribute(DCTERMS.identifier, id)
+
+        repositories.catalogs.get = AsyncMock(return_value=catalog)
+        repositories.persons.get = AsyncMock(side_effect=NodeDoesNotExist)
+        repositories.catalogs.save = AsyncMock()
+        repositories.datasets.get = AsyncMock(return_value=dataset)
+        repositories.files.read = AsyncMock(return_value=mmio_tar)
+
+        usecase = DatasetsUsecases(repositories)
+
+        result = await usecase.save(
+            dataset,
+            "mmio.tar",
+            context,
+            validator_class=validator_class,
+        )
+
+        assert result == dataset
+
+        publisher = URIRef(context["user"]["id"])
+        assert result.get_attribute(DCTERMS.publisher) == publisher
+        assert (publisher, RDF.type, FOAF.Person) in catalog.graph
+
+    @pytest.mark.asyncio
+    async def test_save_if_it_is_shared_alredy(
+        self, repositories, mmio_tar, context, validator_class
+    ):
+        id = "http://example.com/1"
+        catalog = Catalog.create("Test title", "Test description")
+        dataset = Dataset.create_empty(id)
+        dataset.set_attribute(DCTERMS.identifier, id)
+        dataset.set_attribute(DSPACE.isShared, True)
+
+        repositories.catalogs.get = AsyncMock(return_value=catalog)
+        repositories.persons.get = AsyncMock(side_effect=NodeDoesNotExist)
+        repositories.catalogs.save = AsyncMock()
+        repositories.datasets.get = AsyncMock(return_value=dataset)
+        repositories.files.read = AsyncMock(return_value=mmio_tar)
+
+        usecase = DatasetsUsecases(repositories)
+
+        result = await usecase.save(
+            dataset,
+            "mmio.tar",
+            context,
+            validator_class=validator_class,
+        )
+
+        assert result == dataset
+        assert result.get_attribute(DSPACE.isShared) == Literal(True)
+
+    @pytest.mark.asyncio
+    async def test_save_if_graph_is_not_valid(
+        self, repositories, context, validator_class, validator_instance
+    ):
+        error = GraphValidationError("test_code", "Test error", [])
+        validator_instance.validate = Mock(side_effect=error)
+
+        usecase = DatasetsUsecases(repositories)
+
+        dataset = Dataset.create_empty("test-id")
+
+        with pytest.raises(GraphValidationError):
+            await usecase.save(
+                dataset,
+                "test.csv",
+                context,
+                validator_class=validator_class,
             )
-        )
 
     @pytest.mark.asyncio
-    async def test_if_exists(self, context: Context) -> None:
-        data = DatasetImportFactory.build()
+    async def test_get(self, repositories):
+        id = "test-id"
+        dataset = Dataset.create_empty(id)
 
-        repo = Mock()
-        repo.exists = AsyncMock(return_value=True)
+        repositories.datasets.get = AsyncMock(return_value=dataset)
 
-        with pytest.raises(DatasetAlredyExists):
-            await import_dataset(data, context, repo)
+        usecase = DatasetsUsecases(repositories)
+
+        context = Context(user=user_factory())
+        result = await usecase.get(id, context)
+
+        repositories.datasets.get.assert_called_once()
+        assert repositories.datasets.get.call_args[0][0] == FilterDatasetByID(id)
+        assert result == dataset
+
+    @pytest.mark.asyncio
+    async def test_delete(self, repositories):
+        id = "test-id"
+
+        repositories.datasets.delete = AsyncMock()
+
+        usecase = DatasetsUsecases(repositories)
+
+        context = Context(user=user_factory())
+        await usecase.delete(id, context)
+
+        repositories.datasets.delete.assert_called_once()
+        assert repositories.datasets.delete.call_args[0][0] == FilterDatasetByID(id)
+
+
+class TestDatasetSharingUsecases:
+    @pytest.fixture
+    def repositories(self):
+        return Mock()
+
+    @pytest.mark.asyncio
+    async def test_share(self, repositories):
+        id = "test-id"
+        dataset = Dataset.create_empty(id)
+
+        repositories.datasets.get = AsyncMock(return_value=dataset)
+        repositories.datasets.save = AsyncMock()
+
+        usecase = DatasetSharingUsecases(repositories)
+
+        context = Context(user=user_factory())
+        await usecase.share(id, context)
+
+        repositories.datasets.get.assert_called_once()
+        assert repositories.datasets.get.call_args[0][0] == FilterDatasetByID(id)
+
+        assert dataset.get_attribute(DSPACE.isShared) == Literal(True)
+
+        repositories.datasets.save.assert_called_once_with(dataset)
+
+    @pytest.mark.asyncio
+    async def test_unshare(self, repositories):
+        id = "test-id"
+        dataset = Dataset.create_empty(id)
+
+        repositories.datasets.get = AsyncMock(return_value=dataset)
+        repositories.datasets.save = AsyncMock()
+
+        usecase = DatasetSharingUsecases(repositories)
+
+        context = Context(user=user_factory())
+        await usecase.unshare(id, context)
+
+        repositories.datasets.get.assert_called_once()
+        assert repositories.datasets.get.call_args[0][0] == FilterDatasetByID(id)
+
+        assert dataset.get_attribute(DSPACE.isShared) == Literal(False)
+
+        repositories.datasets.save.assert_called_once_with(dataset)
+
+
+class TestMMIOsUsecases:
+    @pytest.fixture
+    def repositories(self):
+        return Mock()
+
+    @pytest.mark.asyncio
+    async def test_create(self, repositories):
+        file = Mock()
+        filename = "test_file.mmio"
+        user = user_factory()
+
+        repositories.files.create = AsyncMock()
+
+        usecase = MMIOsUsecases(repositories)
+
+        context = Context(user=user)
+        await usecase.create(file, filename, context)
+
+        repositories.files.create.assert_called_once_with(file, filename)
+
+    @pytest.mark.asyncio
+    async def test_get(self, repositories):
+        filename = "test_file.mmio"
+        file_path = "/file-path"
+
+        repositories.files.get_file_path = AsyncMock(return_value=file_path)
+
+        usecase = MMIOsUsecases(repositories)
+
+        context = Context(user=user_factory())
+        result = await usecase.get(filename, context)
+
+        repositories.files.get_file_path.assert_called_once_with(filename)
+        assert result == file_path
+
+    @pytest.mark.asyncio
+    async def test_delete(self, repositories):
+        filename = "test_file.mmio"
+
+        repositories.files.delete = AsyncMock()
+
+        usecase = MMIOsUsecases(repositories)
+
+        context = Context(user=user_factory())
+        await usecase.delete(filename, context)
+
+        repositories.files.delete.assert_called_once_with(filename)

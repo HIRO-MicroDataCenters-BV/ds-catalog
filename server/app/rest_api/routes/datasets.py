@@ -1,272 +1,155 @@
 from typing import Annotated
 
-from abc import ABC, abstractmethod
-
-from classy_fastapi import Routable, delete, get, patch, post
-from fastapi import Depends, HTTPException, Request, Response, status
+from classy_fastapi import Routable, delete, get, post
+from fastapi import Depends, HTTPException, Path, status
+from fastapi.exceptions import RequestValidationError
 
 from app.core import entities, usecases
-from app.core.context import Context, CreateDatasetContext
-from app.core.exceptions import DatasetDoesNotExist
-from app.core.repository.queries import (
-    CompositeQuery,
-    DatasetsFilterDTO,
-    DatasetsFilterQuery,
-    IQuery,
-    OrderQuery,
-    OrderQueryDTO,
-    PaginatorQuery,
-    PaginatorQueryDTO,
-)
-from app.settings import get_settings
+from app.core.exceptions import ErrorParsingMMIO, GraphValidationError, NodeDoesNotExist
+from app.core.repository import Repositories
+from app.settings import Settings, get_settings
 
-from ..depends.catalog import datasets_filter
-from ..depends.list import order_parameters, paginator_parameters
-from ..depends.user import get_user
-from ..serializers.catalog import Dataset, DatasetForm
-from ..serializers.common import PaginatedResult
-from ..strings import DATASET_NOT_FOUND
+from ..depends import get_repositories, get_user
+from ..examples import dataset_example
+from ..response import JSONLDResponse
+from ..serializers import Dataset
+from ..strings import DATASET_NOT_FOUND, FILE_NOT_FOUND
 from ..tags import Tags
 
 
-class IDatasetsUsecases(ABC):
-    @abstractmethod
-    async def list(
-        self,
-        query: IQuery,
-        context: Context,
-    ) -> list[entities.Dataset]:
-        ...
-
-    @abstractmethod
-    async def get(
-        self,
-        id: str,
-        context: Context,
-    ) -> entities.Dataset:
-        ...
-
-    @abstractmethod
-    async def create(
-        self,
-        data: entities.DatasetInput,
-        context: CreateDatasetContext,
-    ) -> entities.Dataset:
-        ...
-
-    @abstractmethod
-    async def update(
-        self,
-        id: str,
-        data: entities.DatasetInput,
-        context: Context,
-    ) -> entities.Dataset:
-        ...
-
-    @abstractmethod
-    async def delete(
-        self,
-        id: str,
-        context: Context,
-    ) -> None:
-        ...
-
-
-class DatasetsUsecases(IDatasetsUsecases):
-    async def list(self, *args, **kwargs):
-        return await usecases.get_datasets_list(*args, **kwargs)
-
-    async def get(self, *args, **kwargs):
-        return await usecases.get_dataset(*args, **kwargs)
-
-    async def create(self, *args, **kwargs):
-        return await usecases.create_dataset(*args, **kwargs)
-
-    async def update(self, *args, **kwargs):
-        return await usecases.update_dataset(*args, **kwargs)
-
-    async def delete(self, *args, **kwargs):
-        return await usecases.delete_dataset(*args, **kwargs)
+def get_usecases(
+    repositories: Repositories = Depends(get_repositories),
+) -> usecases.DatasetsUsecases:
+    return usecases.DatasetsUsecases(repositories)
 
 
 class DatasetsRoutes(Routable):
-    _usecases: IDatasetsUsecases
-
-    _local_catalog_title: str
-    _local_catalog_description: str
-
-    def __init__(
-        self,
-        usecases: IDatasetsUsecases,
-        local_catalog_title: str,
-        local_catalog_description: str,
-    ) -> None:
-        self._usecases = usecases
-
-        self._local_catalog_title = local_catalog_title
-        self._local_catalog_description = local_catalog_description
-
-        super().__init__()
-
-    @get(
-        "/datasets/",
-        operation_id="get_datasets",
+    @post(
+        "/datasets/{filename}/",
+        operation_id="save_dataset",
+        name="Save Dataset",
         tags=[Tags.Datasets],
-        response_model=PaginatedResult[Dataset],
+        response_class=JSONLDResponse,
+        responses={
+            200: {
+                "description": "Successful Response",
+                "content": {
+                    "application/ld+json": {
+                        "example": dataset_example,
+                    },
+                },
+            }
+        },
     )
-    async def get_datasets(
+    async def save_dataset(
         self,
-        paginator_parameters: Annotated[
-            PaginatorQueryDTO, Depends(paginator_parameters)
-        ],
-        order_parameters: Annotated[OrderQueryDTO, Depends(order_parameters)],
-        filters: Annotated[DatasetsFilterDTO, Depends(datasets_filter)],
-        user: Annotated[entities.Person, Depends(get_user)],
-    ) -> PaginatedResult[Dataset]:
-        """Get the datasets list"""
+        dataset: Dataset,
+        user: Annotated[entities.User, Depends(get_user)],
+        usecases: usecases.DatasetsUsecases = Depends(get_usecases),
+        settings: Settings = Depends(get_settings),
+        filename: str = Path(
+            ...,
+            description="The name of the uploaded MMIO file.",
+            examples=["mmio-sample.tar"],
+        ),
+    ) -> JSONLDResponse:
+        """Create or update a dataset"""
 
-        paginator_query = PaginatorQuery(**paginator_parameters)
-        order_query = OrderQuery(**order_parameters)
-        filters_query = DatasetsFilterQuery(**filters)
+        input_entity = dataset.to_entity()
 
-        query = CompositeQuery(
-            paginator_query,
-            order_query,
-            filters_query,
-        )
+        try:
+            output_entity = await usecases.save(
+                input_entity,
+                filename,
+                context={
+                    "user": user,
+                    "oca_uri": settings.oca_uri,
+                    "shacl_url": settings.shacl_url,
+                    "ontology_url": settings.ontology_url,
+                },
+            )
+        except FileNotFoundError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=FILE_NOT_FOUND,
+            )
+        except ErrorParsingMMIO as err:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=str(err),
+            )
+        except GraphValidationError as err:
+            raise RequestValidationError(
+                errors=[
+                    {
+                        "code": err.code,
+                        "message": err.message,
+                        "details": err.details,
+                    }
+                ]
+            )
 
-        output_entities = await self._usecases.list(query, context={"user": user})
-        items = [Dataset.from_entity(entity) for entity in output_entities]
-
-        return PaginatedResult(
-            page=paginator_parameters["page"],
-            size=paginator_parameters["page_size"],
-            items=items,
-        )
+        return JSONLDResponse(output_entity)
 
     @get(
         "/datasets/{id}/",
         operation_id="get_dataset",
+        name="Get Dataset",
         tags=[Tags.Datasets],
-        response_model=Dataset,
+        response_class=JSONLDResponse,
         responses={
-            status.HTTP_404_NOT_FOUND: {"description": "Dataset not found"},
+            200: {
+                "description": "Successful Response",
+                "content": {
+                    "application/ld+json": {
+                        "example": dataset_example,
+                    },
+                },
+            },
+            status.HTTP_404_NOT_FOUND: {"description": DATASET_NOT_FOUND},
         },
     )
     async def get_dataset(
         self,
         id: str,
-        user: Annotated[entities.Person, Depends(get_user)],
-    ) -> Dataset:
-        """Get the dataset"""
+        user: Annotated[entities.User, Depends(get_user)],
+        usecases: usecases.DatasetsUsecases = Depends(get_usecases),
+    ) -> JSONLDResponse:
+        """Get a dataset"""
         try:
-            output_entity = await self._usecases.get(id, context={"user": user})
-        except DatasetDoesNotExist:
+            entity = await usecases.get(id, context={"user": user})
+        except NodeDoesNotExist:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail=DATASET_NOT_FOUND
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=DATASET_NOT_FOUND,
             )
-        return Dataset.from_entity(output_entity)
-
-    @post(
-        "/datasets/",
-        operation_id="create_dataset",
-        tags=[Tags.Datasets],
-        status_code=status.HTTP_201_CREATED,
-        response_model=Dataset,
-        responses={
-            status.HTTP_201_CREATED: {
-                "description": "Successful Response",
-                "headers": {
-                    "Location": {
-                        "description": "The URL of the newly created resource",
-                        "schema": {
-                            "type": "string",
-                            "format": "uri",
-                        },
-                    },
-                },
-            },
-        },
-    )
-    async def create_dataset(
-        self,
-        item: DatasetForm,
-        request: Request,
-        response: Response,
-        user: Annotated[entities.Person, Depends(get_user)],
-    ) -> Dataset:
-        """Create a dataset"""
-        input_entity = item.to_entity()
-        output_entity = await self._usecases.create(
-            input_entity,
-            context={
-                "user": user,
-                "catalog_title": self._local_catalog_title,
-                "catalog_description": self._local_catalog_description,
-            },
-        )
-        output_item = Dataset.from_entity(output_entity)
-        response.headers["Location"] = str(
-            request.url_for("get_dataset", id=output_entity.identifier)
-        )
-        return output_item
-
-    @patch(
-        "/datasets/{id}/",
-        operation_id="update_dataset",
-        tags=[Tags.Datasets],
-        response_model=Dataset,
-        responses={
-            status.HTTP_404_NOT_FOUND: {"description": "Dataset not found"},
-        },
-    )
-    async def update_dataset(
-        self,
-        id: str,
-        data: DatasetForm,
-        user: Annotated[entities.Person, Depends(get_user)],
-    ) -> Dataset:
-        """Update the dataset"""
-        input_entity = data.to_entity()
-        try:
-            output_entity = await self._usecases.update(
-                id,
-                input_entity,
-                context={"user": user},
-            )
-        except DatasetDoesNotExist:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail=DATASET_NOT_FOUND
-            )
-        return Dataset.from_entity(output_entity)
+        return JSONLDResponse(entity)
 
     @delete(
         "/datasets/{id}/",
         operation_id="delete_dataset",
+        name="Delete Dataset",
         tags=[Tags.Datasets],
         status_code=status.HTTP_204_NO_CONTENT,
         response_model=None,
         responses={
-            status.HTTP_404_NOT_FOUND: {"description": "Dataset not found"},
+            status.HTTP_404_NOT_FOUND: {"description": DATASET_NOT_FOUND},
         },
     )
     async def delete_dataset(
         self,
         id: str,
-        user: Annotated[entities.Person, Depends(get_user)],
+        user: Annotated[entities.User, Depends(get_user)],
+        usecases: usecases.DatasetsUsecases = Depends(get_usecases),
     ) -> None:
-        """Delete the dataset"""
+        """Delete a dataset"""
         try:
-            await self._usecases.delete(id, context={"user": user})
-        except DatasetDoesNotExist:
+            await usecases.delete(id, context={"user": user})
+        except NodeDoesNotExist:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail=DATASET_NOT_FOUND
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=DATASET_NOT_FOUND,
             )
 
 
-settings = get_settings()
-routes = DatasetsRoutes(
-    usecases=DatasetsUsecases(),
-    local_catalog_title=settings.catalog.title,
-    local_catalog_description=settings.catalog.description,
-)
+routes = DatasetsRoutes()

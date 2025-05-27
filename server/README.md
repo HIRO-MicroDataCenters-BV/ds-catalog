@@ -6,7 +6,7 @@ Python 3.12+
 ## Installation
 1. If you don't have `Poetry` installed run:
     ```bash
-    pip install poetry
+    pip install poetry==2.1.2
     ```
 
 2. Install dependencies:
@@ -17,8 +17,6 @@ Python 3.12+
 
 3. Create .env file from the template .env.template:
     ```bash
-    NEO4J_AUTH=neo4j/your_password
-
     DS__DATABASE__PROTOCOL=neo4j
     DS__DATABASE__HOST=localhost
     DS__DATABASE__PORT=7687
@@ -35,9 +33,20 @@ Python 3.12+
 
     DS__CATALOG__TITLE="Local catalog"
     DS__CATALOG__DESCRIPTION="My local catalog"
+
+    DS__OCA_URI="http://oca.example.org/123/"  # Default local OCA bundle
+  
+    DS__ONTOLOGY_URL="https://www.w3.org/ns/dcat.ttl"  # Default ontology (DCAT-3 or DCAT-AP)
+    DS__SHACL_URL="https://semiceu.github.io/DCAT-AP/releases/3.0.0/shacl/dcat-ap-SHACL.ttl"  # Default validation SHACL schema
+
     ```
 
-4. Launch the project:
+4. Initialize the database:
+   ```bash
+   poetry run python -m app.migrate_db
+   ```
+
+5. Launch the project:
     ```bash
     poetry run uvicorn app.main:app --reload
     ```
@@ -47,14 +56,9 @@ Python 3.12+
     uvicorn app.main:app
     ```
 
-5. Run tests:
+6. Run tests:
     ```bash
     poetry run pytest
-    ```
-
-    You can test the application for multiple versions of Python. To do this, you need to install the required Python versions on your operating system, specify these versions in the tox.ini file, and then run the tests:
-    ```bash
-    poetry run tox
     ```
 
 ## Deployment on Kubernetes
@@ -62,6 +66,8 @@ Requirements:
 * [Docker](https://docs.docker.com/)
 * [Minikube](https://minikube.sigs.k8s.io/docs/) or Kubernetes cluster
 * [Helm](https://helm.sh/ru/docs/)
+* [Neo4j](https://neo4j.com/docs/operations-manual/current/kubernetes/)
+* [Neosemantics](https://neo4j.com/labs/neosemantics/)
 
 ### Local (for development)
 1. Start Minikube:
@@ -69,66 +75,60 @@ Requirements:
     minikube start
     ```
 
-2. Build a Docker image:
+2. Deploy Neo4j with the Neosemantics plugin.  
+   You can deploy them using [this repository](https://github.com/HIRO-MicroDataCenters-BV/Neo4j-With-Neosemantics).
+
+3. Build a Docker image:
     ```bash
     docker build . -t ds-catalog-srvice:latest
     ```
 
-3. Upload the Docker image to Minikube:
+4. Upload the Docker image to Minikube:
     ```bash
     minikube image load ds-catalog-srvice:latest
     ```
 
-4. Download chart dependencies:
+5. Deploy the Helm chart:
     ```bash
-    helm dependency update ./charts/server
+    helm upgrade --install catalog ./charts/server --set image.repository=ds-catalog-srvice --set image.tag=latest --set database.host=<host name> --set database.username=<username> --set database.password=<password> --set migrate.enabled=true
     ```
+    Use `migrate.enabled=true` for the first deployment only.
 
-5. Create a secret with username, password, and NEO4J_AUTH:
-    ```bash
-    kubectl create secret generic neo4j-secrets \
-      --from-literal=username=<username> \
-      --from-literal=password=<password> \
-      --from-literal=NEO4J_AUTH=<username>/<password>
-    ```
-
-    Username is `neo4j` by default.
-
-    To retrieve the secrets, use the following commands:
-    ```bash
-    kubectl get secret neo4j-secrets -o jsonpath="{.data.username}" | base64 --decode
-    kubectl get secret neo4j-secrets -o jsonpath="{.data.password}" | base64 --decode
-    kubectl get secret neo4j-secrets -o jsonpath="{.data.NEO4J_AUTH}" | base64 --decode
-    ```
-
-6. Deploy the Helm chart:
-    ```bash
-    helm upgrade --install catalog ./charts/server --set image.repository=ds-catalog-srvice --set image.tag=latest
-    ```
-
-7. To delete the deployment:
+6. To delete the deployment:
     ```bash
     helm delete catalog
-
-    kubectl get pvc
-    kubectl delete pvc data-catalog-0
-
-    kubectl get secret
-    kubectl delete secret neo4j-secrets
+    kubectl delete pvc catalog-ds-catalog-uploads
     ```
 
 ### Production
-1. Authenticate your Helm client in the container registry:
+1. Label the nodes:
     ```bash
-    helm registry login <repo_url> -u <username>
+    kubectl label nodes <node> node-id=node1
+    kubectl label nodes <node> node-id=node2
+    kubectl label nodes <node> node-id=node3
     ```
 
-2. Deploy the Helm chart:
+2. Define ingress.host and ingress.nodes in values.yaml:
+    ```bash
+    ingress:
+      host: nextgen.hiro-develop.nl
+      nodes:
+        - nodeId: node1
+        - nodeId: node2
+        - nodeId: node3
+    ```
+
+3. Deploy the Helm chart:
     ```bash
     helm repo add <repo_name> <repo_url>
     helm repo update <repo_name>
-    helm upgrade --install <release_name> <repo_name>/<chart_name>
+    helm install ds-catalog <repo_name>/<chart_name> -f values.yaml
     ```
+
+4. The catalog service will be available at:
+   * https://ds-catalog.node1.nextgen.hiro-develop.nl
+   * https://ds-catalog.node2.nextgen.hiro-develop.nl
+   * https://ds-catalog.node3.nextgen.hiro-develop.nl
 
 ## Prometheus metrics
 The application includes prometheus-fastapi-instrumentator for monitoring performance and analyzing its operation. It automatically adds an endpoint `/metrics` where you can access application metrics for Prometheus. These metrics include information about request counts, request execution times, and other important indicators of application performance.

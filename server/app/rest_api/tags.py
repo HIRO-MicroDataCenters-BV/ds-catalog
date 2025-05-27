@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class Tags(str, Enum):
+    Catalog = "Catalog"
     Datasets = "Datasets"
     Sharing = "Sharing"
-    Importing = "Importing"
+    MMIO = "MMIO"

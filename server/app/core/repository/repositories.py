@@ -1,272 +1,240 @@
-from typing import Generic, TypeVar, cast
+from typing import BinaryIO, Generic, TypeVar
 
 from abc import ABC, abstractmethod
+from pathlib import Path
 
-from neomodel import db
+from rdflib import DCAT, FOAF, RDF
 
-from ..entities import (
-    Catalog,
-    Checksum,
-    DataService,
-    Dataset,
-    Distribution,
-    NewDataset,
-    Person,
-)
-from ..exceptions import DatasetDoesNotExist
-from .models import (
-    CatalogNode,
-    ChecksumNode,
-    DataServiceNode,
-    DatasetNode,
-    DistributionNode,
-    PersonNode,
-)
-from .queries import IQuery
+from app.database import DatabaseDriver
 
-TEntity = TypeVar("TEntity")
-TNewEntity = TypeVar("TNewEntity")
+from ..entities import Catalog, Dataset, Graph, Person
+from ..exceptions import ErrorSavingData, MultipleNodesFound, NodeDoesNotExist
+from ..namespace import DSPACE
+from .neosemantics import Neosemantics
+from .queries import Query
+
+# --- Interfaces ---
 
 
-class IRepository(ABC, Generic[TEntity, TNewEntity]):
+T = TypeVar("T", bound=Graph)
+
+
+class IRepository(ABC, Generic[T]):
     @abstractmethod
-    async def list(self, query: IQuery) -> list[TEntity]:
+    def __init__(self, db_driver: DatabaseDriver) -> None:
         ...
 
     @abstractmethod
-    async def get(self, query: IQuery) -> TEntity:
+    async def save(self, obj: T) -> None:
+        ...
+
+
+class IRepositories(ABC):
+    @abstractmethod
+    def __init__(self, db_driver: DatabaseDriver) -> None:
         ...
 
     @abstractmethod
-    async def exists(self, query: IQuery) -> bool:
+    async def get_namespaces(self) -> dict[str, str]:
+        ...
+
+
+class IPersonsRepository(IRepository[Person]):
+    @abstractmethod
+    async def get(self, query: Query) -> Person:
+        ...
+
+
+class ICatalogsRepository(IRepository[Catalog]):
+    @abstractmethod
+    async def create(self, title: str, description: str) -> Catalog:
         ...
 
     @abstractmethod
-    async def create(self, data: TNewEntity) -> TEntity:
+    async def get(self, query: Query | None = None) -> Catalog:
+        ...
+
+
+class IDatasetsRepository(IRepository[Dataset]):
+    @abstractmethod
+    async def get(self, query: Query) -> Dataset:
         ...
 
     @abstractmethod
-    async def update(self, entity: TEntity) -> TEntity:
+    async def delete(self, query: Query) -> None:
+        ...
+
+
+class IFilesRepository(ABC):
+    @abstractmethod
+    def __init__(self, upload_folder: str) -> None:
         ...
 
     @abstractmethod
-    async def delete(self, entity: TEntity) -> None:
+    async def create(self, file: BinaryIO, filename: str) -> None:
+        ...
+
+    @abstractmethod
+    async def get_file_path(self, filename: str) -> str:
+        ...
+
+    @abstractmethod
+    async def delete(self, filename: str) -> None:
+        ...
+
+    @abstractmethod
+    async def read(self, filename: str) -> bytes:
         ...
 
 
-class ICatalogItemRepository(IRepository[Dataset, NewDataset]):
-    ...
+# --- Implementations ---
 
 
-class CatalogItemRepository(ICatalogItemRepository):
-    async def list(self, query: IQuery) -> list[Dataset]:
-        # TODO: Optimize nested queries to the database
-        nodes = await query.apply(DatasetNode.nodes)
-        entities = []
-        for node in nodes:
-            entity = await self._to_entity(node)
-            entities.append(entity)
-        return entities
+class BaseRepository(IRepository[T], Generic[T]):
+    db_driver: DatabaseDriver
+    neosemantics: Neosemantics
 
-    async def get(self, query: IQuery) -> Dataset:
-        try:
-            node = await query.apply(DatasetNode.nodes).first()
-            return await self._to_entity(node)
-        except DatasetNode.DoesNotExist as err:
-            raise DatasetDoesNotExist(err)
+    def __init__(self, db_driver: DatabaseDriver) -> None:
+        self.db_driver = db_driver
+        self.neosemantics = Neosemantics(db_driver)
 
-    async def exists(self, query: IQuery) -> bool:
-        try:
-            await query.apply(DatasetNode.nodes).first()
-            return True
-        except DatasetNode.DoesNotExist:
-            return False
+    async def save(self, obj: T) -> None:
+        result = await self.neosemantics.save(obj.graph)
+        if not result["success"]:
+            message = result["extra_info"]
+            raise ErrorSavingData(f"Graph was not saved: {message}")
 
-    async def create(self, dataset_entity: NewDataset) -> Dataset:
-        with db.transaction:
-            dataset_node = DatasetNode()
-            dataset_fields = dataset_entity.model_dump(
-                exclude=set(["catalog", "creator", "distribution"])
-            )
-            for field_name, value in dataset_fields.items():
-                setattr(dataset_node, field_name, value)
-            await dataset_node.save()
 
-            creator_entity = dataset_entity.creator
-            creator_node, _ = await self._get_or_create_person(creator_entity)
-            await dataset_node.creator.connect(creator_node)
+class PersonsRepository(BaseRepository[Person], IPersonsRepository):
+    async def get(self, query: Query) -> Person:
+        p = Person.label
 
-            catalog_entity = dataset_entity.catalog
-            catalog_node, is_created = await self._get_or_create_catalog(catalog_entity)
-            if is_created:
-                await catalog_node.creator.connect(creator_node)
-            await catalog_node.dataset.connect(dataset_node)
+        q = Query(
+            match=[f"({p}:foaf__Person)-[r*0..]->(related)"],
+            where=['all(rel IN r WHERE type(rel) <> "rdf__type")'],
+        )
+        q += query
+        q.return_clause = [p, "r", "related"]
+        query_str = q.build()
 
-            await self._create_related_nodes(dataset_entity, dataset_node, catalog_node)
+        graph = await self.neosemantics.export(query_str)
+        if not graph:
+            raise NodeDoesNotExist("Person not found in the graph")
+        if len(list(graph.subjects(RDF.type, FOAF.Person))) > 1:
+            raise MultipleNodesFound("Multiple persons found in the graph")
 
-        return await self._to_entity(dataset_node)
+        return Person(graph)
 
-    async def update(self, dataset_entity: Dataset) -> Dataset:
-        with db.transaction:
-            dataset_node = await self._get_node(dataset_entity)
 
-            dataset_fields = dataset_entity.model_dump(
-                exclude=set(["catalog", "creator", "distribution"])
-            )
-            for field_name, value in dataset_fields.items():
-                setattr(dataset_node, field_name, value)
-            await dataset_node.save()
+class CatalogsRepository(BaseRepository[Catalog], ICatalogsRepository):
+    async def create(self, title: str, description: str) -> Catalog:
+        catalog = Catalog.create(title, description)
+        await self.neosemantics.save(catalog.graph)
+        return catalog
 
-            creator_entity = dataset_entity.creator
-            creator_node, _ = await self._get_or_create_person(creator_entity)
-            current_creator = await dataset_node.creator.get()
-            if current_creator != creator_node:
-                await dataset_node.creator.reconnect(current_creator, creator_node)
+    async def get(self, query: Query | None = None) -> Catalog:
+        c = Catalog.label
+        d = Dataset.label
 
-            catalog_entity = dataset_entity.catalog
-            catalog_node, is_created = await self._get_or_create_catalog(catalog_entity)
-            if is_created:
-                await catalog_node.creator.connect(creator_node)
-
-            current_catalog = await dataset_node.catalog.get()
-            if current_catalog != catalog_node:
-                await current_catalog.dataset.disconnect(dataset_node)
-                await catalog_node.dataset.connect(dataset_node)
-
-            await self._delete_related_nodes(dataset_node)
-            await self._create_related_nodes(dataset_entity, dataset_node, catalog_node)
-
-        return await self._to_entity(dataset_node)
-
-    async def delete(self, dataset_entity: Dataset) -> None:
-        with db.transaction:
-            dataset_node = await self._get_node(dataset_entity)
-            await self._delete_related_nodes(dataset_node)
-            await dataset_node.delete()
-
-    async def _to_entity(self, dataset_node: DatasetNode) -> Dataset:
-        # TODO: Optimize nested queries to the database
-
-        catalog_node = await dataset_node.catalog.get()
-        catalog_entity = Catalog(
-            identifier=catalog_node.identifier,
-            title=catalog_node.title,
-            description=catalog_node.description,
+        q = Query(
+            match=[f"({c}:dcat__Catalog)"],
+            optional_match=[f"({c})-[r0:dcat__dataset]->({d})-[r*0..]->(related)"],
+            where=[
+                'all(rel IN r WHERE type(rel) <> "rdf__type")',
+                f"{d}.dspace__isDeleted<>true",
+            ],
+            return_clause=[c, "r0", d, "r", "related"],
         )
 
-        creator_node = await dataset_node.creator.get()
-        creator_entity = Person(
-            id=creator_node.identifier,
-            name=creator_node.name,
+        if query is None:
+            query_str = q.build()
+        else:
+            query_str = Query.build_together(query, q)
+
+        graph = await self.neosemantics.export(query_str)
+        if not graph:
+            raise NodeDoesNotExist("Catalog not found in the graph")
+        if len(list(graph.subjects(RDF.type, DCAT.Catalog))) > 1:
+            raise MultipleNodesFound("Multiple catalogs found in the graph")
+
+        return Catalog(graph)
+
+
+class DatasetsRepository(BaseRepository[Dataset], IDatasetsRepository):
+    async def get(self, query: Query) -> Dataset:
+        d = Dataset.label
+
+        q = Query(
+            match=[f"({d}:dcat__Dataset)-[r*0..]->(related)"],
+            where=['all(rel IN r WHERE type(rel) <> "rdf__type")'],
         )
+        q.add_where(f"{d}.dspace__isDeleted<>true")
+        q += query
+        q.return_clause = [d, "r", "related"]
+        query_str = q.build()
 
-        distribution_nodes = await dataset_node.distribution.all()
-        distribution_entities = []
-        for distribution_node in distribution_nodes:
-            checksum_node = await distribution_node.checksum.get()
-            checksum_entity = Checksum(
-                algorithm=checksum_node.algorithm,
-                checksum_value=checksum_node.checksum_value,
-            )
+        graph = await self.neosemantics.export(query_str)
+        if not graph:
+            raise NodeDoesNotExist("Dataset not found in the graph")
+        if len(list(graph.subjects(RDF.type, DCAT.Dataset))) > 1:
+            raise MultipleNodesFound("Multiple datasets found in the graph")
 
-            service_nodes = await distribution_node.access_service.all()
-            service_entities = []
-            for service_node in service_nodes:
-                service_entity = DataService(endpoint_url=service_node.endpoint_url)
-                service_entities.append(service_entity)
+        return Dataset(graph)
 
-            distribution_entities.append(
-                Distribution(
-                    byte_size=distribution_node.byte_size,
-                    media_type=distribution_node.media_type,
-                    checksum=checksum_entity,
-                    access_service=service_entities,
-                )
-            )
-
-        return Dataset(
-            identifier=dataset_node.identifier,
-            title=dataset_node.title,
-            description=dataset_node.description,
-            keyword=dataset_node.keyword,
-            license=dataset_node.license,
-            is_local=dataset_node.is_local,
-            is_shared=dataset_node.is_shared,
-            issued=dataset_node.issued,
-            theme=dataset_node.theme,
-            catalog=catalog_entity,
-            creator=creator_entity,
-            distribution=distribution_entities,
-        )
-
-    async def _get_or_create_person(
-        self, person_entity: Person
-    ) -> tuple[PersonNode, bool]:
-        is_created = False
-        person_node = await PersonNode.nodes.get_or_none(identifier=person_entity.id)
-        if person_node is None:
-            is_created = True
-            person_node = await PersonNode(
-                identifier=person_entity.id,
-                name=person_entity.name,
-            ).save()
-        return person_node, is_created
-
-    async def _get_or_create_catalog(
-        self, catalog_entity: Catalog
-    ) -> tuple[CatalogNode, bool]:
-        catalog = await CatalogNode.nodes.get_or_none(
-            identifier=catalog_entity.identifier
-        )
-        if catalog is not None:
-            return catalog, False
-        return (
-            await CatalogNode(**catalog_entity.model_dump()).save(),
-            True,
-        )
-
-    async def _get_node(self, dataset_entity: Dataset) -> DatasetNode:
-        try:
-            node = await DatasetNode.nodes.get(identifier=dataset_entity.identifier)
-            return cast(DatasetNode, node)
-        except DatasetNode.DoesNotExist as err:
-            raise DatasetDoesNotExist(err)
-
-    async def _delete_related_nodes(self, dataset_node: DatasetNode) -> None:
-        distribution_nodes = await dataset_node.distribution.all()
-        for distribution_node in distribution_nodes:
-            checksum_node = await distribution_node.checksum.get()
-            await checksum_node.delete()
-
-            service_nodes = await distribution_node.access_service.all()
-            for service_node in service_nodes:
-                await service_node.delete()
-
-            await distribution_node.delete()
-
-    async def _create_related_nodes(self, dataset_entity, dataset_node, catalog_node):
-        for distribution_entity in dataset_entity.distribution:
-            distribution_node = await DistributionNode(
-                byte_size=distribution_entity.byte_size,
-                media_type=distribution_entity.media_type,
-            ).save()
-
-            checksum_node = await ChecksumNode(
-                algorithm=distribution_entity.checksum.algorithm,
-                checksum_value=distribution_entity.checksum.checksum_value,
-            ).save()
-            await distribution_node.checksum.connect(checksum_node)
-
-            for service_entity in distribution_entity.access_service:
-                service_node = await DataServiceNode(
-                    endpoint_url=service_entity.endpoint_url,
-                ).save()
-
-                await distribution_node.access_service.connect(service_node)
-                await catalog_node.service.connect(service_node)
-                await service_node.serves_dataset.connect(dataset_node)
-
-            await dataset_node.distribution.connect(distribution_node)
+    async def delete(self, query: Query) -> None:
+        dataset = await self.get(query)
+        dataset.set_attribute(DSPACE.isDeleted, True)
+        await self.save(dataset)
 
 
-catalog_item_repo = CatalogItemRepository()
+class FilesRepository(IFilesRepository):
+    _upload_folder: Path
+
+    def __init__(self, upload_folder: str = "./uploads") -> None:
+        self._upload_folder = Path(upload_folder)
+        self._upload_folder.mkdir(parents=True, exist_ok=True)
+
+    def _get_file_path(self, filename: str) -> Path:
+        return self._upload_folder / filename.lower()
+
+    async def create(self, file: BinaryIO, filename: str) -> None:
+        file_path = self._get_file_path(filename)
+        if file_path.exists():
+            raise FileExistsError(f"File {filename} already exists")
+        with file_path.open("wb") as f:
+            f.write(file.read())
+
+    async def get_file_path(self, filename: str) -> str:
+        file_path = self._get_file_path(filename)
+        if not file_path.exists():
+            raise FileNotFoundError(f"File {filename} not found")
+        return str(file_path)
+
+    async def delete(self, filename: str) -> None:
+        file_path = self._get_file_path(filename)
+        if not file_path.exists():
+            raise FileNotFoundError(f"File {filename} not found")
+        file_path.unlink()
+
+    async def read(self, filename: str) -> bytes:
+        file_path = self._get_file_path(filename)
+        if not file_path.exists():
+            raise FileNotFoundError(f"File {filename} not found")
+        return file_path.read_bytes()
+
+
+# --- Repositories class ---
+
+
+class Repositories(IRepositories):
+    def __init__(self, db_driver: DatabaseDriver) -> None:
+        self.db_driver = db_driver
+        self.neosemantics = Neosemantics(db_driver)
+
+        self.persons = PersonsRepository(db_driver)
+        self.catalogs = CatalogsRepository(db_driver)
+        self.datasets = DatasetsRepository(db_driver)
+        self.files = FilesRepository()
+
+    async def get_namespaces(self) -> dict[str, str]:
+        return await self.neosemantics.list_namespaces()
