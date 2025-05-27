@@ -28,7 +28,7 @@ class CustomFastAPI(FastAPI):
             return self.openapi_schema
         openapi_schema = get_openapi(
             title="Data Space Catalog Service",
-            version="0.1.1",
+            version="0.2.0",
             description="The service provides a REST API for managing and "
             "sharing catalog items.",
             contact={
