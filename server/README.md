@@ -101,17 +101,34 @@ Requirements:
     ```
 
 ### Production
-1. Authenticate your Helm client in the container registry:
+1. Label the nodes:
     ```bash
-    helm registry login <repo_url> -u <username>
+    kubectl label nodes <node> node-id=node1
+    kubectl label nodes <node> node-id=node2
+    kubectl label nodes <node> node-id=node3
     ```
 
-2. Deploy the Helm chart:
+2. Define ingress.host and ingress.nodes in values.yaml:
+    ```bash
+    ingress:
+      host: nextgen.hiro-develop.nl
+      nodes:
+        - nodeId: node1
+        - nodeId: node2
+        - nodeId: node3
+    ```
+
+3. Deploy the Helm chart:
     ```bash
     helm repo add <repo_name> <repo_url>
     helm repo update <repo_name>
-    helm upgrade --install <release_name> <repo_name>/<chart_name>
+    helm install ds-catalog <repo_name>/<chart_name> -f values.yaml
     ```
+
+4. The catalog service will be available at:
+   * https://ds-catalog.node1.nextgen.hiro-develop.nl
+   * https://ds-catalog.node2.nextgen.hiro-develop.nl
+   * https://ds-catalog.node3.nextgen.hiro-develop.nl
 
 ## Prometheus metrics
 The application includes prometheus-fastapi-instrumentator for monitoring performance and analyzing its operation. It automatically adds an endpoint `/metrics` where you can access application metrics for Prometheus. These metrics include information about request counts, request execution times, and other important indicators of application performance.
