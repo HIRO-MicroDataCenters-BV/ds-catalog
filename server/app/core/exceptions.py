@@ -18,6 +18,10 @@ class ErrorConstructingQuery(Exception):
     ...
 
 
+class QueryIsRequired(Exception):
+    ...
+
+
 class GraphValidationError(Exception):
     def __init__(
         self,

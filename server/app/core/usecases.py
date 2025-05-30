@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from rdflib import DCAT
 from rdflib.namespace import DCTERMS
 
-from app.core.exceptions import NodeDoesNotExist
+from app.core.exceptions import NodeDoesNotExist, QueryIsRequired
 
 from .context import Context, SaveDatasetContext
 from .entities import Catalog, CatalogFilters, Dataset, Metadata, Person, User
@@ -14,7 +14,7 @@ from .mmio import MMIO, mmio_available_attrs, mmio_data_to_entities
 from .namespace import DSPACE
 from .repository import Repositories
 from .repository.queries import FilterDatasetByID, FilterPersonByID
-from .repository.query_builder import catalog_filter_to_query
+from .repository.query_builder import catalog_filter_to_query, uri_to_cypher
 from .validators import (
     CatalogFiltersValidatorService,
     DatasetValidatorService,
@@ -101,6 +101,27 @@ class CatalogUsecases(BaseUsecases, ICatalogUsecases):
 
         namespaces = await self.repositories.get_namespaces()
         query = catalog_filter_to_query(filters, namespaces)
+        return await self.repositories.catalogs.get(query)
+
+    async def get_public_catalog(
+        self,
+        filters: CatalogFilters,
+        context: Context,
+        validator_class: type[IValidatorService] = CatalogFiltersValidatorService,
+    ) -> Catalog:
+        """Get the public catalog"""
+
+        validator = validator_class()
+        validator.validate(filters)
+
+        namespaces = await self.repositories.get_namespaces()
+        query = catalog_filter_to_query(filters, namespaces)
+        if query is None:
+            raise QueryIsRequired("Query is required for public catalog")
+
+        is_shared_attr_name = uri_to_cypher(DSPACE.isShared, namespaces)
+        query.add_where(f"{Dataset.label}.{is_shared_attr_name}=true")
+
         return await self.repositories.catalogs.get(query)
 
 

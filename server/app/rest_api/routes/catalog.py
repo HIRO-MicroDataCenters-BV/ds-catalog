@@ -5,7 +5,11 @@ from fastapi import Depends, HTTPException, status
 from fastapi.exceptions import RequestValidationError
 
 from app.core import entities, usecases
-from app.core.exceptions import ErrorConstructingQuery, GraphValidationError
+from app.core.exceptions import (
+    ErrorConstructingQuery,
+    GraphValidationError,
+    QueryIsRequired,
+)
 from app.core.repository import Repositories
 
 from ..depends import get_repositories, get_user
@@ -45,7 +49,7 @@ class CatalogRoutes(Routable):
             },
         },
     )
-    async def get_catalog(
+    async def get_local_catalog(
         self,
         filters: CatalogFilters,
         user: Annotated[entities.User, Depends(get_user)],
@@ -206,6 +210,68 @@ class CatalogRoutes(Routable):
                 filters_entity, context={"user": user}
             )
         except ErrorConstructingQuery as err:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=str(err),
+            )
+        except GraphValidationError as err:
+            raise RequestValidationError(
+                errors=[
+                    {
+                        "code": err.code,
+                        "message": err.message,
+                        "details": err.details,
+                    }
+                ]
+            )
+
+        return JSONLDResponse(entity)
+
+    @post(
+        "/public-catalog/",
+        operation_id="get_public_catalog",
+        name="Get Public Catalog",
+        tags=[Tags.Catalog],
+        response_class=JSONLDResponse,
+        responses={
+            status.HTTP_200_OK: {
+                "description": "Successful Response",
+                "content": {
+                    "application/ld+json": {
+                        "example": catalog_example,
+                    },
+                },
+            },
+            status.HTTP_400_BAD_REQUEST: {
+                "description": "Bad Request",
+                "content": {
+                    "application/json": {"schema": ErrorResponse.model_json_schema()}
+                },
+            },
+        },
+    )
+    async def get_public_catalog(
+        self,
+        filters: CatalogFilters,
+        user: Annotated[entities.User, Depends(get_user)],
+        usecases: usecases.CatalogUsecases = Depends(get_usecases),
+    ) -> JSONLDResponse:
+        """
+        Get the public catalog with dataset list.
+
+        The query uses the same format as the one for the Local Catalog endpoint.
+        Returns only shared datasets.
+        Query is required.
+
+        """
+
+        filters_entity = filters.to_entity()
+
+        try:
+            entity = await usecases.get_public_catalog(
+                filters_entity, context={"user": user}
+            )
+        except (ErrorConstructingQuery, QueryIsRequired) as err:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=str(err),
