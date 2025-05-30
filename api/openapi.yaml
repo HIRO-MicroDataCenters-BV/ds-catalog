@@ -8,7 +8,7 @@ info:
   license:
     name: MIT
     url: https://github.com/HIRO-MicroDataCenters-BV/ds-catalog/blob/main/LICENSE
-  version: 0.2.0
+  version: 0.2.1
 paths:
   /metrics:
     get:
