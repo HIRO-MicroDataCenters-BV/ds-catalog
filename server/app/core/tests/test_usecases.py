@@ -7,7 +7,7 @@ from rdflib import DCAT, DCTERMS, FOAF, RDF, Literal, URIRef
 
 from ..context import Context, SaveDatasetContext
 from ..entities import Catalog, Dataset, Metadata, Person
-from ..exceptions import GraphValidationError, NodeDoesNotExist
+from ..exceptions import GraphValidationError, NodeDoesNotExist, QueryIsRequired
 from ..namespace import DSPACE
 from ..repository.queries import FilterDatasetByID, FilterPersonByID
 from ..repository.query_builder import catalog_filter_to_query
@@ -88,6 +88,82 @@ class TestCatalogUsecases:
 
         with pytest.raises(GraphValidationError):
             await usecase.get_local_catalog(
+                filters,
+                context,
+                validator_class=validator_class,
+            )
+
+    @pytest.mark.asyncio
+    async def test_get_public_catalog(
+        self, repositories, validator_class, validator_instance
+    ):
+        expected_result = Mock()
+        namespaces = namespace_factory()
+
+        repositories.get_namespaces = AsyncMock(return_value=namespaces)
+        repositories.catalogs.get = AsyncMock(return_value=expected_result)
+
+        usecase = CatalogUsecases(repositories)
+
+        filters = catalog_filters_factory()
+        context = Context(user=user_factory())
+        result = await usecase.get_public_catalog(
+            filters,
+            context,
+            validator_class=validator_class,
+        )
+
+        assert result == expected_result
+
+        validator_class.assert_called_once_with()
+        validator_instance.validate.assert_called_once_with(filters)
+
+        repositories.get_namespaces.assert_called_once()
+        repositories.catalogs.get.assert_called_once()
+
+        [query] = repositories.catalogs.get.call_args[0]
+
+        expected_query = catalog_filter_to_query(filters, namespaces)
+        assert expected_query is not None
+        expected_query.add_where("d.dspace__isShared=true")
+
+        assert query == expected_query
+
+    @pytest.mark.asyncio
+    async def test_get_public_catalog_if_graph_is_not_valid(
+        self, repositories, validator_class, validator_instance
+    ):
+        error = GraphValidationError("test_code", "Test error", [])
+        validator_instance.validate = Mock(side_effect=error)
+
+        usecase = CatalogUsecases(repositories)
+
+        filters = catalog_filters_factory()
+        context = Context(user=user_factory())
+
+        with pytest.raises(GraphValidationError):
+            await usecase.get_public_catalog(
+                filters,
+                context,
+                validator_class=validator_class,
+            )
+
+    @pytest.mark.asyncio
+    async def test_get_public_catalog_if_no_query(
+        self,
+        repositories,
+        validator_class,
+    ):
+        namespaces = namespace_factory()
+        repositories.get_namespaces = AsyncMock(return_value=namespaces)
+
+        usecase = CatalogUsecases(repositories)
+
+        filters = catalog_filters_factory(filter_items=[])
+        context = Context(user=user_factory())
+
+        with pytest.raises(QueryIsRequired):
+            await usecase.get_public_catalog(
                 filters,
                 context,
                 validator_class=validator_class,
