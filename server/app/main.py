@@ -3,6 +3,7 @@ from typing import Any, AsyncGenerator, Dict
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from prometheus_fastapi_instrumentator import Instrumentator
 
@@ -54,6 +55,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 app = CustomFastAPI(lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 Instrumentator().instrument(app).expose(app)
 
 
