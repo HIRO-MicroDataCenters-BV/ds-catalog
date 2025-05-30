@@ -5,6 +5,7 @@ All URIs are relative to *http://localhost*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**get_catalog**](CatalogApi.md#get_catalog) | **POST** /catalog/ | Get Local Catalog
+[**get_public_catalog**](CatalogApi.md#get_public_catalog) | **POST** /public-catalog/ | Get Public Catalog
 
 
 # **get_catalog**
@@ -42,6 +43,75 @@ with ds_catalog.ApiClient(configuration) as api_client:
         pprint(api_response)
     except Exception as e:
         print("Exception when calling CatalogApi->get_catalog: %s\n" % e)
+```
+
+
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **request_body** | [**Dict[str, object]**](object.md)|  | 
+
+### Return type
+
+**str**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/ld+json, application/json
+
+### HTTP response details
+
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | Successful Response |  -  |
+**400** | Bad Request |  -  |
+**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **get_public_catalog**
+> str get_public_catalog(request_body)
+
+Get Public Catalog
+
+Get the public catalog with dataset list.  The query uses the same format as the one for the Local Catalog endpoint. Returns only shared datasets. Query is required.
+
+### Example
+
+
+```python
+import ds_catalog
+from ds_catalog.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to http://localhost
+# See configuration.py for a list of all supported configuration parameters.
+configuration = ds_catalog.Configuration(
+    host = "http://localhost"
+)
+
+
+# Enter a context with an instance of the API client
+with ds_catalog.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = ds_catalog.CatalogApi(api_client)
+    request_body = None # Dict[str, object] | 
+
+    try:
+        # Get Public Catalog
+        api_response = api_instance.get_public_catalog(request_body)
+        print("The response of CatalogApi->get_public_catalog:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling CatalogApi->get_public_catalog: %s\n" % e)
 ```
 
 
