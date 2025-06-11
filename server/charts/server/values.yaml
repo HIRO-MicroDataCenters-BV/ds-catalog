@@ -79,6 +79,6 @@ deploymentMode: daemonset  # or "deployment"
 ingress:
   host: nextgen.hiro-develop.nl
   nodes:
-    - nodeId: node1
-    - nodeId: node2
-    - nodeId: node3
+    - nodeId: hus
+    - nodeId: ki
+    - nodeId: uva
