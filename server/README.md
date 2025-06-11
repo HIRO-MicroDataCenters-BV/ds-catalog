@@ -38,7 +38,6 @@ Python 3.12+
   
     DS__ONTOLOGY_URL="https://www.w3.org/ns/dcat.ttl"  # Default ontology (DCAT-3 or DCAT-AP)
     DS__SHACL_URL="https://semiceu.github.io/DCAT-AP/releases/3.0.0/shacl/dcat-ap-SHACL.ttl"  # Default validation SHACL schema
-
     ```
 
 4. Initialize the database:
@@ -92,7 +91,6 @@ Requirements:
     ```bash
     helm upgrade --install catalog ./charts/server --set image.repository=ds-catalog-srvice --set image.tag=latest --set database.host=<host name> --set database.username=<username> --set database.password=<password> --set migrate.enabled=true
     ```
-    Use `migrate.enabled=true` for the first deployment only.
 
 6. To delete the deployment:
     ```bash
@@ -120,9 +118,9 @@ Requirements:
 
 3. Deploy the Helm chart:
     ```bash
-    helm repo add <repo_name> <repo_url>
-    helm repo update <repo_name>
-    helm install ds-catalog <repo_name>/<chart_name> -f values.yaml
+    helm repo add ds-catalog-repo https://hiro-microdatacenters-bv.github.io/ds-catalog/helm-charts/
+    helm repo update ds-catalog-repo
+    helm install ds-catalog ds-catalog-repo/ds-catalog -f values.yaml
     ```
 
 4. The catalog service will be available at:
@@ -132,4 +130,4 @@ Requirements:
 
 ## Prometheus metrics
 The application includes prometheus-fastapi-instrumentator for monitoring performance and analyzing its operation. It automatically adds an endpoint `/metrics` where you can access application metrics for Prometheus. These metrics include information about request counts, request execution times, and other important indicators of application performance.
-More on that at (Prometheus FastAPI Instrumentator)[https://github.com/trallnag/prometheus-fastapi-instrumentator]
+More on that at [Prometheus FastAPI Instrumentator](https://github.com/trallnag/prometheus-fastapi-instrumentator)
