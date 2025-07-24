@@ -1,6 +1,6 @@
 # Data Space Catalog Service
 
-The service provides a REST API for managing and sharing catalog items.
+The service provides a REST API for managing, searching, and sharing catalog items.
 
 ## Requirements
 Python 3.10+
@@ -30,26 +30,20 @@ The release version for branches, pull requests, and tags will be generated base
 Upon committing and pushing, pre-commit triggers code checks, OpenAPI file generation, and client generation.
 
 Upon pushing the commit to GitHub, workflows are initiated, which:
-- Check the code formatting of the server and client;
-- Execute server and client tests;
-- Create a Docker image of the server, Helm chart, and deploy the application to a Kubernetes cluster.
-- Build the client package and push it to [pypi.org](https://pypi.org/)
+- Check the code formatting
+- Execute server and client tests
+- Create a Docker image and Helm chart
+- Build a client package and push it to [pypi.org](https://pypi.org/)
 
 ## GitHub Actions
 GitHub Actions triggers testing, builds, and application publishing for each release.  
-https://docs.github.com/en/actions  
+https://docs.github.com/en/actions
 
-During the build and publish process, a Docker image is built, a Helm chart is created, an openapi.yaml is generated.
-
-**Initial setup**  
-1. Create the branch gh-pages and use it as a GitHub page https://pages.github.com/.  
-2. Set up secrets at `https://github.com/hiro-microdatacenters-bv/ds-catalog/settings/secrets/actions`:
-- `PYPI_TOKEN` - The secret token for PyPI. https://pypi.org/help/#apitoken
-
-**After execution**  
-The index.yaml file containing the list of Helm charts will be available at `https://hiro-microdatacenters-bv.github.io/ds-catalog/helm-charts/index.yaml`. You can this URL on https://artifacthub.io/.  
-A package of the client will be available at pypi.org.  
-The Docker image will be available at `https://github.com/hiro-microdatacenters-bv/ds-catalog/pkgs/container/ds-catalog`.
+## Artifacts
+* [OpenAPI specification](https://hiro-microdatacenters-bv.github.io/ds-catalog/docs/index.html)
+* [Helm charts repository](https://hiro-microdatacenters-bv.github.io/ds-catalog/helm-charts/index.yaml)
+* [Docker images repository](https://github.com/hiro-microdatacenters-bv/ds-catalog/pkgs/container/ds-catalog)
+* [Python client](https://pypi.org/project/ds_catalog/)
 
 # Collaboration guidelines
 HIRO uses and requires from its partners [GitFlow with Forks](https://hirodevops.notion.site/GitFlow-with-Forks-3b737784e4fc40eaa007f04aed49bb2e?pvs=4)
