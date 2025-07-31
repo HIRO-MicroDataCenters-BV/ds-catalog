@@ -22,6 +22,16 @@ entries:
     - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.2.2-dev.131.gh-pages.f6147937.tgz
     version: 0.2.2-dev.131.gh-pages.f6147937
   - apiVersion: v2
+    appVersion: 0.2.2-dev.1.fix-postman-exam.a887a25a
+    created: "2025-07-31T07:11:21.739753809Z"
+    description: Data Space Catalog
+    digest: 671e0d080554942b32f5d3ccc870b2d2c9ff2d8c757c8913ae3b41145a3b3fda
+    name: ds-catalog
+    type: application
+    urls:
+    - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.2.2-dev.1.fix-postman-exam.a887a25a.tgz
+    version: 0.2.2-dev.1.fix-postman-exam.a887a25a
+  - apiVersion: v2
     appVersion: 0.2.2-dev.0.main.70bf96e7
     created: "2025-07-24T12:55:36.58034286Z"
     description: Data Space Catalog
@@ -1411,4 +1421,4 @@ entries:
     urls:
     - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.1.0-dev.1.main.9da9e949.tgz
     version: 0.1.0-dev.1.main.9da9e949
-generated: "2025-07-24T13:06:28.518809528Z"
+generated: "2025-07-31T07:11:21.738198318Z"
