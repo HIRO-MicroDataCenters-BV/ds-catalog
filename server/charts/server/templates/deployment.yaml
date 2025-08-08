@@ -14,6 +14,7 @@ spec:
   template:
     metadata:
       {{- with .Values.podAnnotations }}
+      namespace: {{ .Values.namespace }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -58,6 +59,15 @@ spec:
         - name: uploads
           persistentVolumeClaim:
             claimName: {{ include "app.fullname" . }}-uploads
+      {{- if .Values.migrate.enabled }}
+      initContainers:
+        - name: migrate-db
+          image: "{{ include "app.image" . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["sh", "-c", "poetry run python -m app.migrate_db"]
+          env:
+            {{- include "app.commonEnv" . | nindent 12 }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

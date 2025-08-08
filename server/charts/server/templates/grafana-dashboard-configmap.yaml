@@ -1,3 +1,4 @@
+{{- if .Values.grafana.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,3 +10,4 @@ metadata:
 data:
   ds-catalog-dashboard.json: |-
 {{ .Files.Get "dashboards/dashboard.json" | indent 4 }}
+{{- end }}
