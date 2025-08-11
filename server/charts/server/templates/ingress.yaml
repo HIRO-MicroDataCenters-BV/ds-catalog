@@ -11,22 +11,18 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    {{- range .Values.ingress.nodes }}
-    - host: ds-catalog.{{ .nodeId }}.{{ $.Values.ingress.host }}
+    - host: ds-catalog.{{ .Values.namespace }}.{{ .Values.ingress.host }}
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: {{ include "app.fullname" $ }}-{{ .nodeId }}
+                name: {{ include "app.fullname" . }}
                 port:
                   number: 80
-    {{- end }}
   tls:
     - hosts:
-        {{- range .Values.ingress.nodes }}
-        - ds-catalog.{{ .nodeId }}.{{ $.Values.ingress.host }}
-        {{- end }}
+        - ds-catalog.{{ .Values.namespace }}.{{ .Values.ingress.host }}
       secretName: {{ include "app.fullname" . }}-tls-secret
 {{- end }}

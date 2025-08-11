@@ -77,12 +77,8 @@ namespace: nextgen
 deploymentMode: deployment  # or "daemonset"
 
 ingress:
-  enabled: false
+  enabled: true
   host: nextgen.hiro-develop.nl
-  nodes:
-    - nodeId: hus
-    - nodeId: ki
-    - nodeId: uva
 
 ## Update this according to the desired node
 nodeSelector:
@@ -90,11 +86,11 @@ nodeSelector:
 
 ## To control the metics on development
 metrics:
-  enabled: false
+  enabled: true
 
 ## To control the grafana on development
 grafana:
-  enabled: false
+  enabled: true
 
 # TODO: Remove this and delete cluster role file later after testing
 clusterRole:
