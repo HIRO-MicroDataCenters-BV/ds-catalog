@@ -62,7 +62,7 @@ database:
   password: "123456789"  # Must match Neo4j's password
 
 migrate:
-  enabled: true
+  enabled: false  # Set to true to enable database migration
 
 resources:
   requests:

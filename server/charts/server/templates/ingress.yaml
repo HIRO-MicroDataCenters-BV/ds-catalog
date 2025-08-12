@@ -20,7 +20,7 @@ spec:
               service:
                 name: {{ include "app.fullname" . }}
                 port:
-                  number: 80
+                  number: {{ .Values.service.port }}
   tls:
     - hosts:
         - ds-catalog.{{ .Values.namespace }}.{{ .Values.ingress.host }}
