@@ -91,7 +91,3 @@ metrics:
 ## To control the grafana on development
 grafana:
   enabled: true
-
-# TODO: Remove this and delete cluster role file later after testing
-clusterRole:
-  enabled: false
