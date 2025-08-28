@@ -58,7 +58,7 @@ class DatasetsRoutes(Routable):
         input_entity = dataset.to_entity()
 
         try:
-            output_entity = await usecases.save(
+            output_entity, errors = await usecases.save(
                 input_entity,
                 filename,
                 context={
@@ -89,7 +89,13 @@ class DatasetsRoutes(Routable):
                 ]
             )
 
-        return JSONLDResponse(output_entity)
+        return JSONLDResponse(
+            output_entity,
+            headers={
+                "X-MMIO-Errors": "; ".join(e.replace("\n", " ") for e in errors) if errors else ""
+            },
+            status_code=200,
+        )
 
     @get(
         "/datasets/{id}/",

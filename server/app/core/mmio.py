@@ -2,6 +2,7 @@ from typing import Any, Callable, Protocol, Self
 
 import io
 import json
+import httpx
 import tarfile
 import tempfile
 from abc import ABC, abstractmethod
@@ -168,14 +169,71 @@ class TarMMIOParser(IMMIOParser):
         return result
 
 
+class JsonMMIOParser(IMMIOParser):
+    def __init__(self):
+        self.errors: list[str] = []
+
+    def parse(self, data: bytes, schema_uri: str | None = None) -> MMIOParsedData:
+        try:
+            mmio_dict = json.loads(data.decode("utf-8"))
+        except json.JSONDecodeError:
+            raise ErrorParsingMMIO("The mmio.json file contains invalid JSON")
+
+        if not isinstance(mmio_dict, dict):
+            raise ErrorParsingMMIO("The mmio.json file must contain a JSON object")
+        if "id" not in mmio_dict or not mmio_dict["id"]:
+            raise ErrorParsingMMIO("The mmio.json file is missing the ID")
+
+        mmio_id = mmio_dict["id"]
+        modalities = self._parse_modalities(mmio_dict.get("modalities", []), schema_uri)
+        return MMIOParsedData(id=mmio_id, modalities=modalities)
+
+    def _parse_modalities(
+        self, modalities_data: list[dict], schema_uri: str | None
+    ) -> list[Modality]:
+        result = []
+        for modality in modalities_data:
+            bundle_info = modality.get("oca_bundle")
+            oca_bundle = None
+
+            if bundle_info:
+                if bundle_info["type"] == "Reference":
+                    said = bundle_info["value"]
+                    try:
+                        oca_bundle = self._download_oca_bundle(said, schema_uri)
+                    except Exception as e:
+                        # Save error but don’t stop
+                        self.errors.append(f"Failed to fetch OCA bundle {said}: {e}")
+                        oca_bundle = None
+                elif bundle_info["type"] == "Bundle":
+                    oca_bundle = OCABundle(json.dumps({"bundle": bundle_info["value"]}))
+
+            result.append(
+                Modality(
+                    id=modality["id"],
+                    modality_type=modality.get("modality_type", ""),
+                    media_type=modality.get("media_type", ""),
+                    oca_bundle=oca_bundle,
+                )
+            )
+        return result
+
+    def _download_oca_bundle(self, said: str, schema_uri: str | None) -> OCABundle:
+        base_url = (schema_uri or "https://oca-repository.ki.nextgen.hiro-develop.nl/oca-bundles").rstrip("/")
+        url = f"{base_url}/{said}"
+        resp = httpx.get(url, timeout=10.0)
+        resp.raise_for_status()
+        return OCABundle(resp.text)
+
+
 class MMIO:
     _id: str
     _modalities: list[Modality]
 
     def __init__(
-        self, mmio_data: bytes, parser: type[IMMIOParser] = TarMMIOParser
+        self, mmio_data: bytes, parser: IMMIOParser, schema_uri: str | None = None
     ) -> None:
-        parsed_data = parser().parse(mmio_data)
+        parsed_data = parser.parse(mmio_data, schema_uri)
         self._id = parsed_data.id
         self._modalities = parsed_data.modalities
 

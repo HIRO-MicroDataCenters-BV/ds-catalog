@@ -10,7 +10,7 @@ from app.core.exceptions import NodeDoesNotExist, QueryIsRequired
 
 from .context import Context, SaveDatasetContext
 from .entities import Catalog, CatalogFilters, Dataset, Metadata, Person, User
-from .mmio import MMIO, mmio_available_attrs, mmio_data_to_entities
+from .mmio import MMIO, mmio_available_attrs, mmio_data_to_entities, JsonMMIOParser
 from .namespace import DSPACE
 from .repository import Repositories
 from .repository.queries import FilterDatasetByID, FilterPersonByID
@@ -132,7 +132,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         filename: str,
         context: SaveDatasetContext,
         validator_class: type[IDatasetValidatorService] = DatasetValidatorService,
-    ) -> Dataset:
+    ) -> tuple[Dataset, list[str]]:
         """Create or update a dataset"""
 
         # Validate the input dataset
@@ -150,7 +150,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         person = await self._get_or_create_person(user)
 
         # Add metadata from the MMIO file
-        metadata_items = await self._build_mmio_metadata(filename, context["oca_uri"])
+        metadata_items, errors = await self._build_mmio_metadata(filename, context["oca_uri"])
         for metadata in metadata_items:
             dataset += metadata
             dataset.set_attribute(DSPACE.extraMetadata, metadata.uri)
@@ -174,7 +174,8 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
 
         # Return the dataset
         id = dataset.get_attribute(DCTERMS.identifier)
-        return await self.get(id, context)
+        final_dataset = await self.get(id, context)
+        return final_dataset, errors
 
     async def get(self, id: str, context: Context) -> Dataset:
         """Get a dataset by its ID"""
@@ -188,12 +189,15 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
 
     async def _build_mmio_metadata(
         self, filename: str, schema_uri: str
-    ) -> list[Metadata]:
+    ) -> tuple[list[Metadata], list[str]]:
         mmio_bytes = await self.repositories.files.read(filename)
-        mmio = MMIO(mmio_bytes)
+        parser = JsonMMIOParser()
+        mmio = MMIO(mmio_bytes, parser=parser, schema_uri=schema_uri)
         mmio = mmio.transform_to(schema_uri)
         data = mmio_available_attrs(mmio)
-        return mmio_data_to_entities(schema_uri, mmio.id, data)
+        metadata = mmio_data_to_entities(schema_uri, mmio.id, data)
+
+        return metadata, getattr(parser, "errors", [])
 
     async def _get_or_create_person(self, user: User) -> Person:
         query = FilterPersonByID(user["id"])
