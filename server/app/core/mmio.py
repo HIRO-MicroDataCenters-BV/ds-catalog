@@ -225,8 +225,7 @@ class JsonMMIOParser(IMMIOParser):
             or os.getenv(
                 "DS_OCA_BUNDLES_BASE_URL",
                 "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles",
-            )
-        ).rstrip("/")
+            )).rstrip("/")
         url = f"{base_url}/{said}"
         resp = httpx.get(url, timeout=10.0)
         resp.raise_for_status()
