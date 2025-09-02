@@ -1,7 +1,8 @@
+{{- if .Values.grafana.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "app.fullname" . }}-dashboard
+  name: {{ include "app.fullname" . }}-dashboard-{{ .Release.Namespace }}
   namespace: cattle-dashboards
   labels:
     grafana_dashboard: "1"
@@ -9,3 +10,4 @@ metadata:
 data:
   ds-catalog-dashboard.json: |-
 {{ .Files.Get "dashboards/dashboard.json" | indent 4 }}
+{{- end }}
