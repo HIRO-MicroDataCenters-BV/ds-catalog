@@ -220,12 +220,14 @@ class JsonMMIOParser(IMMIOParser):
         return result
 
     def _download_oca_bundle(self, said: str, schema_uri: str | None) -> OCABundle:
+        base_url_raw = schema_uri or os.getenv(
+            "DS_OCA_BUNDLES_BASE_URL",
+            "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles",
+        )
         base_url = (
-            schema_uri
-            or os.getenv(
-                "DS_OCA_BUNDLES_BASE_URL",
-                "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles",
-            )).rstrip("/")
+            base_url_raw
+            or "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"
+        ).rstrip("/")
         url = f"{base_url}/{said}"
         resp = httpx.get(url, timeout=10.0)
         resp.raise_for_status()
