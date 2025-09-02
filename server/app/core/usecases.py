@@ -10,7 +10,12 @@ from app.core.exceptions import NodeDoesNotExist, QueryIsRequired
 
 from .context import Context, SaveDatasetContext
 from .entities import Catalog, CatalogFilters, Dataset, Metadata, Person, User
-from .mmio import JsonMMIOParser, MMIO, mmio_available_attrs, mmio_data_to_entities
+from .mmio import (
+    JsonMMIOParser,
+    MMIO,
+    mmio_available_attrs,
+    mmio_data_to_entities
+)
 from .namespace import DSPACE
 from .repository import Repositories
 from .repository.queries import FilterDatasetByID, FilterPersonByID
@@ -47,8 +52,11 @@ class ICatalogUsecases(IUsecases):
 class IDatasetsUsecases(IUsecases):
     @abstractmethod
     async def save(
-        self, data: Dataset, filename: str, context: SaveDatasetContext,
-        validator_class: type[IDatasetValidatorService]
+        self,
+        data: Dataset,
+        filename: str,
+        context: SaveDatasetContext,
+        validator_class: type[IDatasetValidatorService],
     ) -> tuple[Dataset, list[str]]:
         ...
 
@@ -151,7 +159,9 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         person = await self._get_or_create_person(user)
 
         # Add metadata from the MMIO file
-        metadata_items, errors = await self._build_mmio_metadata(filename, context["oca_uri"])
+        metadata_items, errors = await self._build_mmio_metadata(
+            filename, context["oca_uri"]
+        )
         for metadata in metadata_items:
             dataset += metadata
             dataset.set_attribute(DSPACE.extraMetadata, metadata.uri)
