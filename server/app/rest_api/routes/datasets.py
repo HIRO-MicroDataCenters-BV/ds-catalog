@@ -92,7 +92,9 @@ class DatasetsRoutes(Routable):
         return JSONLDResponse(
             output_entity,
             headers={
-                "X-MMIO-Errors": "; ".join(e.replace("\n", " ") for e in errors) if errors else ""
+                "X-MMIO-Errors": "; ".join(e.replace("\n", " ") for e in errors)
+                if errors
+                else ""
             },
             status_code=200,
         )
