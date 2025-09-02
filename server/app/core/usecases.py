@@ -47,8 +47,9 @@ class ICatalogUsecases(IUsecases):
 class IDatasetsUsecases(IUsecases):
     @abstractmethod
     async def save(
-        self, data: Dataset, filename: str, context: SaveDatasetContext
-    ) -> Dataset:
+        self, data: Dataset, filename: str, context: SaveDatasetContext,
+        validator_class: type[IDatasetValidatorService]
+    ) -> tuple[Dataset, list[str]]:
         ...
 
     @abstractmethod
