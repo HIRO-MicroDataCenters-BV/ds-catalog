@@ -189,7 +189,7 @@ class JsonMMIOParser(IMMIOParser):
         return MMIOParsedData(id=mmio_id, modalities=modalities)
 
     def _parse_modalities(
-        self, modalities_data: list[dict], schema_uri: str | None
+        self, modalities_data: list[dict[str, Any]], schema_uri: str | None
     ) -> list[Modality]:
         result = []
         for modality in modalities_data:
@@ -233,7 +233,10 @@ class MMIO:
     def __init__(
         self, mmio_data: bytes, parser: IMMIOParser, schema_uri: str | None = None
     ) -> None:
-        parsed_data = parser.parse(mmio_data, schema_uri)
+        if isinstance(parser, JsonMMIOParser):
+            parsed_data = parser.parse(mmio_data, schema_uri)
+        else:
+            parsed_data = parser.parse(mmio_data)
         self._id = parsed_data.id
         self._modalities = parsed_data.modalities
 
