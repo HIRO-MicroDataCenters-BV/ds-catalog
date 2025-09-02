@@ -221,7 +221,7 @@ class TestDatasetsUsecases:
 
         usecase = DatasetsUsecases(repositories)
 
-        result = await usecase.save(
+        result, errors = await usecase.save(
             dataset,
             filename,
             context,
@@ -280,7 +280,7 @@ class TestDatasetsUsecases:
 
         usecase = DatasetsUsecases(repositories)
 
-        result = await usecase.save(
+        result, errors = await usecase.save(
             dataset,
             "mmio.tar",
             context,
@@ -311,7 +311,7 @@ class TestDatasetsUsecases:
 
         usecase = DatasetsUsecases(repositories)
 
-        result = await usecase.save(
+        result, errors = await usecase.save(
             dataset,
             "mmio.tar",
             context,
