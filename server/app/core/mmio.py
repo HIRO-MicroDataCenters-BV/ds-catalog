@@ -2,13 +2,13 @@ from typing import Any, Callable, Protocol, Self
 
 import io
 import json
-import httpx
 import tarfile
 import tempfile
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 
+import httpx
 import m2io_nextgen as mmio
 import polars as pl
 
