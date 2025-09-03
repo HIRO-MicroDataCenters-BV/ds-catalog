@@ -1,0 +1,26 @@
+{
+  "version": "0.1",
+  "id": "EI2z8E6zYvMF_yvquoUJedWi0rKpQsscPf7JlBgIDoOm",
+  "modalities": [
+    {
+      "id": "EDm-vEpoQp_R83YW-dN_eRBdnOnk_hYQo28AISLTy2bO",
+      "modality_said": "EH2pZVTiMKv6I-MY2OjFW_NEf8tvvasEJ761nDxds50W",
+      "modality_type": "Binary",
+      "media_type": "application/octet-stream",
+      "oca_bundle": {
+        "type": "Reference",
+        "value": "EPuf22kW9xbCI65gR13lHL-hXrbU0Es2vG5A1gHS2PTK"
+      }
+    },
+    {
+      "id": "EEORbmaaCrfby9K7MH9MY4W6YQTMPQGfyVgSm9MX-FAIL",
+      "modality_said": "EAM7ZpMK2LqcXZtGB6lqaPqsbbGlLyj1cky9e1yyFAIL",
+      "modality_type": "Binary",
+      "media_type": "application/octet-stream",
+      "oca_bundle": {
+        "type": "Reference",
+        "value": "ENonExistingSaidForTestingFailure12345"
+      }
+    }
+  ]
+}
