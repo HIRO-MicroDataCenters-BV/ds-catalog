@@ -42,6 +42,16 @@ entries:
     - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.2.2-dev.25.feature-OCA-Inte.4139442f.tgz
     version: 0.2.2-dev.25.feature-OCA-Inte.4139442f
   - apiVersion: v2
+    appVersion: 0.2.2-dev.18.feature-OCA-Inte.f081ede8
+    created: "2025-09-03T11:57:30.462682185Z"
+    description: Data Space Catalog
+    digest: 7a92bd3a9f35c4a66f911b40b7cb1ba4f7c03987e9dea9a4094572043c5c89e3
+    name: ds-catalog
+    type: application
+    urls:
+    - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.2.2-dev.18.feature-OCA-Inte.f081ede8.tgz
+    version: 0.2.2-dev.18.feature-OCA-Inte.f081ede8
+  - apiVersion: v2
     appVersion: 0.2.2-dev.17.feature-OCA-Inte.ed49643a
     created: "2025-09-03T13:40:13.7868033+02:00"
     description: Data Space Catalog
@@ -1551,4 +1561,4 @@ entries:
     urls:
     - https://hiro-microdatacenters-bv.github.io/ds-catalog/helm-charts/ds-catalog-0.0.0.tgz
     version: 0.0.0
-generated: "2025-09-03T11:57:23.955706884Z"
+generated: "2025-09-03T11:57:30.461807033Z"
