@@ -10,7 +10,7 @@ from app.core.exceptions import NodeDoesNotExist, QueryIsRequired
 
 from .context import Context, SaveDatasetContext
 from .entities import Catalog, CatalogFilters, Dataset, Metadata, Person, User
-from .mmio import MMIO, JsonMMIOParser, mmio_available_attrs, mmio_data_to_entities
+from .mmio import MMIO, JsonMMIOParser, TarMMIOParser, mmio_available_attrs, mmio_data_to_entities
 from .namespace import DSPACE
 from .repository import Repositories
 from .repository.queries import FilterDatasetByID, FilterPersonByID
@@ -197,7 +197,10 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         self, filename: str, schema_uri: str
     ) -> tuple[list[Metadata], list[str]]:
         mmio_bytes = await self.repositories.files.read(filename)
-        parser = JsonMMIOParser()
+        if filename.endswith(".tar"):
+            parser = TarMMIOParser()
+        else:
+            parser = JsonMMIOParser()
         mmio = MMIO(mmio_bytes, parser=parser, schema_uri=schema_uri)
         mmio = mmio.transform_to(schema_uri)
         data = mmio_available_attrs(mmio)
