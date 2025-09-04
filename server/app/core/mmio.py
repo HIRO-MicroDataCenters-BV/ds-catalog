@@ -5,6 +5,8 @@ import json
 import os
 import tarfile
 import tempfile
+from app.settings import get_settings
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
@@ -228,13 +230,11 @@ class JsonMMIOParser(IMMIOParser):
         return result
 
     def _download_oca_bundle(self, said: str, schema_uri: str | None) -> OCABundle:
+        settings = get_settings()
+        base_url = settings.oca_bundles_base_url.rstrip("/")
 
-        base_url_raw = os.getenv(
-            "DS__OCA_BUNDLES_BASE_URL"
-        ) or schema_uri or "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"
-        base_url = base_url_raw.rstrip("/")
         url = f"{base_url}/{said}"
-
+        print("******************************::", url)
         try:
             resp = httpx.get(url, timeout=10.0)
             resp.raise_for_status()
