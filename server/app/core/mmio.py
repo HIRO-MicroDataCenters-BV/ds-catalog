@@ -61,7 +61,7 @@ class OCABundle:
         try:
             if "bundle" in bundle and isinstance(bundle["bundle"], dict):
                 bundle_content = bundle["bundle"]
-                self._digest = bundle_content.get("d") or bundle_content.get("digest")
+                self._digest = bundle_content.get("d", None) or bundle_content.get("digest", None)
             else:
                 # Fallback to top-level digest
                 self._digest = bundle.get("d") or bundle.get("digest")
