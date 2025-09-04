@@ -2,7 +2,6 @@ from typing import Any, Callable, Protocol, Self
 
 import io
 import json
-import os
 import tarfile
 import tempfile
 from abc import ABC, abstractmethod
@@ -241,7 +240,9 @@ class JsonMMIOParser(IMMIOParser):
             resp.raise_for_status()
             return OCABundle(resp.text)
         except Exception as e:
-            raise
+            raise ErrorParsingMMIO(
+                f"Unexpected error fetching OCA bundle from {url}: {e}"
+            )
 
 
 class MMIO:

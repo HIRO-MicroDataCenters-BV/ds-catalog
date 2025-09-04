@@ -36,8 +36,9 @@ class Settings(BaseSettings):
     shacl_url: str = (
         "https://semiceu.github.io/DCAT-AP/releases/3.0.0/shacl/dcat-ap-SHACL.ttl"
     )
-    oca_bundles_base_url: str = "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"
-
+    oca_bundles_base_url: str = (
+        "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"
+    )
 
 
 def get_settings() -> Settings:
