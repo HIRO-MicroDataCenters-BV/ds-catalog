@@ -57,7 +57,15 @@ class OCABundle:
             raise ErrorParsingMMIO("The bundle file contains invalid JSON")
 
         try:
-            self._digest = bundle["bundle"]["digest"]
+            if "bundle" in bundle and isinstance(bundle["bundle"], dict):
+                bundle_content = bundle["bundle"]
+                self._digest = bundle_content.get("d") or bundle_content.get("digest")
+            else:
+                # Fallback to top-level digest
+                self._digest = bundle.get("d") or bundle.get("digest")
+
+            if not self._digest:
+                raise KeyError("Neither 'd' nor 'digest' found in bundle")
             self._attribute_names = list(
                 bundle["bundle"]["capture_base"]["attributes"].keys()
             )
@@ -220,18 +228,20 @@ class JsonMMIOParser(IMMIOParser):
         return result
 
     def _download_oca_bundle(self, said: str, schema_uri: str | None) -> OCABundle:
-        base_url_raw = schema_uri or os.getenv(
-            "DS_OCA_BUNDLES_BASE_URL",
-            "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles",
-        )
-        base_url = (
-            base_url_raw
-            or "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"
-        ).rstrip("/")
+
+        base_url_raw = os.getenv(
+            "DS__OCA_BUNDLES_BASE_URL"
+        ) or schema_uri or "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"
+        base_url = base_url_raw.rstrip("/")
         url = f"{base_url}/{said}"
-        resp = httpx.get(url, timeout=10.0)
-        resp.raise_for_status()
-        return OCABundle(resp.text)
+
+        try:
+            resp = httpx.get(url, timeout=10.0)
+            resp.raise_for_status()
+            return OCABundle(resp.text)
+        except Exception as e:
+            print(f"Error fetching URL {url}: {e}")
+            raise
 
 
 class MMIO:
