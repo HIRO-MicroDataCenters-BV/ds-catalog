@@ -5,8 +5,6 @@ import json
 import os
 import tarfile
 import tempfile
-from app.settings import get_settings
-
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
@@ -14,6 +12,8 @@ from pathlib import Path
 import httpx
 import m2io_nextgen as mmio
 import polars as pl
+
+from app.settings import get_settings
 
 from .entities import Metadata
 from .exceptions import ErrorParsingMMIO
@@ -61,7 +61,9 @@ class OCABundle:
         try:
             if "bundle" in bundle and isinstance(bundle["bundle"], dict):
                 bundle_content = bundle["bundle"]
-                self._digest = bundle_content.get("d", None) or bundle_content.get("digest", None)
+                self._digest = bundle_content.get("d", None) or bundle_content.get(
+                    "digest", None
+                )
             else:
                 # Fallback to top-level digest
                 self._digest = bundle.get("d") or bundle.get("digest")
@@ -234,13 +236,11 @@ class JsonMMIOParser(IMMIOParser):
         base_url = settings.oca_bundles_base_url.rstrip("/")
 
         url = f"{base_url}/{said}"
-        print("******************************::", url)
         try:
             resp = httpx.get(url, timeout=10.0)
             resp.raise_for_status()
             return OCABundle(resp.text)
         except Exception as e:
-            print(f"Error fetching URL {url}: {e}")
             raise
 
 
