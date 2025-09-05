@@ -232,7 +232,7 @@ class JsonMMIOParser(IMMIOParser):
 
     def _download_oca_bundle(self, said: str, schema_uri: str | None) -> OCABundle:
         settings = get_settings()
-        base_url = settings.oca_bundles_base_url.rstrip("/")
+        base_url = settings.global_oca_bundles_base_url.rstrip("/")
 
         url = f"{base_url}/{said}"
         try:
