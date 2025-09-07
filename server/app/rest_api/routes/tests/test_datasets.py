@@ -55,7 +55,7 @@ client = TestClient(app)
 class TestDatasetsRoutes:
     def test_save_dataset(self):
         filename = "test.csv"
-        usecases.save = AsyncMock(return_value=dataset)
+        usecases.save = AsyncMock(return_value=(dataset, []))
 
         data = dataset.to_json_ld()
         response = client.post(f"/datasets/{filename}/", content=data)
