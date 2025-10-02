@@ -54,84 +54,84 @@ class DatasetsRoutes(Routable):
         ),
     ) -> JSONLDResponse:
         """
-            Create or update a dataset or application.
+        Create or update a dataset or application.
 
-            This endpoint saves a new catalog item (or updates an existing one) using the
-            metadata provided in the request body. The input must follow **DCAT-AP 3.0 JSON-LD**.
+        This endpoint saves a new catalog item (or updates an existing one) using the
+        metadata provided in the request body. The input must follow **DCAT-AP 3.0 JSON-LD**.
 
-            ### Notes
-            - Items are always stored as `dcat:Dataset`.
-            - You can represent either:
-                - A **dataset** (`dcterms:type = Dataset`)
-                - An **application** (`dcterms:type = Software`)
+        ### Notes
+        - Items are always stored as `dcat:Dataset`.
+        - You can represent either:
+            - A **dataset** (`dcterms:type = Dataset`)
+            - An **application** (`dcterms:type = Software`)
 
-            ### Example: Dataset
-            ```json
+        ### Example: Dataset
+        ```json
+        {
+          "@context": {
+            "dcat": "http://www.w3.org/ns/dcat#",
+            "dcterms": "http://purl.org/dc/terms/",
+            "skos": "http://www.w3.org/2004/02/skos/core#",
+            "xsd": "http://www.w3.org/2001/XMLSchema#"
+          },
+          "@id": "https://example.com/dataset/789",
+          "@type": "dcat:Dataset",
+          "dcterms:identifier": { "@type": "xsd:string", "@value": "abc-123-xyz" },
+          "dcterms:title": { "@language": "en", "@value": "Sample Dataset" },
+          "dcterms:description": { "@language": "en", "@value": "This dataset contains CSV data." },
+          "dcterms:type": {
+            "@id": "http://purl.org/dc/dcmitype/Dataset",
+            "@type": "skos:Concept",
+            "skos:prefLabel": { "@language": "en", "@value": "Dataset" }
+          },
+          "dcat:distribution": [
             {
-              "@context": {
-                "dcat": "http://www.w3.org/ns/dcat#",
-                "dcterms": "http://purl.org/dc/terms/",
-                "skos": "http://www.w3.org/2004/02/skos/core#",
-                "xsd": "http://www.w3.org/2001/XMLSchema#"
-              },
-              "@id": "https://example.com/dataset/789",
-              "@type": "dcat:Dataset",
-              "dcterms:identifier": { "@type": "xsd:string", "@value": "abc-123-xyz" },
-              "dcterms:title": { "@language": "en", "@value": "Sample Dataset" },
-              "dcterms:description": { "@language": "en", "@value": "This dataset contains CSV data." },
-              "dcterms:type": {
-                "@id": "http://purl.org/dc/dcmitype/Dataset",
-                "@type": "skos:Concept",
-                "skos:prefLabel": { "@language": "en", "@value": "Dataset" }
-              },
-              "dcat:distribution": [
-                {
-                  "@type": "dcat:Distribution",
-                  "dcat:accessURL": { "@id": "https://example.com/distribution/489/info" },
-                  "dcterms:format": {
-                    "@id": "https://www.iana.org/assignments/media-types/text/csv",
-                    "@type": "dcterms:MediaTypeOrExtent",
-                    "skos:prefLabel": { "@language": "en", "@value": "CSV" }
-                  }
-                }
-              ]
+              "@type": "dcat:Distribution",
+              "dcat:accessURL": { "@id": "https://example.com/distribution/489/info" },
+              "dcterms:format": {
+                "@id": "https://www.iana.org/assignments/media-types/text/csv",
+                "@type": "dcterms:MediaTypeOrExtent",
+                "skos:prefLabel": { "@language": "en", "@value": "CSV" }
+              }
             }
-            ```
+          ]
+        }
+        ```
 
-            ### Example: Application (Software)
-            ```json
+        ### Example: Application (Software)
+        ```json
+        {
+          "@context": {
+            "dcat": "http://www.w3.org/ns/dcat#",
+            "dcterms": "http://purl.org/dc/terms/",
+            "skos": "http://www.w3.org/2004/02/skos/core#",
+            "xsd": "http://www.w3.org/2001/XMLSchema#"
+          },
+          "@id": "https://example.com/dataset/5678",
+          "@type": "dcat:Dataset",
+          "dcterms:identifier": { "@type": "xsd:string", "@value": "5678" },
+          "dcterms:title": { "@language": "en", "@value": "Image Analysis Application" },
+          "dcterms:description": { "@language": "en", "@value": "A containerized app for satellite image analysis." },
+          "dcterms:type": {
+            "@id": "http://purl.org/dc/dcmitype/Software",
+            "@type": "skos:Concept",
+            "skos:prefLabel": { "@language": "en", "@value": "Software" }
+          },
+          "dcat:distribution": [
             {
-              "@context": {
-                "dcat": "http://www.w3.org/ns/dcat#",
-                "dcterms": "http://purl.org/dc/terms/",
-                "skos": "http://www.w3.org/2004/02/skos/core#",
-                "xsd": "http://www.w3.org/2001/XMLSchema#"
-              },
-              "@id": "https://example.com/dataset/5678",
-              "@type": "dcat:Dataset",
-              "dcterms:identifier": { "@type": "xsd:string", "@value": "5678" },
-              "dcterms:title": { "@language": "en", "@value": "Image Analysis Application" },
-              "dcterms:description": { "@language": "en", "@value": "A containerized app for satellite image analysis." },
-              "dcterms:type": {
-                "@id": "http://purl.org/dc/dcmitype/Software",
-                "@type": "skos:Concept",
-                "skos:prefLabel": { "@language": "en", "@value": "Software" }
-              },
-              "dcat:distribution": [
-                {
-                  "@type": "dcat:Distribution",
-                  "dcat:accessURL": { "@id": "https://ghcr.io/my-org/image-analysis:1.0.0" },
-                  "dcterms:format": {
-                    "@id": "https://www.iana.org/assignments/media-types/application/vnd.docker.distribution.manifest.v2+json",
-                    "@type": "dcterms:MediaTypeOrExtent",
-                    "skos:prefLabel": { "@language": "en", "@value": "Docker Image Manifest v2" }
-                  }
-                }
-              ]
+              "@type": "dcat:Distribution",
+              "dcat:accessURL": { "@id": "https://ghcr.io/my-org/image-analysis:1.0.0" },
+              "dcterms:format": {
+                "@id": "https://www.iana.org/assignments/media-types/application/vnd.docker.distribution.manifest.v2+json",
+                "@type": "dcterms:MediaTypeOrExtent",
+                "skos:prefLabel": { "@language": "en", "@value": "Docker Image Manifest v2" }
+              }
             }
-            ```
+          ]
+        }
+        ```
 
-            """
+        """
 
         input_entity = dataset.to_entity()
 
