@@ -89,7 +89,8 @@ class DatasetsRoutes(Routable):
           "dcat:distribution": [
             {
               "@type": "dcat:Distribution",
-              "dcat:accessURL": { "@id": "https://example.com/distribution/489/info" },
+              "dcat:accessURL": {
+              "@id": "https://example.com/distribution/489/info" },
               "dcterms:format": {
                 "@id": "https://www.iana.org/assignments/media-types/text/csv",
                 "@type": "dcterms:MediaTypeOrExtent",
