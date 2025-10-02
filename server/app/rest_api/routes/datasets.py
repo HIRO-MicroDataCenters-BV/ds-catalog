@@ -130,7 +130,7 @@ class DatasetsRoutes(Routable):
                 "@id": "https://www.iana.org/assignments/media-types/
                 application/vnd.docker.distribution.manifest.v2+json",
                 "@type": "dcterms:MediaTypeOrExtent",
-                "skos:prefLabel": { "@language": "en", "@value": "Docker Image" }
+                "skos:prefLabel": { "@language": "en", "@value": "Docker Image v2" }
               }
             }
           ]
