@@ -57,7 +57,8 @@ class DatasetsRoutes(Routable):
         Create or update a dataset or application.
 
         This endpoint saves a new catalog item (or updates an existing one) using the
-        metadata provided in the request body. The input must follow **DCAT-AP 3.0 JSON-LD**.
+        metadata provided in the request body. The input
+        must follow **DCAT-AP 3.0 JSON-LD**.
 
         ### Notes
         - Items are always stored as `dcat:Dataset`.
@@ -78,7 +79,8 @@ class DatasetsRoutes(Routable):
           "@type": "dcat:Dataset",
           "dcterms:identifier": { "@type": "xsd:string", "@value": "abc-123-xyz" },
           "dcterms:title": { "@language": "en", "@value": "Sample Dataset" },
-          "dcterms:description": { "@language": "en", "@value": "This dataset contains CSV data." },
+          "dcterms:description": { "@language": "en",
+           "@value": "This dataset contains CSV data." },
           "dcterms:type": {
             "@id": "http://purl.org/dc/dcmitype/Dataset",
             "@type": "skos:Concept",
@@ -111,7 +113,8 @@ class DatasetsRoutes(Routable):
           "@type": "dcat:Dataset",
           "dcterms:identifier": { "@type": "xsd:string", "@value": "5678" },
           "dcterms:title": { "@language": "en", "@value": "Image Analysis Application" },
-          "dcterms:description": { "@language": "en", "@value": "A containerized app for satellite image analysis." },
+          "dcterms:description": { "@language": "en",
+           "@value": "A containerized app for satellite image analysis." },
           "dcterms:type": {
             "@id": "http://purl.org/dc/dcmitype/Software",
             "@type": "skos:Concept",
@@ -122,7 +125,8 @@ class DatasetsRoutes(Routable):
               "@type": "dcat:Distribution",
               "dcat:accessURL": { "@id": "https://ghcr.io/my-org/image-analysis:1.0.0" },
               "dcterms:format": {
-                "@id": "https://www.iana.org/assignments/media-types/application/vnd.docker.distribution.manifest.v2+json",
+                "@id": "https://www.iana.org/assignments/media-types/
+                application/vnd.docker.distribution.manifest.v2+json",
                 "@type": "dcterms:MediaTypeOrExtent",
                 "skos:prefLabel": { "@language": "en", "@value": "Docker Image Manifest v2" }
               }
