@@ -113,7 +113,7 @@ class DatasetsRoutes(Routable):
           "@id": "https://example.com/dataset/5678",
           "@type": "dcat:Dataset",
           "dcterms:identifier": { "@type": "xsd:string", "@value": "5678" },
-          "dcterms:title": { "@language": "en", "@value": "Image Analysis Application" },
+          "dcterms:title": { "@language": "en", "@value": "Image Application" },
           "dcterms:description": { "@language": "en",
            "@value": "A containerized app for satellite image analysis." },
           "dcterms:type": {
@@ -124,12 +124,13 @@ class DatasetsRoutes(Routable):
           "dcat:distribution": [
             {
               "@type": "dcat:Distribution",
-              "dcat:accessURL": { "@id": "https://ghcr.io/my-org/image-analysis:1.0.0" },
+              "dcat:accessURL": {
+              "@id": "https://ghcr.io/my-org/image-analysis:1.0.0" },
               "dcterms:format": {
                 "@id": "https://www.iana.org/assignments/media-types/
                 application/vnd.docker.distribution.manifest.v2+json",
                 "@type": "dcterms:MediaTypeOrExtent",
-                "skos:prefLabel": { "@language": "en", "@value": "Docker Image Manifest v2" }
+                "skos:prefLabel": { "@language": "en", "@value": "Docker Image" }
               }
             }
           ]
