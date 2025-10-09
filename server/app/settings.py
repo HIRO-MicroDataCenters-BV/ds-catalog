@@ -31,7 +31,7 @@ class Settings(BaseSettings):
 
     catalog: Catalog = Catalog()
 
-    oca_uri: str = "http://oca.example.org/123/"
+    oca_uri: str = "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles/"
     ontology_url: str = "https://www.w3.org/ns/dcat.ttl"
     shacl_url: str = (
         "https://semiceu.github.io/DCAT-AP/releases/3.0.0/shacl/dcat-ap-SHACL.ttl"
