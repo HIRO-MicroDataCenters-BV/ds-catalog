@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     global_oca_bundles_base_url: str = (
         "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"
     )
+    connector_base_url: str = (
+        "https://ds-connector.hus.nextgen.hiro-develop.nl"
+    )
 
 
 def get_settings() -> Settings:

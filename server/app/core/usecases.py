@@ -1,7 +1,9 @@
 from typing import BinaryIO
+import httpx
 
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
+from urllib.parse import urlparse
 
 from rdflib import DCAT
 from rdflib.namespace import DCTERMS
@@ -9,7 +11,7 @@ from rdflib.namespace import DCTERMS
 from app.core.exceptions import NodeDoesNotExist, QueryIsRequired
 
 from .context import Context, SaveDatasetContext
-from .entities import Catalog, CatalogFilters, Dataset, Metadata, Person, User
+from .entities import Catalog, CatalogFilters, Dataset, Distribution, Metadata, Person, User
 from .mmio import (
     MMIO,
     IMMIOParser,
@@ -28,7 +30,9 @@ from .validators import (
     IDatasetValidatorService,
     IValidatorService,
 )
+from ..settings import get_settings
 
+connector_file_path = None
 
 class IUsecases(ABC):
     def __init__(self, repositories: Repositories) -> None:
@@ -146,6 +150,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
     ) -> tuple[Dataset, list[str]]:
         """Create or update a dataset"""
 
+
         # Validate the input dataset
         validator = validator_class(
             shacl_url=context["shacl_url"],
@@ -168,6 +173,54 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             dataset += metadata
             dataset.set_attribute(DSPACE.extraMetadata, metadata.uri)
         dataset.set_attribute(DSPACE.metadataFilename, filename)
+
+        # connector integration part
+
+        # Step 1: Extract file path from dataset distribution if available
+        # --- Step 4: Connector integration ---
+        try:
+            settings = get_settings()
+            base_url = settings.connector_base_url.rstrip("/")
+            access_url = dataset.get_attribute(DCAT.accessURL)
+            if access_url:
+                file_path = str(access_url).strip()
+
+                # Normalize the path
+                if file_path.startswith("file://"):
+                    file_path = file_path.replace("file://", "")
+                if file_path.startswith("/data/"):
+                    file_path = file_path[len("/data/"):]  # remove /data/ prefix
+
+                encoded_path = file_path.replace("/", "%2F")
+                connector_url = f"{base_url}/distribution-metadata/file/{encoded_path}"
+
+                async with httpx.AsyncClient(timeout=10.0) as client:
+                    response = await client.get(connector_url)
+
+                # Handle not found case
+                if response.status_code == 404:
+                    print(f"Connector: No metadata found for file '{file_path}' (404). Skipping.")
+                elif response.is_success:
+                    connector_json = response.json()
+
+                    if "distribution" in connector_json:
+                        dist_data = connector_json["distribution"]
+
+                        if "region" in connector_json:
+                            dist_data["region"] = connector_json["region"]
+
+                        distribution = Distribution.create_from_connector_metadata(dist_data)
+                        dataset.set_attribute(DCAT.distribution, distribution.uri)
+                        dataset += distribution
+                        print(f"Added Distribution from connector for {file_path}")
+                else:
+                    print(f"Connector returned HTTP {response.status_code} for {file_path}. Skipping.")
+        except httpx.RequestError as e:
+            print(f"Connector request failed (network error): {e}")
+        except Exception as e:
+            print(f"Connector integration failed unexpectedly: {e}")
+
+
 
         # Set the additional attributes for the dataset
         is_shared = dataset.get_attribute(DSPACE.isShared)
