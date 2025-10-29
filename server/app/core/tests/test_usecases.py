@@ -192,6 +192,7 @@ class TestDatasetsUsecases:
             oca_uri="http://oca.example.org/123/",
             shacl_url="http://example.org/shacl.ttl",
             ontology_url="http://example.org/dcat.ttl",
+            related_data_product="disease_xyz",
         )
 
     @freeze_time("2017-05-21T09:23:00+00:00")
