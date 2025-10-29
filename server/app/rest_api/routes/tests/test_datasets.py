@@ -84,6 +84,7 @@ class TestDatasetsRoutes:
             "oca_uri": oca_uri,
             "shacl_url": shacl_url,
             "ontology_url": ontology_url,
+            "related_data_product": related_data_product,
         }
 
     def test_save_dataset_if_file_not_found(self):
