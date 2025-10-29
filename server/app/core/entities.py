@@ -98,7 +98,16 @@ class Graph:
         json_ld_str = self.graph.serialize(format="json-ld")
         json_ld = json.loads(json_ld_str)
         framed_json_ld = jsonld.frame(json_ld, frame)
-        return json.dumps(framed_json_ld, indent=4)
+        # return json.dumps(framed_json_ld, indent=4)
+
+        compacted = jsonld.compact(framed_json_ld, self.get_context())
+        # Force array only for dcat:distribution
+        if "dcat:distribution" in compacted and not isinstance(
+            compacted["dcat:distribution"], list
+        ):
+            compacted["dcat:distribution"] = [compacted["dcat:distribution"]]
+
+        return json.dumps(compacted, indent=4)
 
     @property
     def uri(self) -> URIRef:
@@ -169,72 +178,13 @@ class Dataset(Graph):
     rdf_type = DCAT.Dataset
     label = "d"
 
-
-class Distribution(Graph):
-    """
-    Represents a dcat:Distribution — describes how a Dataset is made available.
-    Includes all DCAT-AP standard properties and connector-specific extensions.
-    """
-    rdf_type = DCAT.Distribution
-    label = "dist"
-
     @classmethod
-    def create_from_connector_metadata(cls, metadata: dict[str, any]) -> Self:
-        """
-        Build a dcat:Distribution node from connector-provided metadata.
-        Automatically sets all relevant fields if they exist in the metadata.
-        """
-        dist = cls.create_empty(str(uuid.uuid4()))
-
-        # --- DCAT core & DCAT-AP 3.0 standard properties ---
-        if metadata.get("title"):
-            dist.set_attribute(DCTERMS.title, metadata["title"])
-        if metadata.get("description"):
-            dist.set_attribute(DCTERMS.description, metadata["description"])
-        if metadata.get("issued"):
-            dist.set_attribute(DCTERMS.issued, metadata["issued"], datatype=XSD.dateTime)
-        if metadata.get("modified"):
-            dist.set_attribute(DCTERMS.modified, metadata["modified"], datatype=XSD.dateTime)
-        if metadata.get("license"):
-            dist.set_attribute(DCTERMS.license, metadata["license"])
-        if metadata.get("rights"):
-            dist.set_attribute(DCTERMS.rights, metadata["rights"])
-        if metadata.get("access_rights"):
-            dist.set_attribute(DCTERMS.accessRights, metadata["access_rights"])
-        if metadata.get("access_url"):
-            dist.set_attribute(DCAT.accessURL, metadata["access_url"])
-        if metadata.get("download_url"):
-            dist.set_attribute(DCAT.downloadURL, metadata["download_url"])
-        if metadata.get("media_type"):
-            dist.set_attribute(DCAT.mediaType, metadata["media_type"])
-        if metadata.get("format"):
-            dist.set_attribute(DCTERMS.format, metadata["format"])
-        if metadata.get("package_format"):
-            dist.set_attribute(DCAT.packageFormat, metadata["package_format"])
-        if metadata.get("compress_format"):
-            dist.set_attribute(DCAT.compressFormat, metadata["compress_format"])
-        if metadata.get("byte_size") is not None:
-            dist.set_attribute(DCAT.byteSize, str(metadata["byte_size"]), datatype=XSD.nonNegativeInteger)
-        if metadata.get("conforms_to"):
-            dist.set_attribute(DCTERMS.conformsTo, metadata["conforms_to"])
-
-        # --- SPDX & custom extensions ---
-        if metadata.get("checksum"):
-            checksum_node = URIRef(f"{dist.uri}/checksum")
-            dist.graph.add((dist.uri, SPDX.checksum, checksum_node))
-            dist.graph.add((checksum_node, RDF.type, SPDX.Checksum))
-            dist.graph.add((checksum_node, SPDX.checksumValue, Literal(metadata["checksum"], datatype=XSD.hexBinary)))
-
-        if metadata.get("access_service"):
-            dist.set_attribute(DCAT.accessService, metadata["access_service"])
-        if metadata.get("has_policy"):
-            dist.set_attribute(DCAT.hasPolicy, metadata["has_policy"])
-
-        # --- Optional: connector region field (custom extension) ---
-        if metadata.get("region"):
-            dist.set_attribute(DSPACE.region, metadata["region"])
-
-        return dist
+    def to_entity(cls, data: Any) -> "Dataset":
+        """Convert JSON-LD data or Graph into a Dataset entity."""
+        if isinstance(data, Graph):
+            return cast(Dataset, data)  # already a graph
+        json_ld_str = json.dumps(data, default=str)
+        return cls.from_json_ld(json_ld_str)
 
 
 class Metadata(Graph):

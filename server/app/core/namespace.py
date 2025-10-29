@@ -21,6 +21,18 @@ class DSPACE(DefinedNamespace):
 class SPDX(DefinedNamespace):
     _NS = Namespace("http://spdx.org/rdf/terms#")
 
+    # Classes
+    Checksum: URIRef
+
+    # Properties
+    checksum: URIRef
+    checksumValue: URIRef
+    algorithm: URIRef
+
+    # Algorithm values
+    SHA256: URIRef
+
 
 class DCATAP(DefinedNamespace):
     _NS = Namespace("http://data.europa.eu/r5r/")
+    hasPolicy: URIRef

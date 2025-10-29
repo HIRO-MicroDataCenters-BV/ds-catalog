@@ -1,11 +1,17 @@
 from typing import Annotated
 
 from classy_fastapi import Routable, delete, get, post
-from fastapi import Depends, HTTPException, Path, status
+from fastapi import Depends, HTTPException, Path, Query, status
 from fastapi.exceptions import RequestValidationError
 
 from app.core import entities, usecases
-from app.core.exceptions import ErrorParsingMMIO, GraphValidationError, NodeDoesNotExist
+from app.core.exceptions import (
+    ConnectorError,
+    DistributionNotFound,
+    ErrorParsingMMIO,
+    GraphValidationError,
+    NodeDoesNotExist,
+)
 from app.core.repository import Repositories
 from app.settings import Settings, get_settings
 
@@ -51,6 +57,11 @@ class DatasetsRoutes(Routable):
             ...,
             description="The name of the uploaded MMIO file.",
             examples=["mmio-sample.tar"],
+        ),
+        related_data_product: str = Query(
+            ...,
+            description="Path to the related data product directory (folder).",
+            examples=["file:///data/disease_xyz/"],
         ),
     ) -> JSONLDResponse:
         """
@@ -150,12 +161,31 @@ class DatasetsRoutes(Routable):
                     "oca_uri": settings.oca_uri,
                     "shacl_url": settings.shacl_url,
                     "ontology_url": settings.ontology_url,
+                    "related_data_product": related_data_product,
                 },
+            )
+        except ValueError as err:
+            # Raised when accessURL is outside related_data_product
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(err),
             )
         except FileNotFoundError:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=FILE_NOT_FOUND,
+            )
+
+        except DistributionNotFound as err:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(err),
+            )
+
+        except ConnectorError as err:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Connector service error: {err}",
             )
         except ErrorParsingMMIO as err:
             raise HTTPException(

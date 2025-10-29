@@ -881,7 +881,45 @@ paths:
       tags:
       - Datasets
       summary: Save Dataset
-      description: Create or update a dataset
+      description: "Create or update a dataset or application.\n\nThis endpoint saves\
+        \ a new catalog item (or updates an existing one) using the\nmetadata provided\
+        \ in the request body. The input\nmust follow **DCAT-AP 3.0 JSON-LD**.\n\n\
+        ### Notes\n- Items are always stored as `dcat:Dataset`.\n- You can represent\
+        \ either:\n    - A **dataset** (`dcterms:type = Dataset`)\n    - An **application**\
+        \ (`dcterms:type = Software`)\n\n### Example: Dataset\n```json\n{\n  \"@context\"\
+        : {\n    \"dcat\": \"http://www.w3.org/ns/dcat#\",\n    \"dcterms\": \"http://purl.org/dc/terms/\"\
+        ,\n    \"skos\": \"http://www.w3.org/2004/02/skos/core#\",\n    \"xsd\": \"\
+        http://www.w3.org/2001/XMLSchema#\"\n  },\n  \"@id\": \"https://example.com/dataset/789\"\
+        ,\n  \"@type\": \"dcat:Dataset\",\n  \"dcterms:identifier\": { \"@type\":\
+        \ \"xsd:string\", \"@value\": \"abc-123-xyz\" },\n  \"dcterms:title\": { \"\
+        @language\": \"en\", \"@value\": \"Sample Dataset\" },\n  \"dcterms:description\"\
+        : { \"@language\": \"en\",\n   \"@value\": \"This dataset contains CSV data.\"\
+        \ },\n  \"dcterms:type\": {\n    \"@id\": \"http://purl.org/dc/dcmitype/Dataset\"\
+        ,\n    \"@type\": \"skos:Concept\",\n    \"skos:prefLabel\": { \"@language\"\
+        : \"en\", \"@value\": \"Dataset\" }\n  },\n  \"dcat:distribution\": [\n  \
+        \  {\n      \"@type\": \"dcat:Distribution\",\n      \"dcat:accessURL\": {\n\
+        \      \"@id\": \"https://example.com/distribution/489/info\" },\n      \"\
+        dcterms:format\": {\n        \"@id\": \"https://www.iana.org/assignments/media-types/text/csv\"\
+        ,\n        \"@type\": \"dcterms:MediaTypeOrExtent\",\n        \"skos:prefLabel\"\
+        : { \"@language\": \"en\", \"@value\": \"CSV\" }\n      }\n    }\n  ]\n}\n\
+        ```\n\n### Example: Application (Software)\n```json\n{\n  \"@context\": {\n\
+        \    \"dcat\": \"http://www.w3.org/ns/dcat#\",\n    \"dcterms\": \"http://purl.org/dc/terms/\"\
+        ,\n    \"skos\": \"http://www.w3.org/2004/02/skos/core#\",\n    \"xsd\": \"\
+        http://www.w3.org/2001/XMLSchema#\"\n  },\n  \"@id\": \"https://example.com/dataset/5678\"\
+        ,\n  \"@type\": \"dcat:Dataset\",\n  \"dcterms:identifier\": { \"@type\":\
+        \ \"xsd:string\", \"@value\": \"5678\" },\n  \"dcterms:title\": { \"@language\"\
+        : \"en\", \"@value\": \"Image Application\" },\n  \"dcterms:description\"\
+        : { \"@language\": \"en\",\n   \"@value\": \"A containerized app for satellite\
+        \ image analysis.\" },\n  \"dcterms:type\": {\n    \"@id\": \"http://purl.org/dc/dcmitype/Software\"\
+        ,\n    \"@type\": \"skos:Concept\",\n    \"skos:prefLabel\": { \"@language\"\
+        : \"en\", \"@value\": \"Software\" }\n  },\n  \"dcat:distribution\": [\n \
+        \   {\n      \"@type\": \"dcat:Distribution\",\n      \"dcat:accessURL\":\
+        \ {\n      \"@id\": \"https://ghcr.io/my-org/image-analysis:1.0.0\" },\n \
+        \     \"dcterms:format\": {\n        \"@id\": \"https://www.iana.org/assignments/media-types/\n\
+        \        application/vnd.docker.distribution.manifest.v2+json\",\n       \
+        \ \"@type\": \"dcterms:MediaTypeOrExtent\",\n        \"skos:prefLabel\": {\
+        \ \"@language\": \"en\", \"@value\": \"Docker Image v2\" }\n      }\n    }\n\
+        \  ]\n}\n```"
       operationId: save_dataset
       parameters:
       - name: filename
@@ -894,6 +932,16 @@ paths:
           - mmio-sample.tar
           title: Filename
         description: The name of the uploaded MMIO file.
+      - name: related_data_product
+        in: query
+        required: true
+        schema:
+          type: string
+          description: Path to the related data product directory (folder).
+          examples:
+          - file:///data/disease_xyz/
+          title: Related Data Product
+        description: Path to the related data product directory (folder).
       requestBody:
         required: true
         content:
