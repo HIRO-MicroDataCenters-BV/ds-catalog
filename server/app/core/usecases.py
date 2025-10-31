@@ -276,7 +276,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             file:///data/disease_xyz/images/patient1.dcm →
              ("file", "disease_xyz/Fimages/patient1.dcm")
             s3://bucket/key/file.csv → ("s3", "bucket/Fkey/Ffile.csv")
-            https://example.com/data/file.csv →
+            https://example.com/data/file.csv  →
             ("http", "https://example.com/data/file.csv")
         """
 
