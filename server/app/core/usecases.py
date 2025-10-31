@@ -181,7 +181,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         dataset.set_attribute(DSPACE.metadataFilename, filename)
 
         # 4 Connector integration BEFORE saving
-        
+
         settings = get_settings()
         base_url = settings.connector_base_url.rstrip("/")
         related_folder = context.get("related_data_product")
@@ -219,7 +219,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             connector_url = (
                 f"{base_url}/distribution-metadata/{interface}/{resource_path}"
             )
-        
+
             # Fetch metadata from connector
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(connector_url)
@@ -242,7 +242,6 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
                 dataset.graph, dist_node, connector_data, existing_data
             )
 
-
         # Add dataset-level metadata
         is_shared = dataset.get_attribute(DSPACE.isShared)
         if is_shared is None:
@@ -255,7 +254,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         catalog_title = catalog.get_attribute(DCTERMS.title)
         region_value = catalog_title or "Unknown Region"
         dataset.set_attribute(DSPACE.region, region_value)
-        
+
         # Link dataset to catalog and save
         catalog.set_attribute(DCAT.dataset, dataset.uri)
         catalog += dataset
