@@ -181,9 +181,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         dataset.set_attribute(DSPACE.metadataFilename, filename)
 
         # 4 Connector integration BEFORE saving
-
-        print("=== Connector Integration (In-Place Update) ===")
-
+        
         settings = get_settings()
         base_url = settings.connector_base_url.rstrip("/")
         related_folder = context.get("related_data_product")
@@ -221,8 +219,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             connector_url = (
                 f"{base_url}/distribution-metadata/{interface}/{resource_path}"
             )
-            print(f"Fetching connector metadata from {connector_url}")
-
+        
             # Fetch metadata from connector
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(connector_url)
@@ -232,7 +229,6 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
                 connector_data = connector_json.get("distribution", {})
                 print(f" Connector data merged for {access_url}")
             elif response.status_code == 404:
-                # print(f"Access URL not found in connector: {access_url_str}")
                 raise DistributionNotFound(
                     f"Access URL not found in connector: {access_url_str}"
                 )
@@ -246,7 +242,6 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
                 dataset.graph, dist_node, connector_data, existing_data
             )
 
-        print("=== Finished in-place merge of distributions ===")
 
         # Add dataset-level metadata
         is_shared = dataset.get_attribute(DSPACE.isShared)
@@ -256,12 +251,16 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         dataset.set_attribute(DSPACE.isDeleted, False)
         dataset.set_attribute(DCTERMS.publisher, person.uri)
 
+        # Extracting region from catalog
+        catalog_title = catalog.get_attribute(DCTERMS.title)
+        region_value = catalog_title or "Unknown Region"
+        dataset.set_attribute(DSPACE.region, region_value)
+        
         # Link dataset to catalog and save
         catalog.set_attribute(DCAT.dataset, dataset.uri)
         catalog += dataset
         catalog += person
 
-        print("Saving catalog and dataset to Neo4j (after connector merge)...")
         await self.repositories.catalogs.save(catalog)
 
         #  Return updated dataset
