@@ -173,12 +173,12 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         validator.validate(dataset)
 
         # 2️ Load catalog + user info
+
         catalog = await self.repositories.catalogs.get()
         user = context["user"]
         person = await self._get_or_create_person(user)
 
         # 3️ Build MMIO metadata
-        print("Building MMIO metadata...")
         metadata_items, errors = await self._build_mmio_metadata(
             filename, context["oca_uri"]
         )
@@ -191,7 +191,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         dataset.set_attribute(DSPACE.metadataFilename, filename)
 
         # 4 Connector enrichment (extracted to separate method)
-        print(" Enriching distributions with connector metadata...")
+
         await self._enrich_distributions_with_connector(dataset, related_data_product)
 
         # 5 Add dataset-level info
@@ -211,11 +211,9 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         catalog += dataset
         catalog += person
 
-        print("Saving enriched dataset to Neo4j...")
         await self.repositories.catalogs.save(catalog)
 
         # 7 Return in-memory enriched dataset (includes extraMetadata)
-        print(" Returning enriched dataset with distributions + MMIO metadata")
         return dataset, errors
 
     async def _enrich_distributions_with_connector(
@@ -243,8 +241,6 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         for dist_node in dataset.graph.objects(dataset.uri, DCAT.distribution):
             if isinstance(dist_node, URIRef):
                 distribution_nodes.append(dist_node)
-
-        print(f" Found {len(distribution_nodes)} distributions to enrich")
 
         for dist_node in distribution_nodes:
             await self._enrich_single_distribution(
@@ -286,7 +282,6 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             )
 
         access_url_str = str(access_url)
-        print(f"Processing distribution: {access_url_str}")
 
         # Extract existing distribution data
         existing_data = self._extract_existing_distribution_values(
@@ -310,7 +305,6 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
 
         # Call connector API
         connector_url = f"{base_url}/distribution-metadata/{interface}/{resource_path}"
-        print(f" Calling connector: {connector_url}")
 
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(connector_url)
@@ -328,7 +322,6 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
 
         # Extract and merge connector data
         connector_data = response.json().get("distribution", {})
-        print(f" Connector data retrieved for {access_url_str}")
 
         # Perform ontology-agnostic merge
         self._update_distribution_in_place(
@@ -338,8 +331,6 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             existing_data,
             dataset_jsonld,
         )
-
-        print(f" Distribution {dist_node} successfully enriched")
 
     def _parse_access_url(self, file_path: str) -> tuple[str, str]:
         """
@@ -433,18 +424,15 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             # 1 Both null => explicit "null"
             if value is None or str(value).lower() in ("none", ""):
                 graph.add((subject, predicate, Literal("null", datatype=dtype)))
-                print(f"Set {predicate} = 'null' (both dataset and connector null)")
+
                 return
 
             # 2 URIs (for URLs)
             if is_uri:
                 graph.add((subject, predicate, URIRef(value)))
-                print(f"🔗 Updated {predicate} = <{value}>")
+
             else:
                 graph.add((subject, predicate, Literal(value, datatype=dtype)))
-                print(f" Updated {predicate} = {value}")
-
-        print(f"🔧 Updating distribution {dist_node} with connector values...")
 
         # DCAT-AP 3.0.0 field mapping (minimal set)
         field_map = {
@@ -477,10 +465,6 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             # Case B: connector null, dataset null -> set explicit "null"
             elif existing_val is None:
                 add_or_replace_literal(dist_node, predicate, None, dtype, is_uri)
-
-            # Case C: connector null, dataset has value -> keep as is
-            else:
-                print(f" Keeping existing {predicate} = {existing_val}")
 
         #  Handle checksum separately (as nested SPDX node)
         checksum_val = connector_data.get("checksum")
@@ -529,9 +513,6 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
                     Literal(checksum_val, datatype=XSD.hexBinary),
                 )
             )
-            print(f" Updated checksum = {checksum_val}")
-
-        print(f" Distribution {dist_node} successfully updated.")
 
     def _expand_iri(self, key: str, context: dict[str, Any]) -> str:
         """Enhanced IRI expansion with safe string handling."""
@@ -564,8 +545,6 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             "algorithm": str(SPDX.algorithm),
         }
         return fallback.get(key, key)
-
-    # --------------------------------------------------------------------------
 
     def _extract_existing_distribution_values(
         self, dist_node: URIRef, graph: Graph, dataset_jsonld: dict[str, Any]

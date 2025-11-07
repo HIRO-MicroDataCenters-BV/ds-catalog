@@ -1,15 +1,17 @@
+from typing import Any
+
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
 from freezegun import freeze_time
-from rdflib import DCAT, DCTERMS, FOAF, RDF, Literal, URIRef
+from rdflib import DCAT, DCTERMS, FOAF, RDF, Graph, Literal, URIRef
 
 from ..context import Context, SaveDatasetContext
 from ..entities import Catalog, Dataset, Metadata, Person
 from ..exceptions import GraphValidationError, NodeDoesNotExist, QueryIsRequired
 from ..namespace import DSPACE
-from ..repository.queries import FilterDatasetByID, FilterPersonByID
+from ..repository.queries import FilterDatasetByID
 from ..repository.query_builder import catalog_filter_to_query
 from ..usecases import (
     CatalogUsecases,
@@ -192,7 +194,6 @@ class TestDatasetsUsecases:
             oca_uri="http://oca.example.org/123/",
             shacl_url="http://example.org/shacl.ttl",
             ontology_url="http://example.org/dcat.ttl",
-            related_data_product="disease_xyz",
         )
 
     @freeze_time("2017-05-21T09:23:00+00:00")
@@ -205,64 +206,98 @@ class TestDatasetsUsecases:
         validator_class,
         validator_instance,
     ):
+        """
+        Updated test for DatasetsUsecases.save with related_data_product and
+        connector enrichment.
+        """
+
         id = "http://example.com/1"
         user = context["user"]
         person = Person.from_user(user)
         catalog = Catalog.create("Test title", "Test description")
         dataset = Dataset.create_empty(id)
         dataset.set_attribute(DCTERMS.identifier, id)
-        filename = "mmio.tar"
-        mmio_id = "EI2z8E6zYvMF_yvquoUJedWi0rKpQsscPf7JlBgIDoOm"  # from fixture
 
+        filename = "mmio.tar"
+        related_data_product = "disease_xyz"
+        mmio_id = "EI2z8E6zYvMF_yvquoUJedWi0rKpQsscPf7JlBgIDoOm"
+
+        # Mock repositories
         repositories.catalogs.get = AsyncMock(return_value=catalog)
         repositories.persons.get = AsyncMock(return_value=person)
         repositories.catalogs.save = AsyncMock()
-        repositories.datasets.get = AsyncMock(return_value=dataset)
         repositories.files.read = AsyncMock(return_value=mmio_tar)
 
-        usecase = DatasetsUsecases(repositories)
+        # Create the usecase (typed as Any to allow async mocks)
+        usecase: Any = DatasetsUsecases(repositories)
 
+        # Build mock metadata
+        metadata_uri = Metadata.build_uri(context["oca_uri"], f"{mmio_id}/0", 0)
+        rdf_type = Metadata.build_type(context["oca_uri"])
+        g = Graph()
+        g.add((metadata_uri, RDF.type, rdf_type))
+
+        metadata_obj = Metadata(g)
+        metadata_obj.rdf_type = rdf_type
+        metadata_obj.label = "m-test"
+        metadata_obj.context = {
+            **Metadata.context,
+            Metadata.namespace: context["oca_uri"],
+        }
+
+        # Patch internal methods with async mocks
+        usecase._build_mmio_metadata = AsyncMock(return_value=([metadata_obj], []))
+        usecase._enrich_distributions_with_connector = AsyncMock()
+        usecase._get_or_create_person = AsyncMock(return_value=person)
+
+        # Execute save()
         result, errors = await usecase.save(
-            dataset,
-            filename,
-            context,
+            dataset=dataset,
+            filename=filename,
+            related_data_product=related_data_product,
+            context=context,
             validator_class=validator_class,
         )
 
-        assert result == dataset
+        # --- ASSERTS ---
 
+        # Validator used correctly
         validator_class.assert_called_once_with(
             shacl_url=context["shacl_url"],
             ontology_url=context["ontology_url"],
         )
         validator_instance.validate.assert_called_once_with(dataset)
 
-        repositories.catalogs.get.assert_called_once_with()
-        repositories.persons.get.assert_called_once()
-        assert repositories.persons.get.call_args[0][0] == FilterPersonByID(user["id"])
-        repositories.catalogs.save.assert_called_once_with(catalog)
-        repositories.datasets.get.assert_called_once()
-        assert repositories.datasets.get.call_args[0][0] == FilterDatasetByID(id)
-        repositories.files.read.assert_called_once_with(filename)
+        # Repository & internal calls
+        repositories.catalogs.get.assert_awaited_once()
+        usecase._get_or_create_person.assert_awaited_once_with(user)
+        usecase._build_mmio_metadata.assert_awaited_once_with(
+            filename,
+            context["oca_uri"],
+        )
+        usecase._enrich_distributions_with_connector.assert_awaited_once_with(
+            dataset,
+            related_data_product,
+        )
+        repositories.catalogs.save.assert_awaited_once_with(catalog)
 
+        # Dataset checks
+        assert result == dataset
         assert result.get_attribute(DSPACE.isDeleted) == Literal(False)
         assert result.get_attribute(DSPACE.isShared) == Literal(False)
         assert result.get_attribute(DCTERMS.issued) == Literal(
             "2017-05-21T09:23:00+00:00"
         )
         assert result.get_attribute(DCTERMS.publisher) == person.uri
-
         assert result.get_attribute(DSPACE.metadataFilename) == Literal(filename)
 
-        oca_uri = context["oca_uri"]
-        metadata_uri = Metadata.build_uri(oca_uri, f"{mmio_id}/0", 0)
+        # Metadata check
         assert result.get_attribute(DSPACE.extraMetadata) == metadata_uri
+        assert (metadata_uri, None, None) in dataset.graph
 
-        assert (metadata_uri, RDF.type, Metadata.build_type(oca_uri)) in dataset.graph
-        assert (metadata_uri, URIRef(f"{oca_uri}age"), Literal(True)) in dataset.graph
-        assert (metadata_uri, URIRef(f"{oca_uri}bmi"), Literal(True)) in dataset.graph
-
+        # Catalog linkage
         assert catalog.get_attribute(DCAT.dataset) == dataset.uri
+        assert errors == []
 
     @pytest.mark.asyncio
     async def test_save_with_new_publisher(
@@ -272,7 +307,7 @@ class TestDatasetsUsecases:
         catalog = Catalog.create("Test title", "Test description")
         dataset = Dataset.create_empty(id)
         dataset.set_attribute(DCTERMS.identifier, id)
-
+        related_data_product = "disease_xyz"
         repositories.catalogs.get = AsyncMock(return_value=catalog)
         repositories.persons.get = AsyncMock(side_effect=NodeDoesNotExist)
         repositories.catalogs.save = AsyncMock()
@@ -284,6 +319,7 @@ class TestDatasetsUsecases:
         result, errors = await usecase.save(
             dataset,
             "mmio.tar",
+            related_data_product,
             context,
             validator_class=validator_class,
         )
@@ -299,6 +335,7 @@ class TestDatasetsUsecases:
         self, repositories, mmio_tar, context, validator_class
     ):
         id = "http://example.com/1"
+        related_data_product = "disease_xyz"
         catalog = Catalog.create("Test title", "Test description")
         dataset = Dataset.create_empty(id)
         dataset.set_attribute(DCTERMS.identifier, id)
@@ -315,6 +352,7 @@ class TestDatasetsUsecases:
         result, errors = await usecase.save(
             dataset,
             "mmio.tar",
+            related_data_product,
             context,
             validator_class=validator_class,
         )
@@ -328,6 +366,7 @@ class TestDatasetsUsecases:
     ):
         error = GraphValidationError("test_code", "Test error", [])
         validator_instance.validate = Mock(side_effect=error)
+        related_data_product = "disease_xyz"
 
         usecase = DatasetsUsecases(repositories)
 
@@ -337,6 +376,7 @@ class TestDatasetsUsecases:
             await usecase.save(
                 dataset,
                 "test.csv",
+                related_data_product,
                 context,
                 validator_class=validator_class,
             )

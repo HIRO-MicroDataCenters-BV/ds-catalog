@@ -19,7 +19,7 @@ usecases = Mock()
 oca_uri = "http://oca.example.org/123/"
 shacl_url = "http://example.org/shacl.ttl"
 ontology_url = "http://example.org/dcat.ttl"
-related_data_product = "disease_xyz"
+
 
 user = user_factory()
 
@@ -57,6 +57,7 @@ client = TestClient(app)
 class TestDatasetsRoutes:
     def test_save_dataset(self):
         filename = "test.csv"
+        related_data_product = "disease_xyz"
         usecases.save = AsyncMock(return_value=(dataset, []))
 
         data = dataset.to_json_ld()
@@ -75,11 +76,13 @@ class TestDatasetsRoutes:
         kwargs = usecases.save.call_args[1]
 
         assert len(args) == 2
-        assert len(kwargs) == 1
+        assert len(kwargs) == 2
 
         assert usecases.save.call_args[0][0] == dataset
         assert usecases.save.call_args[0][1] == filename
-        assert usecases.save.call_args[0][2] == related_data_product
+        assert (
+            usecases.save.call_args[1]["related_data_product"] == related_data_product
+        )
         assert usecases.save.call_args[1]["context"] == {
             "user": user,
             "oca_uri": oca_uri,
