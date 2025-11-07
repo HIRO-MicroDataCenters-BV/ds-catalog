@@ -30,9 +30,9 @@ class Settings(BaseSettings):
     test_database: Database = Database()
 
     catalog: Catalog = Catalog()
-
+    data_root_path: str = "/data/"
     oca_uri: str = (
-        "https://oca-repository.marketplace.nextgen.hiro-develop.nl" "/oca-bundles/"
+        "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles/"
     )
     ontology_url: str = "https://www.w3.org/ns/dcat.ttl"
     shacl_url: str = (

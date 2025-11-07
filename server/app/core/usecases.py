@@ -1,18 +1,19 @@
-from typing import BinaryIO, cast
+from typing import Any, BinaryIO
 
+import json
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
 from pathlib import PurePosixPath
 from urllib.parse import quote, unquote, urlparse
 
 import httpx
-from rdflib import DCAT, RDF, Literal, URIRef
-from rdflib.graph import Graph as RDFGraph
+from rdflib import DCAT, Graph, Literal, URIRef
 from rdflib.namespace import DCTERMS, XSD
 
 from app.core.exceptions import (
     ConnectorError,
     DistributionNotFound,
+    InvalidDatasetError,
     NodeDoesNotExist,
     QueryIsRequired,
 )
@@ -38,8 +39,6 @@ from .validators import (
     IDatasetValidatorService,
     IValidatorService,
 )
-
-connector_file_path = None
 
 
 class IUsecases(ABC):
@@ -67,8 +66,9 @@ class IDatasetsUsecases(IUsecases):
     @abstractmethod
     async def save(
         self,
-        data: Dataset,
+        dataset: Dataset,
         filename: str,
+        related_data_product: str,
         context: SaveDatasetContext,
         validator_class: type[IDatasetValidatorService],
     ) -> tuple[Dataset, list[str]]:
@@ -153,119 +153,193 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         self,
         dataset: Dataset,
         filename: str,
+        related_data_product: str,
         context: SaveDatasetContext,
         validator_class: type[IDatasetValidatorService] = DatasetValidatorService,
     ) -> tuple[Dataset, list[str]]:
-        """Create or update a dataset — with connector enrichment (in-place update)."""
+        """
+        Create or update a dataset — full ontology-agnostic version:
+          1️ Validate & build MMIO metadata
+          2️ Enrich each distribution from connector
+          3️ Attach metadata & persist
+          4️ Return enriched dataset with clean JSON-LD
+        """
 
-        # 1 Validate dataset
+        # 1️ Validate dataset structure
         validator = validator_class(
             shacl_url=context["shacl_url"],
             ontology_url=context["ontology_url"],
         )
         validator.validate(dataset)
 
-        # 2 Get catalog + user
+        # 2️ Load catalog + user info
         catalog = await self.repositories.catalogs.get()
         user = context["user"]
         person = await self._get_or_create_person(user)
 
-        # 3 Add MMIO metadata
+        # 3️ Build MMIO metadata
+        print("Building MMIO metadata...")
         metadata_items, errors = await self._build_mmio_metadata(
             filename, context["oca_uri"]
         )
 
         for metadata in metadata_items:
-            dataset += metadata
+            dataset += metadata  # add triples to RDF graph
             dataset.set_attribute(DSPACE.extraMetadata, metadata.uri)
+            catalog += metadata  # ensure persistence
+
         dataset.set_attribute(DSPACE.metadataFilename, filename)
 
-        # 4 Connector integration BEFORE saving
+        # 4 Connector enrichment (extracted to separate method)
+        print(" Enriching distributions with connector metadata...")
+        await self._enrich_distributions_with_connector(dataset, related_data_product)
 
-        settings = get_settings()
-        base_url = settings.connector_base_url.rstrip("/")
-        related_folder = context.get("related_data_product")
-
-        # Loop through existing distributions
-        for dist_node in list(dataset.graph.objects(dataset.uri, DCAT.distribution)):
-            access_url = dataset.graph.value(dist_node, DCAT.accessURL)
-            if not access_url:
-                continue
-
-            access_url_str = str(access_url)
-            existing_data = self._extract_existing_distribution_values(
-                cast(URIRef, dist_node), dataset.graph
-            )
-            connector_data = {}
-
-            # Parse accessURL (protocol + resource path)
-            try:
-                interface, resource_path = self._parse_access_url(access_url_str)
-            except ValueError as e:
-                print(f" Invalid accessURL format: {access_url_str} ({e})")
-                continue
-
-            # Validate: distribution path must be inside the related folder
-            if related_folder:
-                decoded_path = unquote(resource_path)
-                if not self._is_child_path(decoded_path, related_folder):
-                    raise ValueError(
-                        f"Access URL '{access_url_str}', path '{decoded_path}' "
-                        f"is not inside the related data product "
-                        f"folder '{related_folder}'."
-                    )
-
-            # Build connector URL
-            connector_url = (
-                f"{base_url}/distribution-metadata/{interface}/{resource_path}"
-            )
-
-            # Fetch metadata from connector
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.get(connector_url)
-
-            if response.is_success:
-                connector_json = response.json()
-                connector_data = connector_json.get("distribution", {})
-                print(f" Connector data merged for {access_url}")
-            elif response.status_code == 404:
-                raise DistributionNotFound(
-                    f"Access URL not found in connector: {access_url_str}"
-                )
-            else:
-                raise ConnectorError(
-                    f"Connector returned {response.status_code} for {access_url_str}"
-                )
-
-            # Merge connector values in-place
-            self._update_distribution_in_place(
-                dataset.graph, dist_node, connector_data, existing_data
-            )
-
-        # Add dataset-level metadata
-        is_shared = dataset.get_attribute(DSPACE.isShared)
-        if is_shared is None:
+        # 5 Add dataset-level info
+        if dataset.get_attribute(DSPACE.isShared) is None:
             dataset.set_attribute(DSPACE.isShared, False)
+
         dataset.set_attribute(DCTERMS.issued, datetime.now(UTC).isoformat())
         dataset.set_attribute(DSPACE.isDeleted, False)
         dataset.set_attribute(DCTERMS.publisher, person.uri)
 
-        # Extracting region from catalog
         catalog_title = catalog.get_attribute(DCTERMS.title)
         region_value = catalog_title or "Unknown Region"
         dataset.set_attribute(DSPACE.region, region_value)
 
-        # Link dataset to catalog and save
+        # 6 Persist catalog + dataset
         catalog.set_attribute(DCAT.dataset, dataset.uri)
         catalog += dataset
         catalog += person
 
+        print("Saving enriched dataset to Neo4j...")
         await self.repositories.catalogs.save(catalog)
 
-        #  Return updated dataset
-        dataset_id = dataset.get_attribute(DCTERMS.identifier)
-        final_dataset = await self.get(dataset_id, context)
-        return final_dataset, errors
+        # 7 Return in-memory enriched dataset (includes extraMetadata)
+        print(" Returning enriched dataset with distributions + MMIO metadata")
+        return dataset, errors
+
+    async def _enrich_distributions_with_connector(
+        self, dataset: Dataset, related_data_product: str
+    ) -> None:
+        """
+        Enrich all distributions in the dataset with connector metadata.
+        Handles 404 errors by stopping the flow completely.
+
+        Args:
+            dataset: The dataset containing distributions to enrich
+            related_data_product: The related folder path for validation
+
+        Raises:
+            DistributionNotFound: When connector returns 404
+            ConnectorError: When connector returns other error status
+            InvalidDatasetError: When distribution lacks required accessURL
+        """
+        settings = get_settings()
+        base_url = settings.connector_base_url.rstrip("/")
+        dataset_jsonld = json.loads(dataset.to_json_ld())
+
+        # Find all distribution nodes (ontology-agnostic)
+        distribution_nodes: list[URIRef] = []
+        for dist_node in dataset.graph.objects(dataset.uri, DCAT.distribution):
+            if isinstance(dist_node, URIRef):
+                distribution_nodes.append(dist_node)
+
+        print(f" Found {len(distribution_nodes)} distributions to enrich")
+
+        for dist_node in distribution_nodes:
+            await self._enrich_single_distribution(
+                dataset, dist_node, base_url, related_data_product, dataset_jsonld
+            )
+
+    async def _enrich_single_distribution(
+        self,
+        dataset: Dataset,
+        dist_node: URIRef,
+        base_url: str,
+        related_data_product: str,
+        dataset_jsonld: dict[str, Any],
+    ) -> None:
+        """
+        Enrich a single distribution with connector metadata.
+
+        Args:
+            dataset: The dataset containing the distribution
+            dist_node: The URI of the distribution to enrich
+            base_url: The connector base URL
+            related_data_product: The related folder for path validation
+            dataset_jsonld: The dataset JSON-LD representation
+
+        Raises:
+            DistributionNotFound: When connector returns 404
+            ConnectorError: When connector returns error status
+            InvalidDatasetError: When distribution lacks accessURL
+        """
+        # Extract accessURL
+        access_pred = self._expand_iri(
+            "dcat:accessURL", dataset_jsonld.get("@context", {})
+        )
+        access_url = dataset.graph.value(dist_node, URIRef(access_pred))
+
+        if not access_url:
+            raise InvalidDatasetError(
+                f"No accessURL found for distribution {dist_node}"
+            )
+
+        access_url_str = str(access_url)
+        print(f"Processing distribution: {access_url_str}")
+
+        # Extract existing distribution data
+        existing_data = self._extract_existing_distribution_values(
+            dist_node, dataset.graph, dataset_jsonld
+        )
+
+        # Parse and validate access URL
+        try:
+            interface, resource_path = self._parse_access_url(access_url_str)
+        except ValueError as e:
+            raise InvalidDatasetError(f"Invalid accessURL format: {e}")
+
+        # Validate path is within related folder
+        if related_data_product:
+            decoded_path = unquote(resource_path)
+            if not self._is_child_path(decoded_path, related_data_product):
+                raise InvalidDatasetError(
+                    f"Access URL '{access_url_str}' path '{decoded_path}' "
+                    f"is not inside folder '{related_data_product}'"
+                )
+
+        # Call connector API
+        connector_url = f"{base_url}/distribution-metadata/{interface}/{resource_path}"
+        print(f" Calling connector: {connector_url}")
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(connector_url)
+
+        # Handle connector response
+        if response.status_code == 404:
+            raise DistributionNotFound(
+                f"Distribution metadata not found for access URL {access_url_str}"
+            )
+        elif not response.is_success:
+            raise ConnectorError(
+                f"Connector failed with status {response.status_code} "
+                f"for {access_url_str}"
+            )
+
+        # Extract and merge connector data
+        connector_data = response.json().get("distribution", {})
+        print(f" Connector data retrieved for {access_url_str}")
+
+        # Perform ontology-agnostic merge
+        self._update_distribution_in_place(
+            dataset.graph,
+            dist_node,
+            connector_data,
+            existing_data,
+            dataset_jsonld,
+        )
+
+        print(f" Distribution {dist_node} successfully enriched")
 
     def _parse_access_url(self, file_path: str) -> tuple[str, str]:
         """
@@ -279,14 +353,15 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             https://example.com/data/file.csv  →
             ("http", "https://example.com/data/file.csv")
         """
-
+        settings = get_settings()
+        base_path = settings.data_root_path.rstrip("/") + "/"
         parsed = urlparse(file_path)
 
         if parsed.scheme == "file":
             path_part = file_path.split("://", 1)[-1]
 
             # If it starts with /data/, trim only that prefix
-            if path_part.startswith("/data/"):
+            if path_part.startswith(base_path):
                 path_part = path_part[len("/data/") :]
             elif path_part.startswith("/"):
                 path_part = path_part[1:]
@@ -328,123 +403,179 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         return resource_parts[: len(folder_parts)] == folder_parts
 
     def _update_distribution_in_place(
-        self, graph, dist_node, connector_data, existing_data
+        self,
+        graph,
+        dist_node,
+        connector_data,
+        existing_data,
+        dataset_jsonld,
     ):
-        """Update existing RDF distribution node in
-        place using connector + dataset data."""
+        """
+        Ontology-agnostic update of a DCAT Distribution.
 
-        def choose(conn_key, exist_key=None):
-            exist_key = exist_key or conn_key
-            conn_val = connector_data.get(conn_key)
-            if conn_val not in [None, "", "null"]:
-                return conn_val
-            exist_val = existing_data.get(exist_key)
-            if exist_val not in [None, "", "null"]:
-                return exist_val
-            return None
+        Rules:
+        - If connector provides a non-null value => override.
+        - If connector provides null and dataset has value => keep dataset.
+        - If both connector and dataset have null => explicitly set 'null' (typed).
+        - Keep RDF types (URIRefs for URLs, typed literals otherwise).
+        - Update nested checksum node correctly (no duplicate checksumValue).
+        """
 
-        def set_or_update(predicate, value, datatype=None):
-            if value is not None:
-                graph.remove((dist_node, predicate, None))
+        def add_or_replace_literal(
+            subject, predicate, value, dtype=XSD.string, is_uri=False
+        ):
+            """
+            Helper: replace triple or insert new, respecting RDF typing.
+            """
+            # Remove any existing values first
+            graph.remove((subject, predicate, None))
+
+            # 1 Both null => explicit "null"
+            if value is None or str(value).lower() in ("none", ""):
+                graph.add((subject, predicate, Literal("null", datatype=dtype)))
+                print(f"Set {predicate} = 'null' (both dataset and connector null)")
+                return
+
+            # 2 URIs (for URLs)
+            if is_uri:
+                graph.add((subject, predicate, URIRef(value)))
+                print(f"🔗 Updated {predicate} = <{value}>")
+            else:
+                graph.add((subject, predicate, Literal(value, datatype=dtype)))
+                print(f" Updated {predicate} = {value}")
+
+        print(f"🔧 Updating distribution {dist_node} with connector values...")
+
+        # DCAT-AP 3.0.0 field mapping (minimal set)
+        field_map = {
+            "access_url": (DCAT.accessURL, XSD.anyURI, True),
+            "download_url": (DCAT.downloadURL, XSD.anyURI, True),
+            "media_type": (DCAT.mediaType, XSD.string, False),
+            "package_format": (DCAT.packageFormat, XSD.string, False),
+            "format": (DCAT.format, XSD.string, False),
+            "byte_size": (DCAT.byteSize, XSD.long, False),
+            "issued": (DCTERMS.issued, XSD.dateTime, False),
+            "modified": (DCTERMS.modified, XSD.dateTime, False),
+            "title": (DCTERMS.title, XSD.string, False),
+            "description": (DCTERMS.description, XSD.string, False),
+            "license": (DCTERMS.license, XSD.string, False),
+            "rights": (DCTERMS.rights, XSD.string, False),
+            "conforms_to": (DCTERMS.conformsTo, XSD.anyURI, True),
+            "access_rights": (DCTERMS.accessRights, XSD.string, False),
+            "has_policy": (DCATAP.hasPolicy, XSD.anyURI, True),
+        }
+
+        #  Update fields based on connector
+        for field, (predicate, dtype, is_uri) in field_map.items():
+            conn_val = connector_data.get(field)
+            existing_val = next(iter(graph.objects(dist_node, predicate)), None)
+
+            # Case A: connector has a value -> override
+            if conn_val is not None and str(conn_val).lower() not in ("none", ""):
+                add_or_replace_literal(dist_node, predicate, conn_val, dtype, is_uri)
+
+            # Case B: connector null, dataset null -> set explicit "null"
+            elif existing_val is None:
+                add_or_replace_literal(dist_node, predicate, None, dtype, is_uri)
+
+            # Case C: connector null, dataset has value -> keep as is
+            else:
+                print(f" Keeping existing {predicate} = {existing_val}")
+
+        #  Handle checksum separately (as nested SPDX node)
+        checksum_val = connector_data.get("checksum")
+        checksum_nodes = list(graph.objects(dist_node, SPDX.checksum))
+
+        if checksum_val is None or str(checksum_val).lower() in ("none", ""):
+            # both missing — explicitly write "null" if dataset also had none
+            if not checksum_nodes:
+                checksum_uri = URIRef(f"{dist_node}/checksum")
                 graph.add(
                     (
-                        dist_node,
-                        predicate,
-                        Literal(value, datatype=datatype)
-                        if datatype
-                        else Literal(value),
+                        checksum_uri,
+                        SPDX.checksumValue,
+                        Literal("null", datatype=XSD.hexBinary),
+                    )
+                )
+                graph.add((dist_node, SPDX.checksum, checksum_uri))
+
+        else:
+            # connector provided a checksum
+            if checksum_nodes:
+                checksum_node = checksum_nodes[0]
+            else:
+                checksum_node = URIRef(f"{dist_node}/checksum")
+                graph.add((dist_node, SPDX.checksum, checksum_node))
+                graph.add(
+                    (
+                        checksum_node,
+                        SPDX.algorithm,
+                        URIRef("http://spdx.org/rdf/terms#SHA256"),
+                    )
+                )
+                graph.add(
+                    (
+                        checksum_node,
+                        SPDX.type,
+                        URIRef("http://spdx.org/rdf/terms#Checksum"),
                     )
                 )
 
-        # Core DCAT/DCAT-AP/DC Terms fields
-        set_or_update(DCTERMS.title, choose("title"))
-        set_or_update(DCTERMS.description, choose("description"))
-        set_or_update(DCAT.accessURL, choose("access_url", "accessURL"))
-        set_or_update(DCAT.downloadURL, choose("download_url", "downloadURL"))
-        set_or_update(DCAT.mediaType, choose("media_type", "mediaType"))
-        set_or_update(DCTERMS.format, choose("format"))
-        set_or_update(DCTERMS.license, choose("license"))
-        set_or_update(
-            DCAT.byteSize, choose("byte_size", "byteSize"), XSD.nonNegativeInteger
-        )
-        set_or_update(DCAT.accessService, choose("access_service"))
-        set_or_update(DCAT.compressFormat, choose("compress_format"))
-        set_or_update(DCAT.packageFormat, choose("package_format"))
-        set_or_update(DCTERMS.accessRights, choose("access_rights"))
-        set_or_update(DCTERMS.conformsTo, choose("conforms_to"))
-        set_or_update(DCTERMS.issued, choose("issued"))
-        set_or_update(DCTERMS.modified, choose("modified"))
-        set_or_update(DCTERMS.rights, choose("rights"))
-        set_or_update(DCATAP.hasPolicy, choose("has_policy"))
-        set_or_update(DSPACE.region, choose("region"))
-
-        # SPDX Checksum handling
-        checksum = choose("checksum", "checksumValue")
-        if checksum:
-            checksum_uri = URIRef(f"{dist_node}/checksum")
-            graph.remove((dist_node, SPDX.checksum, None))
-            graph.add((checksum_uri, RDF.type, SPDX.Checksum))
+            graph.remove((checksum_node, SPDX.checksumValue, None))
             graph.add(
                 (
-                    checksum_uri,
+                    checksum_node,
                     SPDX.checksumValue,
-                    Literal(checksum, datatype=XSD.hexBinary),
+                    Literal(checksum_val, datatype=XSD.hexBinary),
                 )
             )
-            graph.add((checksum_uri, SPDX.algorithm, SPDX.SHA256))
-            graph.add((dist_node, SPDX.checksum, checksum_uri))
+            print(f" Updated checksum = {checksum_val}")
 
-    # Add this method to the DatasetsUsecases class
+        print(f" Distribution {dist_node} successfully updated.")
+
+    def _expand_iri(self, key: str, context: dict[str, Any]) -> str:
+        """Enhanced IRI expansion with safe string handling."""
+        if ":" in key:
+            prefix, local = key.split(":", 1)
+            if prefix in context:
+                return str(context[prefix]) + local
+        if key in context:
+            return str(context[key])
+        fallback = {
+            "title": str(DCTERMS.title),
+            "description": str(DCTERMS.description),
+            "format": str(DCAT.format),
+            "accessURL": str(DCAT.accessURL),
+            "downloadURL": str(DCAT.downloadURL),
+            "mediaType": str(DCAT.mediaType),
+            "byteSize": str(DCAT.byteSize),
+            "compressFormat": str(DCAT.compressFormat),
+            "packageFormat": str(DCAT.packageFormat),
+            "issued": str(DCTERMS.issued),
+            "modified": str(DCTERMS.modified),
+            "license": str(DCTERMS.license),
+            "rights": str(DCTERMS.rights),
+            "accessRights": str(DCTERMS.accessRights),
+            "accessService": str(DCAT.accessService),
+            "conformsTo": str(DCTERMS.conformsTo),
+            "hasPolicy": str(DCATAP.hasPolicy),
+            "checksum": str(SPDX.checksumValue),
+            "checksumValue": str(SPDX.checksumValue),
+            "algorithm": str(SPDX.algorithm),
+        }
+        return fallback.get(key, key)
+
+    # --------------------------------------------------------------------------
+
     def _extract_existing_distribution_values(
-        self, dist_node: URIRef, graph: RDFGraph
+        self, dist_node: URIRef, graph: Graph, dataset_jsonld: dict[str, Any]
     ) -> dict[str, str]:
-        """Extract existing distribution values for fallback"""
-        existing = {}
-
-        # Core properties
-        if title := graph.value(dist_node, DCTERMS.title):
-            existing["title"] = str(title)
-        if desc := graph.value(dist_node, DCTERMS.description):
-            existing["description"] = str(desc)
-        if access_url := graph.value(dist_node, DCAT.accessURL):
-            existing["accessURL"] = str(access_url)
-        if download_url := graph.value(dist_node, DCAT.downloadURL):
-            existing["downloadURL"] = str(download_url)
-        if media_type := graph.value(dist_node, DCAT.mediaType):
-            existing["mediaType"] = str(media_type)
-        if format_val := graph.value(dist_node, DCTERMS.format):
-            existing["format"] = str(format_val)
-        if license_val := graph.value(dist_node, DCTERMS.license):
-            existing["license"] = str(license_val)
-        if byte_size := graph.value(dist_node, DCAT.byteSize):
-            existing["byteSize"] = str(byte_size)
-
-        # Additional properties
-        if access_service := graph.value(dist_node, DCAT.accessService):
-            existing["access_service"] = str(access_service)
-        if compress_format := graph.value(dist_node, DCAT.compressFormat):
-            existing["compress_format"] = str(compress_format)
-        if package_format := graph.value(dist_node, DCAT.packageFormat):
-            existing["package_format"] = str(package_format)
-        if access_rights := graph.value(dist_node, DCTERMS.accessRights):
-            existing["access_rights"] = str(access_rights)
-        if conforms_to := graph.value(dist_node, DCTERMS.conformsTo):
-            existing["conforms_to"] = str(conforms_to)
-        if issued := graph.value(dist_node, DCTERMS.issued):
-            existing["issued"] = str(issued)
-        if modified := graph.value(dist_node, DCTERMS.modified):
-            existing["modified"] = str(modified)
-        if rights := graph.value(dist_node, DCTERMS.rights):
-            existing["rights"] = str(rights)
-        if has_policy := graph.value(dist_node, DCATAP.hasPolicy):
-            existing["has_policy"] = str(has_policy)
-
-        # Handle checksum
-        checksum_node = graph.value(dist_node, SPDX.checksum)
-        if checksum_node:
-            if checksum_val := graph.value(checksum_node, SPDX.checksumValue):
-                existing["checksumValue"] = str(checksum_val)
-
+        """Extract all triples for the distribution."""
+        existing: dict[str, str] = {}
+        for _, p, o in graph.triples((dist_node, None, None)):
+            p_str = str(p)
+            local_name = p_str.split("#")[-1] if "#" in p_str else p_str.split("/")[-1]
+            existing[local_name] = str(o)
         return existing
 
     async def _build_mmio_metadata(

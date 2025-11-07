@@ -16,6 +16,7 @@ class DSPACE(DefinedNamespace):
     operationValue: URIRef
     operation: URIRef
     filters: URIRef
+    region: URIRef
 
 
 class SPDX(DefinedNamespace):

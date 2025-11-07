@@ -10,6 +10,7 @@ from app.core.exceptions import (
     DistributionNotFound,
     ErrorParsingMMIO,
     GraphValidationError,
+    InvalidDatasetError,
     NodeDoesNotExist,
 )
 from app.core.repository import Repositories
@@ -156,12 +157,12 @@ class DatasetsRoutes(Routable):
             output_entity, errors = await usecases.save(
                 input_entity,
                 filename,
+                related_data_product=related_data_product,
                 context={
                     "user": user,
                     "oca_uri": settings.oca_uri,
                     "shacl_url": settings.shacl_url,
                     "ontology_url": settings.ontology_url,
-                    "related_data_product": related_data_product,
                 },
             )
         except ValueError as err:
@@ -181,12 +182,17 @@ class DatasetsRoutes(Routable):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=str(err),
             )
-
+        except InvalidDatasetError as err:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(err),
+            )
         except ConnectorError as err:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=f"Connector service error: {err}",
             )
+
         except ErrorParsingMMIO as err:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

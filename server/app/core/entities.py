@@ -95,13 +95,12 @@ class Graph:
             "@context": self.get_context(),
             "@type": self.graph.namespace_manager.qname(self.get_rdf_type()),
         }
+
         json_ld_str = self.graph.serialize(format="json-ld")
         json_ld = json.loads(json_ld_str)
-        framed_json_ld = jsonld.frame(json_ld, frame)
-        # return json.dumps(framed_json_ld, indent=4)
+        framed = jsonld.frame(json_ld, frame)
+        compacted = jsonld.compact(framed, self.get_context())
 
-        compacted = jsonld.compact(framed_json_ld, self.get_context())
-        # Force array only for dcat:distribution
         if "dcat:distribution" in compacted and not isinstance(
             compacted["dcat:distribution"], list
         ):

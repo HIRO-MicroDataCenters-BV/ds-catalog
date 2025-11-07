@@ -30,6 +30,10 @@ class DistributionNotFound(Exception):
     ...
 
 
+class InvalidDatasetError(Exception):
+    ...
+
+
 class GraphValidationError(Exception):
     def __init__(
         self,
