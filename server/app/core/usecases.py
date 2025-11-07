@@ -440,7 +440,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             "download_url": (DCAT.downloadURL, XSD.anyURI, True),
             "media_type": (DCAT.mediaType, XSD.string, False),
             "package_format": (DCAT.packageFormat, XSD.string, False),
-            "format": (DCAT.format, XSD.string, False),
+            "format": (DCTERMS.format, XSD.string, False),
             "byte_size": (DCAT.byteSize, XSD.long, False),
             "issued": (DCTERMS.issued, XSD.dateTime, False),
             "modified": (DCTERMS.modified, XSD.dateTime, False),
@@ -451,6 +451,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             "conforms_to": (DCTERMS.conformsTo, XSD.anyURI, True),
             "access_rights": (DCTERMS.accessRights, XSD.string, False),
             "has_policy": (DCATAP.hasPolicy, XSD.anyURI, True),
+            "compress_format": (DCAT.compressFormat, XSD.anyURI, True),
         }
 
         #  Update fields based on connector
