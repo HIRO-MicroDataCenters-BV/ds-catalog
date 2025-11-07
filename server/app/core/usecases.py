@@ -439,7 +439,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             "access_url": (DCAT.accessURL, XSD.anyURI, True),
             "download_url": (DCAT.downloadURL, XSD.anyURI, True),
             "media_type": (DCAT.mediaType, XSD.string, False),
-            "package_format": (DCAT.packageFormat, XSD.string, False),
+            "package_format": (DCAT.packageFormat, XSD.anyURI, False),
             "format": (DCTERMS.format, XSD.string, False),
             "byte_size": (DCAT.byteSize, XSD.long, False),
             "issued": (DCTERMS.issued, XSD.dateTime, False),
