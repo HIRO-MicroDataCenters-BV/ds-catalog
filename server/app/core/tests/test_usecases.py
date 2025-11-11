@@ -1,7 +1,7 @@
 from typing import Any
 
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, Mock
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 from freezegun import freeze_time
@@ -198,8 +198,10 @@ class TestDatasetsUsecases:
 
     @freeze_time("2017-05-21T09:23:00+00:00")
     @pytest.mark.asyncio
+    @patch("app.core.usecases.ConnectorIntegration")
     async def test_save(
         self,
+        mock_connector_cls,
         repositories,
         mmio_tar,
         context,
@@ -227,6 +229,8 @@ class TestDatasetsUsecases:
         repositories.persons.get = AsyncMock(return_value=person)
         repositories.catalogs.save = AsyncMock()
         repositories.files.read = AsyncMock(return_value=mmio_tar)
+        mock_con_ins = AsyncMock()
+        mock_connector_cls.return_value = mock_con_ins
 
         # Create the usecase (typed as Any to allow async mocks)
         usecase: Any = DatasetsUsecases(repositories)
@@ -247,7 +251,6 @@ class TestDatasetsUsecases:
 
         # Patch internal methods with async mocks
         usecase._build_mmio_metadata = AsyncMock(return_value=([metadata_obj], []))
-        usecase._enrich_distributions_with_connector = AsyncMock()
         usecase._get_or_create_person = AsyncMock(return_value=person)
 
         # Execute save()
@@ -275,10 +278,13 @@ class TestDatasetsUsecases:
             filename,
             context["oca_uri"],
         )
-        usecase._enrich_distributions_with_connector.assert_awaited_once_with(
-            dataset,
-            related_data_product,
+        mock_connector_cls.assert_called_once()  # class created
+        (
+            mock_con_ins.enrich_distributions_with_connector.assert_awaited_once_with(
+                dataset, related_data_product
+            )
         )
+
         repositories.catalogs.save.assert_awaited_once_with(catalog)
 
         # Dataset checks
