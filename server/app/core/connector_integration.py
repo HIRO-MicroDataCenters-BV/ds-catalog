@@ -281,6 +281,7 @@ class ConnectorIntegration:
             checksum_nodes = list(graph.objects(dist_node, checksum_cfg["predicate"]))
 
             if checksum_val is None or str(checksum_val).lower() in ("none", ""):
+                # No checksum provided by connector
                 if not checksum_nodes:
                     checksum_uri = URIRef(f"{dist_node}/checksum")
                     graph.add(
@@ -295,6 +296,7 @@ class ConnectorIntegration:
                 checksum_uri = next(
                     iter(checksum_nodes), URIRef(f"{dist_node}/checksum")
                 )
+                graph.remove((checksum_uri, checksum_cfg["nested_predicate"], None))
                 graph.add((dist_node, checksum_cfg["predicate"], checksum_uri))
                 graph.add(
                     (
