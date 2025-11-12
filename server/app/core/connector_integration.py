@@ -1,4 +1,3 @@
-# server/app/core/connector_integration.py
 from typing import Any
 
 import json
@@ -136,10 +135,6 @@ class ConnectorIntegration:
             existing_data,
             dataset_jsonld,
         )
-        print(
-            "******************[debug] ✅ Enriched distribution ",
-            list(dataset.graph.objects(dist_node, DCTERMS.format)),
-        )
 
     def _parse_access_url(self, file_path: str) -> tuple[str, str]:
         """
@@ -241,7 +236,6 @@ class ConnectorIntegration:
         from pathlib import Path
 
         config_path = Path(__file__).parent / "field_map_config.json"
-        print(f"[DEBUG] Loading field map config from: {config_path}")
 
         with open(config_path, encoding="utf-8") as f:
             raw = json.load(f)
@@ -268,8 +262,6 @@ class ConnectorIntegration:
                     "nested_is_uri": bool(value.get("nested_is_uri", False)),
                 }
 
-        print(f"[DEBUG] Starting connector update for distribution: {dist_node}")
-
         # --- Update regular fields from connector ---
         for field, mapping in field_map.items():
             if isinstance(mapping, dict):  # skip nested ones (like checksum)
@@ -279,31 +271,16 @@ class ConnectorIntegration:
             conn_val = connector_data.get(field)
             existing_val = next(iter(graph.objects(dist_node, predicate)), None)
 
-            print(f"[DEBUG] Field '{field}':")
-            print(f"    Predicate: {predicate}")
-            print(f"    Connector value: {conn_val}")
-            print(f"    Existing RDF value: {existing_val}")
-
             if conn_val is not None and str(conn_val).lower() not in ("none", ""):
-                print(f"    → Updating {field} with connector value.")
                 add_or_replace_literal(dist_node, predicate, conn_val, dtype, is_uri)
             elif existing_val is None:
-                print(f"    → Setting {field} explicitly to 'null'.")
                 add_or_replace_literal(dist_node, predicate, None, dtype, is_uri)
-            else:
-                print(f"    → Keeping existing {field} (no connector update).")
-
-        print(f"[DEBUG] Finished normal field updates for {dist_node}")
 
         # --- Handle checksum (special nested structure) ---
         if "checksum" in field_map:
             checksum_cfg = field_map["checksum"]
             checksum_val = connector_data.get("checksum")
             checksum_nodes = list(graph.objects(dist_node, checksum_cfg["predicate"]))
-
-            print(f"[DEBUG] Handling checksum for {dist_node}")
-            print(f"    Connector checksum: {checksum_val}")
-            print(f"    Existing checksum nodes: {checksum_nodes}")
 
             if checksum_val is None or str(checksum_val).lower() in ("none", ""):
                 if not checksum_nodes:
@@ -316,7 +293,6 @@ class ConnectorIntegration:
                         )
                     )
                     graph.add((dist_node, checksum_cfg["predicate"], checksum_uri))
-                    print(f"    → Added 'null' checksum node: {checksum_uri}")
             else:
                 checksum_uri = next(
                     iter(checksum_nodes), URIRef(f"{dist_node}/checksum")
@@ -329,8 +305,6 @@ class ConnectorIntegration:
                         Literal(checksum_val, datatype=checksum_cfg["datatype"]),
                     )
                 )
-
-        print(f"[DEBUG] ✅ Completed connector update for distribution: {dist_node}")
 
     def _expand_iri(self, key: str, context: dict[str, Any]) -> str:
         """Enhanced IRI expansion with safe string handling."""
