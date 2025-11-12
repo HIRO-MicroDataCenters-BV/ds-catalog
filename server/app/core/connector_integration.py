@@ -209,11 +209,10 @@ class ConnectorIntegration:
         Ontology-agnostic update of a DCAT Distribution.
 
         Rules:
-        - If connector provides a non-null value => override.
-        - If connector provides null and dataset has value => keep dataset.
-        - If both connector and dataset have null => explicitly set 'null' (typed).
+        - If connector provides non-null value => override dataset value with connector.
+        - If connector provides null and dataset has value => keep dataset value.
+        - If both connector and dataset have null => explicitly set 'null'.
         - Keep RDF types (URIRefs for URLs, typed literals otherwise).
-        - Update nested checksum node correctly (no duplicate checksumValue).
         """
 
         def add_or_replace_literal(
