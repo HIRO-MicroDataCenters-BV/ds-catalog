@@ -262,9 +262,8 @@ class ConnectorIntegration:
                     "nested_is_uri": bool(value.get("nested_is_uri", False)),
                 }
 
-        # --- Update regular fields from connector ---
         for field, mapping in field_map.items():
-            if isinstance(mapping, dict):  # skip nested ones (like checksum)
+            if isinstance(mapping, dict):
                 continue
 
             predicate, dtype, is_uri = mapping
@@ -276,7 +275,6 @@ class ConnectorIntegration:
             elif existing_val is None:
                 add_or_replace_literal(dist_node, predicate, None, dtype, is_uri)
 
-        # --- Handle checksum (special nested structure) ---
         if "checksum" in field_map:
             checksum_cfg = field_map["checksum"]
             checksum_val = connector_data.get("checksum")
