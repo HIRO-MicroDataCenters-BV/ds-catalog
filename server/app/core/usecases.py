@@ -8,6 +8,7 @@ from rdflib.namespace import DCTERMS
 
 from app.core.exceptions import NodeDoesNotExist, QueryIsRequired
 
+from .connector_integration import ConnectorIntegration
 from .context import Context, SaveDatasetContext
 from .entities import Catalog, CatalogFilters, Dataset, Metadata, Person, User
 from .mmio import (
@@ -55,8 +56,9 @@ class IDatasetsUsecases(IUsecases):
     @abstractmethod
     async def save(
         self,
-        data: Dataset,
+        dataset: Dataset,
         filename: str,
+        related_data_product: str,
         context: SaveDatasetContext,
         validator_class: type[IDatasetValidatorService],
     ) -> tuple[Dataset, list[str]]:
@@ -141,64 +143,71 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         self,
         dataset: Dataset,
         filename: str,
+        related_data_product: str,
         context: SaveDatasetContext,
         validator_class: type[IDatasetValidatorService] = DatasetValidatorService,
     ) -> tuple[Dataset, list[str]]:
-        """Create or update a dataset"""
+        """
+        Create or update a dataset — full ontology-agnostic version:
+          1️ Validate & build MMIO metadata
+          2️ Enrich each distribution from connector
+          3️ Attach metadata & persist
+          4️ Return enriched dataset with clean JSON-LD
+        """
 
-        # Validate the input dataset
+        # 1️ Validate dataset structure
         validator = validator_class(
             shacl_url=context["shacl_url"],
             ontology_url=context["ontology_url"],
         )
         validator.validate(dataset)
 
-        # Get the local catalog
-        catalog = await self.repositories.catalogs.get()
+        # 2️ Load catalog + user info
 
-        # Get or create the person
+        catalog = await self.repositories.catalogs.get()
         user = context["user"]
         person = await self._get_or_create_person(user)
 
-        # Add metadata from the MMIO file
+        # 3️ Build MMIO metadata
         metadata_items, errors = await self._build_mmio_metadata(
             filename, context["oca_uri"]
         )
+
         for metadata in metadata_items:
             dataset += metadata
             dataset.set_attribute(DSPACE.extraMetadata, metadata.uri)
+            # catalog += metadata
+
         dataset.set_attribute(DSPACE.metadataFilename, filename)
 
-        # Set the additional attributes for the dataset
-        is_shared = dataset.get_attribute(DSPACE.isShared)
-        if is_shared is None:
+        # 4 Connector enrichment (extracted to separate method)
+
+        connector_obj = ConnectorIntegration()
+        await connector_obj.enrich_distributions_with_connector(
+            dataset, related_data_product
+        )
+
+        # 5 Add dataset-level info
+        if dataset.get_attribute(DSPACE.isShared) is None:
             dataset.set_attribute(DSPACE.isShared, False)
+
         dataset.set_attribute(DCTERMS.issued, datetime.now(UTC).isoformat())
         dataset.set_attribute(DSPACE.isDeleted, False)
         dataset.set_attribute(DCTERMS.publisher, person.uri)
 
-        # Set the dataset as a child of the catalog
-        catalog.set_attribute(DCAT.dataset, dataset.uri)
+        catalog_title = catalog.get_attribute(DCTERMS.title)
+        region_value = catalog_title or "Unknown Region"
+        dataset.set_attribute(DSPACE.region, region_value)
 
-        # Save the graph (including the dataset, catalog, and person)
+        # 6 Persist catalog + dataset
+        catalog.set_attribute(DCAT.dataset, dataset.uri)
         catalog += dataset
         catalog += person
+
         await self.repositories.catalogs.save(catalog)
 
-        # Return the dataset
-        id = dataset.get_attribute(DCTERMS.identifier)
-        final_dataset = await self.get(id, context)
-        return final_dataset, errors
-
-    async def get(self, id: str, context: Context) -> Dataset:
-        """Get a dataset by its ID"""
-        query = FilterDatasetByID(id)
-        return await self.repositories.datasets.get(query)
-
-    async def delete(self, id: str, context: Context) -> None:
-        """Delete a dataset by its ID"""
-        query = FilterDatasetByID(id)
-        await self.repositories.datasets.delete(query)
+        # 7 Return in-memory enriched dataset (includes extraMetadata)
+        return dataset, errors
 
     async def _build_mmio_metadata(
         self, filename: str, schema_uri: str
@@ -215,6 +224,16 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         metadata = mmio_data_to_entities(schema_uri, mmio.id, data)
 
         return metadata, getattr(parser, "errors", [])
+
+    async def get(self, id: str, context: Context) -> Dataset:
+        """Get a dataset by its ID"""
+        query = FilterDatasetByID(id)
+        return await self.repositories.datasets.get(query)
+
+    async def delete(self, id: str, context: Context) -> None:
+        """Delete a dataset by its ID"""
+        query = FilterDatasetByID(id)
+        await self.repositories.datasets.delete(query)
 
     async def _get_or_create_person(self, user: User) -> Person:
         query = FilterPersonByID(user["id"])

@@ -22,6 +22,18 @@ class QueryIsRequired(Exception):
     ...
 
 
+class ConnectorError(Exception):
+    ...
+
+
+class DistributionNotFound(Exception):
+    ...
+
+
+class InvalidDatasetError(Exception):
+    ...
+
+
 class GraphValidationError(Exception):
     def __init__(
         self,
