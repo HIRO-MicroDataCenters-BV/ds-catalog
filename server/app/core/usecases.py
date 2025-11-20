@@ -169,9 +169,11 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         person = await self._get_or_create_person(user)
 
         # 3️ Build MMIO metadata
-        metadata_items, errors = await self._build_mmio_metadata(
-            filename, context["oca_uri"]
-        )
+        (
+            metadata_items,
+            errors,
+            mmio_said,
+        ) = await self._build_mmio_metadata(filename, context["oca_uri"])
 
         for metadata in metadata_items:
             dataset += metadata
@@ -211,7 +213,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
 
     async def _build_mmio_metadata(
         self, filename: str, schema_uri: str
-    ) -> tuple[list[Metadata], list[str]]:
+    ) -> tuple[list[Metadata], list[str], str]:
         mmio_bytes = await self.repositories.files.read(filename)
         parser: IMMIOParser
         if filename.endswith(".tar"):
@@ -221,9 +223,13 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         mmio = MMIO(mmio_bytes, parser=parser, schema_uri=schema_uri)
         mmio = mmio.transform_to(schema_uri)
         data = mmio_available_attrs(mmio)
+        print(
+            f"**********[_build_mmio_metadata] Data from mmio_available_attrs: {data}"
+        )
         metadata = mmio_data_to_entities(schema_uri, mmio.id, data)
+        errors = getattr(parser, "errors", [])
 
-        return metadata, getattr(parser, "errors", [])
+        return metadata, errors, mmio.id
 
     async def get(self, id: str, context: Context) -> Dataset:
         """Get a dataset by its ID"""
