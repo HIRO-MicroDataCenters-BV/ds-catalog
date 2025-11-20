@@ -213,6 +213,7 @@ class TestMMIOAvailableAttrs:
     def mock_bundle(self):
         bundle = Mock()
         bundle.attribute_names = ["attr1", "attr2"]
+        bundle.digest = "test-digest"
         return bundle
 
     @pytest.fixture
@@ -232,12 +233,13 @@ class TestMMIOAvailableAttrs:
         mmio.modalities = [modality_with_bundle]
 
         result = mmio_available_attrs(mmio)
+        df, digest = result[0]
+        assert isinstance(df, pl.DataFrame)
+        assert isinstance(digest, str)
 
-        assert len(result) == 1
-        assert isinstance(result[0], pl.DataFrame)
-        assert result[0].columns == ["attr1", "attr2"]
-        assert result[0].height == 1
-        assert result[0].row(0) == (True, True)
+        assert df.columns == ["attr1", "attr2"]
+        assert df.height == 1
+        assert df.row(0) == (True, True)
 
     def test_multiple_modalities(self, modality_with_bundle, modality_without_bundle):
         mmio = Mock()
@@ -249,9 +251,9 @@ class TestMMIOAvailableAttrs:
 
         result = mmio_available_attrs(mmio)
         assert len(result) == 2  # one modality is without bundle
-        for df in result:
+        for df, digest in result:
             assert isinstance(df, pl.DataFrame)
-            assert df.columns == ["attr1", "attr2"]
+            assert isinstance(digest, str)
 
     def test_all_bundles_are_none(self, modality_without_bundle):
         mmio = Mock()
@@ -263,9 +265,12 @@ class TestMMIOAvailableAttrs:
 def test_mmio_data_to_entities():
     schema_uri = "http://oca.example.org/some-schema/"
     mmio_id = "123"
+    df1 = pl.DataFrame({"attr1": [True, True], "attr2": [True, True]})
+    df2 = pl.DataFrame({"attr3": [True], "attr4": [True]})
+
     data = [
-        pl.DataFrame({"attr1": [True, True], "attr2": [True, True]}),
-        pl.DataFrame({"attr3": [True], "attr4": [True]}),
+        (df1, "digest1"),
+        (df2, "digest2"),
     ]
 
     results = mmio_data_to_entities(schema_uri, mmio_id, data)
