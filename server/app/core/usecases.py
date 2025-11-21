@@ -221,10 +221,6 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         mmio = MMIO(mmio_bytes, parser=parser, schema_uri=schema_uri)
         mmio = mmio.transform_to(schema_uri)
         data = mmio_available_attrs(mmio)
-        print(
-            f"**********[_build_mmio_metadata] Data from mmio_available_attrs: {data}"
-        )
-        print(f"*******************mmio.id here {mmio.id}")
         metadata = mmio_data_to_entities(schema_uri, mmio.id, data)
         errors = getattr(parser, "errors", [])
 

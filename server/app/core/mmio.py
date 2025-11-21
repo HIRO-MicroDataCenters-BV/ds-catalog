@@ -291,38 +291,21 @@ def mmio_available_attrs(mmio_obj: MMIO) -> list[tuple[pl.DataFrame, str]]:
 def mmio_data_to_entities(
     schema_uri: str, mmio_id: str, data: list[tuple[pl.DataFrame, str]]
 ) -> list[Metadata]:
-    print(f"Received mmio_id: {mmio_id}")
-    print(f"Received schema_uri: {schema_uri}")
-    print(f"the data is ****** {data}***********")
-    print(f"Received data for {len(data)} modalities.")
     result = []
     base_uri = schema_uri.rstrip("/")
     for i, (record_df, digest) in enumerate(data):
-        print(f"\n[Processing Modality {i}]")
-        print(f"  - Bundle Digest: {digest}")
-        print(f"  - Attributes DataFrame:\n{record_df}")
         metadata_id = f"{mmio_id}/{i}"
-        print(f"  - Generated Metadata ID: {metadata_id}")
         # Create metadata for all attributes from the DataFrame
         metadata_list = Metadata.create_bunch_from_df(
             schema_uri, metadata_id, record_df
         )
-        print(f"  - Created {len(metadata_list)} metadata entities from DataFrame.")
         # Add the bundleDigest to the first metadata item in the list
         if metadata_list:
             bundle_digest_uri = f"{base_uri}/SAID"
-            print(
-                f"  - Adding bundleDigest to the first entity ({metadata_list[0].uri})."
-            )
-            print(f"    - Predicate: {bundle_digest_uri}")
-            print(f"    - Value: {digest}")
             metadata_list[0].set_attribute(
                 URIRef(bundle_digest_uri), digest, XSD.string
             )
 
         result.extend(metadata_list)
-        print(f"  - Total metadata entities so far: {len(result)}")
-
-    print(f"Returning a total of {len(result)} metadata entities.\n")
 
     return result
