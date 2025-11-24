@@ -263,9 +263,7 @@ class DatasetSharingUsecases(BaseUsecases, IDatasetSharingUsecases):
 class MMIOsUsecases(BaseUsecases, IMMIOsUsecases):
     async def create(self, file: BinaryIO, filename: str, context: Context) -> None:
         """Create a new MMIO file"""
-
-        if not await self.repositories.files.exists(filename):
-            await self.repositories.files.create(file, filename)
+        await self.repositories.files.create(file, filename)
 
     async def get(self, filename: str, context: Context) -> str:
         """Get a MMIO file"""
