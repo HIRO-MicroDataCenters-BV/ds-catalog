@@ -222,6 +222,10 @@ class FilesRepository(IFilesRepository):
             raise FileNotFoundError(f"File {filename} not found")
         return file_path.read_bytes()
 
+    async def exists(self, filename: str) -> bool:
+        file_path = self._get_file_path(filename)
+        return file_path.exists()
+
 
 # --- Repositories class ---
 
