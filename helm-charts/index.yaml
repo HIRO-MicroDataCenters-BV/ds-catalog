@@ -72,6 +72,16 @@ entries:
     - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.2.2-dev.72.fix-file-already.b161d9b9.tgz
     version: 0.2.2-dev.72.fix-file-already.b161d9b9
   - apiVersion: v2
+    appVersion: 0.2.2-dev.72.file-already-exi.bd63f2ba
+    created: "2025-11-26T09:58:45.685764318Z"
+    description: Data Space Catalog
+    digest: 3feb6c573e7e926f1b48805559182a47b94e3e8b4492b70b45af4991ded65bc7
+    name: ds-catalog
+    type: application
+    urls:
+    - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.2.2-dev.72.file-already-exi.bd63f2ba.tgz
+    version: 0.2.2-dev.72.file-already-exi.bd63f2ba
+  - apiVersion: v2
     appVersion: 0.2.2-dev.71.updated-modality.479b73e0
     created: "2025-11-21T10:20:36.812191909Z"
     description: Data Space Catalog
@@ -2021,4 +2031,4 @@ entries:
     urls:
     - https://hiro-microdatacenters-bv.github.io/ds-catalog/helm-charts/ds-catalog-0.0.0.tgz
     version: 0.0.0
-generated: "2025-11-24T13:14:58.457455479Z"
+generated: "2025-11-26T09:58:45.685082454Z"
