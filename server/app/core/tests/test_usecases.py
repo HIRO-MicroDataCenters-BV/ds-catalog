@@ -222,6 +222,7 @@ class TestDatasetsUsecases:
 
         filename = "mmio.tar"
         related_data_product = "disease_xyz"
+        connector_url = "https://ds-connector.hus.nextgen.hiro-develop.nl"
         mmio_id = "EI2z8E6zYvMF_yvquoUJedWi0rKpQsscPf7JlBgIDoOm"
 
         # Mock repositories
@@ -281,7 +282,7 @@ class TestDatasetsUsecases:
         mock_connector_cls.assert_called_once()  # class created
         (
             mock_con_ins.enrich_distributions_with_connector.assert_awaited_once_with(
-                dataset, related_data_product
+                dataset, related_data_product, connector_url
             )
         )
 
