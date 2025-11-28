@@ -283,7 +283,7 @@ class TestDatasetsUsecases:
             mock_con_ins.enrich_distributions_with_connector.assert_awaited_once_with(
                 dataset,
                 "disease_xyz",
-                "https://ds-connector.Test title.nextgen.hiro-develop.nl",
+                "https://ds-connector.hus.nextgen.hiro-develop.nl",
             )
         )
 

@@ -7,6 +7,7 @@ from rdflib import DCAT
 from rdflib.namespace import DCTERMS
 
 from app.core.exceptions import NodeDoesNotExist, QueryIsRequired
+from app.settings import get_settings
 
 from .connector_integration import ConnectorIntegration
 from .context import Context, SaveDatasetContext
@@ -182,7 +183,10 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
 
         # 4 Connector enrichment (extracted to separate method)
         region = catalog.get_attribute(DCTERMS.title)
-        connector_base_url = f"https://ds-connector.{region}.nextgen.hiro-develop.nl"
+
+        settings = get_settings()
+        connector_base_url = settings.connector_base_url.format(region=region)
+        print("*************connector_base_url is ***********", connector_base_url)
 
         connector_obj = ConnectorIntegration()
         await connector_obj.enrich_distributions_with_connector(
