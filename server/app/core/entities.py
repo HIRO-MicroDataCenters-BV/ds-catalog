@@ -95,10 +95,18 @@ class Graph:
             "@context": self.get_context(),
             "@type": self.graph.namespace_manager.qname(self.get_rdf_type()),
         }
+
         json_ld_str = self.graph.serialize(format="json-ld")
         json_ld = json.loads(json_ld_str)
-        framed_json_ld = jsonld.frame(json_ld, frame)
-        return json.dumps(framed_json_ld, indent=4)
+        framed = jsonld.frame(json_ld, frame)
+        compacted = jsonld.compact(framed, self.get_context())
+
+        if "dcat:distribution" in compacted and not isinstance(
+            compacted["dcat:distribution"], list
+        ):
+            compacted["dcat:distribution"] = [compacted["dcat:distribution"]]
+
+        return json.dumps(compacted, indent=4)
 
     @property
     def uri(self) -> URIRef:
@@ -168,6 +176,14 @@ class Catalog(Graph):
 class Dataset(Graph):
     rdf_type = DCAT.Dataset
     label = "d"
+
+    @classmethod
+    def to_entity(cls, data: Any) -> "Dataset":
+        """Convert JSON-LD data or Graph into a Dataset entity."""
+        if isinstance(data, Graph):
+            return cast(Dataset, data)  # already a graph
+        json_ld_str = json.dumps(data, default=str)
+        return cls.from_json_ld(json_ld_str)
 
 
 class Metadata(Graph):

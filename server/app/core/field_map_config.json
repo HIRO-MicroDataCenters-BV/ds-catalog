@@ -1,0 +1,26 @@
+{
+  "access_url": ["http://www.w3.org/ns/dcat#accessURL", "anyURI", true],
+  "download_url": ["http://www.w3.org/ns/dcat#downloadURL", "anyURI", true],
+  "media_type": ["http://www.w3.org/ns/dcat#mediaType", "string", false],
+  "package_format": ["http://www.w3.org/ns/dcat#packageFormat", "anyURI", false],
+  "format": ["http://www.w3.org/ns/dcat#format", "string", false],
+  "byte_size": ["http://www.w3.org/ns/dcat#byteSize", "long", false],
+  "issued": ["http://purl.org/dc/terms/issued", "dateTime", false],
+  "modified": ["http://purl.org/dc/terms/modified", "dateTime", false],
+  "title": ["http://purl.org/dc/terms/title", "string", false],
+  "description": ["http://purl.org/dc/terms/description", "string", false],
+  "license": ["http://purl.org/dc/terms/license", "string", false],
+  "rights": ["http://purl.org/dc/terms/rights", "string", false],
+  "conforms_to": ["http://purl.org/dc/terms/conformsTo", "anyURI", true],
+  "access_rights": ["http://purl.org/dc/terms/accessRights", "string", false],
+  "has_policy": ["http://data.europa.eu/r5r/hasPolicy", "anyURI", true],
+  "compress_format": ["http://www.w3.org/ns/dcat#compressFormat", "anyURI", true],
+
+  "checksum": {
+    "predicate": "http://spdx.org/rdf/terms#checksum",
+    "nested_predicate": "http://spdx.org/rdf/terms#checksumValue",
+    "datatype": "hexBinary",
+    "is_uri": true,
+    "nested_is_uri": false
+  }
+}

@@ -55,14 +55,14 @@ catalog:
 
 database:
   protocol: bolt
-  host: "127.0.0.1"
+  host: "ds-neo4j"
   port: 7687
   name: neo4j
   username: neo4j
   password: "123456789"  # Must match Neo4j's password
 
 migrate:
-  enabled: false
+  enabled: false  # Set to true to enable database migration
 
 resources:
   requests:
@@ -74,11 +74,22 @@ resources:
 
 namespace: nextgen
 
-deploymentMode: daemonset  # or "deployment"
+deploymentMode: deployment  # or "daemonset"
 
 ingress:
+  enabled: true
   host: nextgen.hiro-develop.nl
-  nodes:
-    - nodeId: hus
-    - nodeId: ki
-    - nodeId: uva
+
+## Update this according to the desired node
+nodeSelector:
+  role: node-label
+
+## To control the metics on development
+metrics:
+  enabled: true
+
+## To control the grafana on development
+grafana:
+  enabled: true
+
+ocaRepositoryBundlesUrl: "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"

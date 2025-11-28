@@ -8,9 +8,17 @@ from rdflib.namespace import DCTERMS
 
 from app.core.exceptions import NodeDoesNotExist, QueryIsRequired
 
+from .connector_integration import ConnectorIntegration
 from .context import Context, SaveDatasetContext
 from .entities import Catalog, CatalogFilters, Dataset, Metadata, Person, User
-from .mmio import MMIO, mmio_available_attrs, mmio_data_to_entities
+from .mmio import (
+    MMIO,
+    IMMIOParser,
+    JsonMMIOParser,
+    TarMMIOParser,
+    mmio_available_attrs,
+    mmio_data_to_entities,
+)
 from .namespace import DSPACE
 from .repository import Repositories
 from .repository.queries import FilterDatasetByID, FilterPersonByID
@@ -47,8 +55,13 @@ class ICatalogUsecases(IUsecases):
 class IDatasetsUsecases(IUsecases):
     @abstractmethod
     async def save(
-        self, data: Dataset, filename: str, context: SaveDatasetContext
-    ) -> Dataset:
+        self,
+        dataset: Dataset,
+        filename: str,
+        related_data_product: str,
+        context: SaveDatasetContext,
+        validator_class: type[IDatasetValidatorService],
+    ) -> tuple[Dataset, list[str]]:
         ...
 
     @abstractmethod
@@ -130,51 +143,88 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         self,
         dataset: Dataset,
         filename: str,
+        related_data_product: str,
         context: SaveDatasetContext,
         validator_class: type[IDatasetValidatorService] = DatasetValidatorService,
-    ) -> Dataset:
-        """Create or update a dataset"""
+    ) -> tuple[Dataset, list[str]]:
+        """
+        Create or update a dataset — full ontology-agnostic version:
+          1️ Validate & build MMIO metadata
+          2️ Enrich each distribution from connector
+          3️ Attach metadata & persist
+          4️ Return enriched dataset with clean JSON-LD
+        """
 
-        # Validate the input dataset
+        # 1️ Validate dataset structure
         validator = validator_class(
             shacl_url=context["shacl_url"],
             ontology_url=context["ontology_url"],
         )
         validator.validate(dataset)
 
-        # Get the local catalog
-        catalog = await self.repositories.catalogs.get()
+        # 2️ Load catalog + user info
 
-        # Get or create the person
+        catalog = await self.repositories.catalogs.get()
         user = context["user"]
         person = await self._get_or_create_person(user)
 
-        # Add metadata from the MMIO file
-        metadata_items = await self._build_mmio_metadata(filename, context["oca_uri"])
+        # 3️ Build MMIO metadata
+        metadata_items, errors = await self._build_mmio_metadata(
+            filename, context["oca_uri"]
+        )
+
         for metadata in metadata_items:
             dataset += metadata
             dataset.set_attribute(DSPACE.extraMetadata, metadata.uri)
+            # catalog += metadata
+
         dataset.set_attribute(DSPACE.metadataFilename, filename)
 
-        # Set the additional attributes for the dataset
-        is_shared = dataset.get_attribute(DSPACE.isShared)
-        if is_shared is None:
+        # 4 Connector enrichment (extracted to separate method)
+        region = catalog.get_attribute(DCTERMS.title)
+        connector_base_url = f"https://ds-connector.{region}.nextgen.hiro-develop.nl"
+        connector_obj = ConnectorIntegration()
+        await connector_obj.enrich_distributions_with_connector(
+            dataset, related_data_product, connector_base_url
+        )
+
+        # 5 Add dataset-level info
+        if dataset.get_attribute(DSPACE.isShared) is None:
             dataset.set_attribute(DSPACE.isShared, False)
+
         dataset.set_attribute(DCTERMS.issued, datetime.now(UTC).isoformat())
         dataset.set_attribute(DSPACE.isDeleted, False)
         dataset.set_attribute(DCTERMS.publisher, person.uri)
 
-        # Set the dataset as a child of the catalog
-        catalog.set_attribute(DCAT.dataset, dataset.uri)
+        catalog_title = catalog.get_attribute(DCTERMS.title)
+        region_value = catalog_title or "Unknown Region"
+        dataset.set_attribute(DSPACE.region, region_value)
 
-        # Save the graph (including the dataset, catalog, and person)
+        # 6 Persist catalog + dataset
+        catalog.set_attribute(DCAT.dataset, dataset.uri)
         catalog += dataset
         catalog += person
+
         await self.repositories.catalogs.save(catalog)
 
-        # Return the dataset
-        id = dataset.get_attribute(DCTERMS.identifier)
-        return await self.get(id, context)
+        # 7 Return in-memory enriched dataset (includes extraMetadata)
+        return dataset, errors
+
+    async def _build_mmio_metadata(
+        self, filename: str, schema_uri: str
+    ) -> tuple[list[Metadata], list[str]]:
+        mmio_bytes = await self.repositories.files.read(filename)
+        parser: IMMIOParser
+        if filename.endswith(".tar"):
+            parser = TarMMIOParser()
+        else:
+            parser = JsonMMIOParser()
+        mmio = MMIO(mmio_bytes, parser=parser, schema_uri=schema_uri)
+        mmio = mmio.transform_to(schema_uri)
+        data = mmio_available_attrs(mmio)
+        metadata = mmio_data_to_entities(schema_uri, mmio.id, data)
+
+        return metadata, getattr(parser, "errors", [])
 
     async def get(self, id: str, context: Context) -> Dataset:
         """Get a dataset by its ID"""
@@ -185,15 +235,6 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         """Delete a dataset by its ID"""
         query = FilterDatasetByID(id)
         await self.repositories.datasets.delete(query)
-
-    async def _build_mmio_metadata(
-        self, filename: str, schema_uri: str
-    ) -> list[Metadata]:
-        mmio_bytes = await self.repositories.files.read(filename)
-        mmio = MMIO(mmio_bytes)
-        mmio = mmio.transform_to(schema_uri)
-        data = mmio_available_attrs(mmio)
-        return mmio_data_to_entities(schema_uri, mmio.id, data)
 
     async def _get_or_create_person(self, user: User) -> Person:
         query = FilterPersonByID(user["id"])

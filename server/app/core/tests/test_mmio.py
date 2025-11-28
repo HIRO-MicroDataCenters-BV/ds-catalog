@@ -182,8 +182,7 @@ class TestMMIO:
     @pytest.fixture
     def fake_parser(self, modalities):
         parser = Mock(spec=IMMIOParser)
-        parser_instance = parser.return_value
-        parser_instance.parse.return_value = MMIOParsedData(
+        parser.parse.return_value = MMIOParsedData(
             id="test-id",
             modalities=modalities,
         )
@@ -194,7 +193,7 @@ class TestMMIO:
         assert mmio.id == "test-id"
         assert len(mmio.modalities) == 2
         assert mmio.modalities == modalities
-        fake_parser.return_value.parse.assert_called_once_with(mmio_bytes)
+        fake_parser.parse.assert_called_once_with(mmio_bytes)
 
     def test_mmio_str(self, mmio_bytes, fake_parser):
         mmio = MMIO(mmio_bytes, parser=fake_parser)

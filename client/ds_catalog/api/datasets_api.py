@@ -572,6 +572,7 @@ class DatasetsApi:
     def save_dataset(
         self,
         filename: Annotated[StrictStr, Field(description="The name of the uploaded MMIO file.")],
+        related_data_product: Annotated[StrictStr, Field(description="Path to the related data product directory (folder).")],
         request_body: Dict[str, Any],
         _request_timeout: Union[
             None,
@@ -588,10 +589,12 @@ class DatasetsApi:
     ) -> str:
         """Save Dataset
 
-        Create or update a dataset
+        Create or update a dataset or application.  This endpoint saves a new catalog item (or updates an existing one) using the metadata provided in the request body. The input must follow **DCAT-AP 3.0 JSON-LD**.  ### Notes - Items are always stored as `dcat:Dataset`. - You can represent either:     - A **dataset** (`dcterms:type = Dataset`)     - An **application** (`dcterms:type = Software`)  ### Example: Dataset ```json {   \"@context\": {     \"dcat\": \"http://www.w3.org/ns/dcat#\",     \"dcterms\": \"http://purl.org/dc/terms/\",     \"skos\": \"http://www.w3.org/2004/02/skos/core#\",     \"xsd\": \"http://www.w3.org/2001/XMLSchema#\"   },   \"@id\": \"https://example.com/dataset/789\",   \"@type\": \"dcat:Dataset\",   \"dcterms:identifier\": { \"@type\": \"xsd:string\", \"@value\": \"abc-123-xyz\" },   \"dcterms:title\": { \"@language\": \"en\", \"@value\": \"Sample Dataset\" },   \"dcterms:description\": { \"@language\": \"en\",    \"@value\": \"This dataset contains CSV data.\" },   \"dcterms:type\": {     \"@id\": \"http://purl.org/dc/dcmitype/Dataset\",     \"@type\": \"skos:Concept\",     \"skos:prefLabel\": { \"@language\": \"en\", \"@value\": \"Dataset\" }   },   \"dcat:distribution\": [     {       \"@type\": \"dcat:Distribution\",       \"dcat:accessURL\": {       \"@id\": \"https://example.com/distribution/489/info\" },       \"dcterms:format\": {         \"@id\": \"https://www.iana.org/assignments/media-types/text/csv\",         \"@type\": \"dcterms:MediaTypeOrExtent\",         \"skos:prefLabel\": { \"@language\": \"en\", \"@value\": \"CSV\" }       }     }   ] } ```  ### Example: Application (Software) ```json {   \"@context\": {     \"dcat\": \"http://www.w3.org/ns/dcat#\",     \"dcterms\": \"http://purl.org/dc/terms/\",     \"skos\": \"http://www.w3.org/2004/02/skos/core#\",     \"xsd\": \"http://www.w3.org/2001/XMLSchema#\"   },   \"@id\": \"https://example.com/dataset/5678\",   \"@type\": \"dcat:Dataset\",   \"dcterms:identifier\": { \"@type\": \"xsd:string\", \"@value\": \"5678\" },   \"dcterms:title\": { \"@language\": \"en\", \"@value\": \"Image Application\" },   \"dcterms:description\": { \"@language\": \"en\",    \"@value\": \"A containerized app for satellite image analysis.\" },   \"dcterms:type\": {     \"@id\": \"http://purl.org/dc/dcmitype/Software\",     \"@type\": \"skos:Concept\",     \"skos:prefLabel\": { \"@language\": \"en\", \"@value\": \"Software\" }   },   \"dcat:distribution\": [     {       \"@type\": \"dcat:Distribution\",       \"dcat:accessURL\": {       \"@id\": \"https://ghcr.io/my-org/image-analysis:1.0.0\" },       \"dcterms:format\": {         \"@id\": \"https://www.iana.org/assignments/media-types/         application/vnd.docker.distribution.manifest.v2+json\",         \"@type\": \"dcterms:MediaTypeOrExtent\",         \"skos:prefLabel\": { \"@language\": \"en\", \"@value\": \"Docker Image v2\" }       }     }   ] } ```
 
         :param filename: The name of the uploaded MMIO file. (required)
         :type filename: str
+        :param related_data_product: Path to the related data product directory (folder). (required)
+        :type related_data_product: str
         :param request_body: (required)
         :type request_body: Dict[str, object]
         :param _request_timeout: timeout setting for this request. If one
@@ -618,6 +621,7 @@ class DatasetsApi:
 
         _param = self._save_dataset_serialize(
             filename=filename,
+            related_data_product=related_data_product,
             request_body=request_body,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -644,6 +648,7 @@ class DatasetsApi:
     def save_dataset_with_http_info(
         self,
         filename: Annotated[StrictStr, Field(description="The name of the uploaded MMIO file.")],
+        related_data_product: Annotated[StrictStr, Field(description="Path to the related data product directory (folder).")],
         request_body: Dict[str, Any],
         _request_timeout: Union[
             None,
@@ -660,10 +665,12 @@ class DatasetsApi:
     ) -> ApiResponse[str]:
         """Save Dataset
 
-        Create or update a dataset
+        Create or update a dataset or application.  This endpoint saves a new catalog item (or updates an existing one) using the metadata provided in the request body. The input must follow **DCAT-AP 3.0 JSON-LD**.  ### Notes - Items are always stored as `dcat:Dataset`. - You can represent either:     - A **dataset** (`dcterms:type = Dataset`)     - An **application** (`dcterms:type = Software`)  ### Example: Dataset ```json {   \"@context\": {     \"dcat\": \"http://www.w3.org/ns/dcat#\",     \"dcterms\": \"http://purl.org/dc/terms/\",     \"skos\": \"http://www.w3.org/2004/02/skos/core#\",     \"xsd\": \"http://www.w3.org/2001/XMLSchema#\"   },   \"@id\": \"https://example.com/dataset/789\",   \"@type\": \"dcat:Dataset\",   \"dcterms:identifier\": { \"@type\": \"xsd:string\", \"@value\": \"abc-123-xyz\" },   \"dcterms:title\": { \"@language\": \"en\", \"@value\": \"Sample Dataset\" },   \"dcterms:description\": { \"@language\": \"en\",    \"@value\": \"This dataset contains CSV data.\" },   \"dcterms:type\": {     \"@id\": \"http://purl.org/dc/dcmitype/Dataset\",     \"@type\": \"skos:Concept\",     \"skos:prefLabel\": { \"@language\": \"en\", \"@value\": \"Dataset\" }   },   \"dcat:distribution\": [     {       \"@type\": \"dcat:Distribution\",       \"dcat:accessURL\": {       \"@id\": \"https://example.com/distribution/489/info\" },       \"dcterms:format\": {         \"@id\": \"https://www.iana.org/assignments/media-types/text/csv\",         \"@type\": \"dcterms:MediaTypeOrExtent\",         \"skos:prefLabel\": { \"@language\": \"en\", \"@value\": \"CSV\" }       }     }   ] } ```  ### Example: Application (Software) ```json {   \"@context\": {     \"dcat\": \"http://www.w3.org/ns/dcat#\",     \"dcterms\": \"http://purl.org/dc/terms/\",     \"skos\": \"http://www.w3.org/2004/02/skos/core#\",     \"xsd\": \"http://www.w3.org/2001/XMLSchema#\"   },   \"@id\": \"https://example.com/dataset/5678\",   \"@type\": \"dcat:Dataset\",   \"dcterms:identifier\": { \"@type\": \"xsd:string\", \"@value\": \"5678\" },   \"dcterms:title\": { \"@language\": \"en\", \"@value\": \"Image Application\" },   \"dcterms:description\": { \"@language\": \"en\",    \"@value\": \"A containerized app for satellite image analysis.\" },   \"dcterms:type\": {     \"@id\": \"http://purl.org/dc/dcmitype/Software\",     \"@type\": \"skos:Concept\",     \"skos:prefLabel\": { \"@language\": \"en\", \"@value\": \"Software\" }   },   \"dcat:distribution\": [     {       \"@type\": \"dcat:Distribution\",       \"dcat:accessURL\": {       \"@id\": \"https://ghcr.io/my-org/image-analysis:1.0.0\" },       \"dcterms:format\": {         \"@id\": \"https://www.iana.org/assignments/media-types/         application/vnd.docker.distribution.manifest.v2+json\",         \"@type\": \"dcterms:MediaTypeOrExtent\",         \"skos:prefLabel\": { \"@language\": \"en\", \"@value\": \"Docker Image v2\" }       }     }   ] } ```
 
         :param filename: The name of the uploaded MMIO file. (required)
         :type filename: str
+        :param related_data_product: Path to the related data product directory (folder). (required)
+        :type related_data_product: str
         :param request_body: (required)
         :type request_body: Dict[str, object]
         :param _request_timeout: timeout setting for this request. If one
@@ -690,6 +697,7 @@ class DatasetsApi:
 
         _param = self._save_dataset_serialize(
             filename=filename,
+            related_data_product=related_data_product,
             request_body=request_body,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -716,6 +724,7 @@ class DatasetsApi:
     def save_dataset_without_preload_content(
         self,
         filename: Annotated[StrictStr, Field(description="The name of the uploaded MMIO file.")],
+        related_data_product: Annotated[StrictStr, Field(description="Path to the related data product directory (folder).")],
         request_body: Dict[str, Any],
         _request_timeout: Union[
             None,
@@ -732,10 +741,12 @@ class DatasetsApi:
     ) -> RESTResponseType:
         """Save Dataset
 
-        Create or update a dataset
+        Create or update a dataset or application.  This endpoint saves a new catalog item (or updates an existing one) using the metadata provided in the request body. The input must follow **DCAT-AP 3.0 JSON-LD**.  ### Notes - Items are always stored as `dcat:Dataset`. - You can represent either:     - A **dataset** (`dcterms:type = Dataset`)     - An **application** (`dcterms:type = Software`)  ### Example: Dataset ```json {   \"@context\": {     \"dcat\": \"http://www.w3.org/ns/dcat#\",     \"dcterms\": \"http://purl.org/dc/terms/\",     \"skos\": \"http://www.w3.org/2004/02/skos/core#\",     \"xsd\": \"http://www.w3.org/2001/XMLSchema#\"   },   \"@id\": \"https://example.com/dataset/789\",   \"@type\": \"dcat:Dataset\",   \"dcterms:identifier\": { \"@type\": \"xsd:string\", \"@value\": \"abc-123-xyz\" },   \"dcterms:title\": { \"@language\": \"en\", \"@value\": \"Sample Dataset\" },   \"dcterms:description\": { \"@language\": \"en\",    \"@value\": \"This dataset contains CSV data.\" },   \"dcterms:type\": {     \"@id\": \"http://purl.org/dc/dcmitype/Dataset\",     \"@type\": \"skos:Concept\",     \"skos:prefLabel\": { \"@language\": \"en\", \"@value\": \"Dataset\" }   },   \"dcat:distribution\": [     {       \"@type\": \"dcat:Distribution\",       \"dcat:accessURL\": {       \"@id\": \"https://example.com/distribution/489/info\" },       \"dcterms:format\": {         \"@id\": \"https://www.iana.org/assignments/media-types/text/csv\",         \"@type\": \"dcterms:MediaTypeOrExtent\",         \"skos:prefLabel\": { \"@language\": \"en\", \"@value\": \"CSV\" }       }     }   ] } ```  ### Example: Application (Software) ```json {   \"@context\": {     \"dcat\": \"http://www.w3.org/ns/dcat#\",     \"dcterms\": \"http://purl.org/dc/terms/\",     \"skos\": \"http://www.w3.org/2004/02/skos/core#\",     \"xsd\": \"http://www.w3.org/2001/XMLSchema#\"   },   \"@id\": \"https://example.com/dataset/5678\",   \"@type\": \"dcat:Dataset\",   \"dcterms:identifier\": { \"@type\": \"xsd:string\", \"@value\": \"5678\" },   \"dcterms:title\": { \"@language\": \"en\", \"@value\": \"Image Application\" },   \"dcterms:description\": { \"@language\": \"en\",    \"@value\": \"A containerized app for satellite image analysis.\" },   \"dcterms:type\": {     \"@id\": \"http://purl.org/dc/dcmitype/Software\",     \"@type\": \"skos:Concept\",     \"skos:prefLabel\": { \"@language\": \"en\", \"@value\": \"Software\" }   },   \"dcat:distribution\": [     {       \"@type\": \"dcat:Distribution\",       \"dcat:accessURL\": {       \"@id\": \"https://ghcr.io/my-org/image-analysis:1.0.0\" },       \"dcterms:format\": {         \"@id\": \"https://www.iana.org/assignments/media-types/         application/vnd.docker.distribution.manifest.v2+json\",         \"@type\": \"dcterms:MediaTypeOrExtent\",         \"skos:prefLabel\": { \"@language\": \"en\", \"@value\": \"Docker Image v2\" }       }     }   ] } ```
 
         :param filename: The name of the uploaded MMIO file. (required)
         :type filename: str
+        :param related_data_product: Path to the related data product directory (folder). (required)
+        :type related_data_product: str
         :param request_body: (required)
         :type request_body: Dict[str, object]
         :param _request_timeout: timeout setting for this request. If one
@@ -762,6 +773,7 @@ class DatasetsApi:
 
         _param = self._save_dataset_serialize(
             filename=filename,
+            related_data_product=related_data_product,
             request_body=request_body,
             _request_auth=_request_auth,
             _content_type=_content_type,
@@ -783,6 +795,7 @@ class DatasetsApi:
     def _save_dataset_serialize(
         self,
         filename,
+        related_data_product,
         request_body,
         _request_auth,
         _content_type,
@@ -806,6 +819,10 @@ class DatasetsApi:
         if filename is not None:
             _path_params['filename'] = filename
         # process the query parameters
+        if related_data_product is not None:
+            
+            _query_params.append(('related_data_product', related_data_product))
+            
         # process the header parameters
         # process the form parameters
         # process the body parameter

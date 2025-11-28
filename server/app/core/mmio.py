@@ -8,8 +8,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 
+import httpx
 import m2io_nextgen as mmio
 import polars as pl
+
+from app.settings import get_settings
 
 from .entities import Metadata
 from .exceptions import ErrorParsingMMIO
@@ -55,7 +58,17 @@ class OCABundle:
             raise ErrorParsingMMIO("The bundle file contains invalid JSON")
 
         try:
-            self._digest = bundle["bundle"]["digest"]
+            if "bundle" in bundle and isinstance(bundle["bundle"], dict):
+                bundle_content = bundle["bundle"]
+                self._digest = bundle_content.get("d", None) or bundle_content.get(
+                    "digest", None
+                )
+            else:
+                # Fallback to top-level digest
+                self._digest = bundle.get("d") or bundle.get("digest")
+
+            if not self._digest:
+                raise KeyError("Neither 'd' nor 'digest' found in bundle")
             self._attribute_names = list(
                 bundle["bundle"]["capture_base"]["attributes"].keys()
             )
@@ -168,14 +181,81 @@ class TarMMIOParser(IMMIOParser):
         return result
 
 
+class JsonMMIOParser(IMMIOParser):
+    def __init__(self):
+        self.errors: list[str] = []
+
+    def parse(self, data: bytes, schema_uri: str | None = None) -> MMIOParsedData:
+        try:
+            mmio_dict = json.loads(data.decode("utf-8"))
+        except json.JSONDecodeError:
+            raise ErrorParsingMMIO("The mmio.json file contains invalid JSON")
+
+        if not isinstance(mmio_dict, dict):
+            raise ErrorParsingMMIO("The mmio.json file must contain a JSON object")
+        if "id" not in mmio_dict or not mmio_dict["id"]:
+            raise ErrorParsingMMIO("The mmio.json file is missing the ID")
+
+        mmio_id = mmio_dict["id"]
+        modalities = self._parse_modalities(mmio_dict.get("modalities", []), schema_uri)
+        return MMIOParsedData(id=mmio_id, modalities=modalities)
+
+    def _parse_modalities(
+        self, modalities_data: list[dict[str, Any]], schema_uri: str | None
+    ) -> list[Modality]:
+        result = []
+        for modality in modalities_data:
+            bundle_info = modality.get("oca_bundle")
+            oca_bundle = None
+
+            if bundle_info:
+                if bundle_info["type"] == "Reference":
+                    said = bundle_info["value"]
+                    try:
+                        oca_bundle = self._download_oca_bundle(said, schema_uri)
+                    except Exception as e:
+                        # Save error but don’t stop
+                        self.errors.append(f"Failed to fetch OCA bundle {said}: {e}")
+                        oca_bundle = None
+                elif bundle_info["type"] == "Bundle":
+                    oca_bundle = OCABundle(json.dumps({"bundle": bundle_info["value"]}))
+
+            result.append(
+                Modality(
+                    id=modality["id"],
+                    modality_type=modality.get("modality_type", ""),
+                    media_type=modality.get("media_type", ""),
+                    oca_bundle=oca_bundle,
+                )
+            )
+        return result
+
+    def _download_oca_bundle(self, said: str, schema_uri: str | None) -> OCABundle:
+        settings = get_settings()
+        base_url = settings.global_oca_bundles_base_url.rstrip("/")
+
+        url = f"{base_url}/{said}"
+        try:
+            resp = httpx.get(url, timeout=10.0)
+            resp.raise_for_status()
+            return OCABundle(resp.text)
+        except Exception as e:
+            raise ErrorParsingMMIO(
+                f"Unexpected error fetching OCA bundle from {url}: {e}"
+            )
+
+
 class MMIO:
     _id: str
     _modalities: list[Modality]
 
     def __init__(
-        self, mmio_data: bytes, parser: type[IMMIOParser] = TarMMIOParser
+        self, mmio_data: bytes, parser: IMMIOParser, schema_uri: str | None = None
     ) -> None:
-        parsed_data = parser().parse(mmio_data)
+        if isinstance(parser, JsonMMIOParser):
+            parsed_data = parser.parse(mmio_data, schema_uri)
+        else:
+            parsed_data = parser.parse(mmio_data)
         self._id = parsed_data.id
         self._modalities = parsed_data.modalities
 

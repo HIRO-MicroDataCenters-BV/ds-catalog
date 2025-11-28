@@ -1,3 +1,4 @@
+{{- if .Values.ingress.enabled }}
 {{- range .Values.ingress.nodes }}
 apiVersion: v1
 kind: Service
@@ -14,4 +15,5 @@ spec:
       port: 80
       targetPort: {{ $.Values.service.port }}
 ---
+{{- end }}
 {{- end }}
