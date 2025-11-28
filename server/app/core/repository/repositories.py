@@ -199,8 +199,6 @@ class FilesRepository(IFilesRepository):
 
     async def create(self, file: BinaryIO, filename: str) -> None:
         file_path = self._get_file_path(filename)
-        if file_path.exists():
-            raise FileExistsError(f"File {filename} already exists")
         with file_path.open("wb") as f:
             f.write(file.read())
 
@@ -221,6 +219,10 @@ class FilesRepository(IFilesRepository):
         if not file_path.exists():
             raise FileNotFoundError(f"File {filename} not found")
         return file_path.read_bytes()
+
+    async def exists(self, filename: str) -> bool:
+        file_path = self._get_file_path(filename)
+        return file_path.exists()
 
 
 # --- Repositories class ---
