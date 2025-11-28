@@ -222,7 +222,7 @@ class TestDatasetsUsecases:
 
         filename = "mmio.tar"
         related_data_product = "disease_xyz"
-        connector_url = "https://ds-connector.hus.nextgen.hiro-develop.nl"
+        connector_url = "https://ds-connector.Test title.nextgen.hiro-develop.nl"
         mmio_id = "EI2z8E6zYvMF_yvquoUJedWi0rKpQsscPf7JlBgIDoOm"
 
         # Mock repositories
