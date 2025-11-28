@@ -216,7 +216,7 @@ class TestDatasetsUsecases:
         id = "http://example.com/1"
         user = context["user"]
         person = Person.from_user(user)
-        catalog = Catalog.create("Test title", "Test description")
+        catalog = Catalog.create("hus", "Test description")
         dataset = Dataset.create_empty(id)
         dataset.set_attribute(DCTERMS.identifier, id)
 
