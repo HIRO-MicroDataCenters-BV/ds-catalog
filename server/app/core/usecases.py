@@ -181,7 +181,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         dataset.set_attribute(DSPACE.metadataFilename, filename)
 
         # 4 Connector enrichment (extracted to separate method)
-        region = catalog.get_attribute(DSPACE.region)
+        region = catalog.get_attribute(DCTERMS.title) or "hus"
         connector_base_url = f"https://ds-connector.{region}.nextgen.hiro-develop.nl"
 
         connector_obj = ConnectorIntegration()
