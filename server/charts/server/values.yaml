@@ -91,3 +91,5 @@ metrics:
 ## To control the grafana on development
 grafana:
   enabled: true
+
+ocaRepositoryBundlesUrl: "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"

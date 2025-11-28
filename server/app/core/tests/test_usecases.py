@@ -281,7 +281,9 @@ class TestDatasetsUsecases:
         mock_connector_cls.assert_called_once()  # class created
         (
             mock_con_ins.enrich_distributions_with_connector.assert_awaited_once_with(
-                dataset, related_data_product
+                dataset,
+                "disease_xyz",
+                "https://ds-connector.Test title.nextgen.hiro-develop.nl",
             )
         )
 
