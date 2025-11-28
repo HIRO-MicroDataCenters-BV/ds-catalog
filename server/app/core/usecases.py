@@ -188,7 +188,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             dataset, related_data_product, connector_base_url
         )
 
-        # 5 Add dataset-level info
+        # 5 Add dataset-level info.
         if dataset.get_attribute(DSPACE.isShared) is None:
             dataset.set_attribute(DSPACE.isShared, False)
 
