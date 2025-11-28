@@ -31,9 +31,7 @@ class Settings(BaseSettings):
 
     catalog: Catalog = Catalog()
     data_root_path: str = "/data/"
-    oca_uri: str = (
-        "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles/"
-    )
+    oca_uri: str = "http://oca.example.org/123/"
     ontology_url: str = "https://www.w3.org/ns/dcat.ttl"
     shacl_url: str = (
         "https://semiceu.github.io/DCAT-AP/releases/3.0.0/shacl/dcat-ap-SHACL.ttl"
@@ -41,7 +39,7 @@ class Settings(BaseSettings):
     global_oca_bundles_base_url: str = (
         "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"
     )
-    connector_base_url: str = "https://ds-connector.hus.nextgen.hiro-develop.nl"
+    # connector_base_url: str = "https://ds-connector.hus.nextgen.hiro-develop.nl"
 
 
 def get_settings() -> Settings:

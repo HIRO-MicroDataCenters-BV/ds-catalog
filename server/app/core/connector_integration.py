@@ -21,7 +21,7 @@ class ConnectorIntegration:
     """
 
     async def enrich_distributions_with_connector(
-        self, dataset: Dataset, related_data_product: str
+        self, dataset: Dataset, related_data_product: str, connector_base_url: str
     ) -> None:
         """
         Enrich all distributions in the dataset with connector metadata.
@@ -36,8 +36,8 @@ class ConnectorIntegration:
             ConnectorError: When connector returns other error status
             InvalidDatasetError: When distribution lacks required accessURL
         """
-        settings = get_settings()
-        base_url = settings.connector_base_url.rstrip("/")
+        # settings = get_settings()
+        base_url = connector_base_url.rstrip("/")
         dataset_jsonld = json.loads(dataset.to_json_ld())
 
         # Find all distribution nodes (ontology-agnostic)
