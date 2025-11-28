@@ -186,7 +186,6 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
 
         settings = get_settings()
         connector_base_url = settings.connector_base_url.format(region=region)
-        print("*************connector_base_url is ***********", connector_base_url)
 
         connector_obj = ConnectorIntegration()
         await connector_obj.enrich_distributions_with_connector(
