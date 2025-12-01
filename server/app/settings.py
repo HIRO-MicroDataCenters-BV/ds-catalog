@@ -12,7 +12,7 @@ class Database(BaseModel):
 
 
 class Catalog(BaseModel):
-    title: str = ""
+    title: str = "Local Catalog"
     description: str = ""
 
 
@@ -40,7 +40,6 @@ class Settings(BaseSettings):
         "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"
     )
     connector_base_url: str = "https://ds-connector.{region}.nextgen.hiro-develop.nl"
-    # connector_base_url: str = "https://ds-connector.hus.nextgen.hiro-develop.nl"
 
 
 def get_settings() -> Settings:
