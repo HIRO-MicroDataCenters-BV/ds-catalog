@@ -36,7 +36,6 @@ class ConnectorIntegration:
             ConnectorError: When connector returns other error status
             InvalidDatasetError: When distribution lacks required accessURL
         """
-        # settings = get_settings()
         base_url = connector_base_url.rstrip("/")
         dataset_jsonld = json.loads(dataset.to_json_ld())
 
