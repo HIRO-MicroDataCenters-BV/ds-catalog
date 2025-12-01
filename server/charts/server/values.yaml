@@ -91,3 +91,7 @@ metrics:
 ## To control the grafana on development
 grafana:
   enabled: true
+
+baseUrls:
+  connectorBaseUrl: "https://ds-connector.{region}.nextgen.hiro-develop.nl"
+  ocaRepositoryBundlesUrl: "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"

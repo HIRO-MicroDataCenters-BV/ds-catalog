@@ -216,7 +216,7 @@ class TestDatasetsUsecases:
         id = "http://example.com/1"
         user = context["user"]
         person = Person.from_user(user)
-        catalog = Catalog.create("Test title", "Test description")
+        catalog = Catalog.create("hus", "Test description")
         dataset = Dataset.create_empty(id)
         dataset.set_attribute(DCTERMS.identifier, id)
 
@@ -281,7 +281,9 @@ class TestDatasetsUsecases:
         mock_connector_cls.assert_called_once()  # class created
         (
             mock_con_ins.enrich_distributions_with_connector.assert_awaited_once_with(
-                dataset, related_data_product
+                dataset,
+                "disease_xyz",
+                "https://ds-connector.hus.nextgen.hiro-develop.nl",
             )
         )
 

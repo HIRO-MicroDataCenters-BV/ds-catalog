@@ -78,6 +78,10 @@ Create the name of the service account to use
   value: "{{ .Values.database.username }}"
 - name: DS__DATABASE__PASSWORD
   value: "{{ .Values.database.password }}"
+- name: DS__OCA_REPOSITORY_BUNDLES_URL
+  value: "{{ .Values.baseUrls.ocaRepositoryBundlesUrl }}"
+- name: DS__CONNECTOR_BASE_URL
+  value: "{{ .Values.baseUrls.connectorBaseUrl }}"
 {{- end }}
 
 

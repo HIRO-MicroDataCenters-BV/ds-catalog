@@ -7,6 +7,7 @@ from rdflib import DCAT
 from rdflib.namespace import DCTERMS
 
 from app.core.exceptions import NodeDoesNotExist, QueryIsRequired
+from app.settings import get_settings
 
 from .connector_integration import ConnectorIntegration
 from .context import Context, SaveDatasetContext
@@ -181,10 +182,13 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         dataset.set_attribute(DSPACE.metadataFilename, filename)
 
         # 4 Connector enrichment (extracted to separate method)
+        region = catalog.get_attribute(DCTERMS.title)
 
+        settings = get_settings()
+        connector_base_url = settings.connector_base_url.format(region=region)
         connector_obj = ConnectorIntegration()
         await connector_obj.enrich_distributions_with_connector(
-            dataset, related_data_product
+            dataset, related_data_product, connector_base_url
         )
 
         # 5 Add dataset-level info
