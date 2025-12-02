@@ -227,3 +227,29 @@ class Metadata(Graph):
             instances.append(instance)
 
         return instances
+
+    @classmethod
+    def create_bunch_from_df_with_digest(
+        cls,
+        schema_uri: str,
+        metadata_id: str,
+        df: "pl.DataFrame",
+        digest: str | None,
+    ) -> list["Metadata"]:
+        """
+        Creates a list of Metadata objects from a Polars DataFrame and
+        optionally adds a bundle digest to the first created object.
+        """
+        from rdflib import URIRef
+        from rdflib.namespace import XSD
+
+        metadata_list = cls.create_bunch_from_df(schema_uri, metadata_id, df)
+
+        if metadata_list and digest:
+            base_uri = schema_uri.rstrip("/")
+            bundle_digest_uri = f"{base_uri}/SAID"
+            metadata_list[0].set_attribute(
+                URIRef(bundle_digest_uri), digest, XSD.string
+            )
+
+        return metadata_list

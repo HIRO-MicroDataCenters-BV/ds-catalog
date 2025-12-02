@@ -11,8 +11,6 @@ from pathlib import Path
 import httpx
 import m2io_nextgen as mmio
 import polars as pl
-from rdflib import URIRef
-from rdflib.namespace import XSD
 
 from app.settings import get_settings
 
@@ -292,20 +290,12 @@ def mmio_data_to_entities(
     schema_uri: str, mmio_id: str, data: list[tuple[pl.DataFrame, str]]
 ) -> list[Metadata]:
     result = []
-    base_uri = schema_uri.rstrip("/")
     for i, (record_df, digest) in enumerate(data):
         metadata_id = f"{mmio_id}/{i}"
         # Create metadata for all attributes from the DataFrame
-        metadata_list = Metadata.create_bunch_from_df(
-            schema_uri, metadata_id, record_df
+        metadata_list = Metadata.create_bunch_from_df_with_digest(
+            schema_uri, metadata_id, record_df, digest
         )
-        # Add the bundleDigest to the first metadata item in the list
-        if metadata_list:
-            bundle_digest_uri = f"{base_uri}/SAID"
-            metadata_list[0].set_attribute(
-                URIRef(bundle_digest_uri), digest, XSD.string
-            )
-
         result.extend(metadata_list)
 
     return result
