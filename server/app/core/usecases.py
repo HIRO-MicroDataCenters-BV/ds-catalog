@@ -226,8 +226,9 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         mmio = mmio.transform_to(schema_uri)
         data = mmio_available_attrs(mmio)
         metadata = mmio_data_to_entities(schema_uri, mmio.id, data)
+        errors = getattr(parser, "errors", [])
 
-        return metadata, getattr(parser, "errors", [])
+        return metadata, errors
 
     async def get(self, id: str, context: Context) -> Dataset:
         """Get a dataset by its ID"""

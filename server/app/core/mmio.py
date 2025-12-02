@@ -275,21 +275,27 @@ class MMIO:
         return self
 
 
-def mmio_available_attrs(mmio_obj: MMIO) -> list[pl.DataFrame]:
+def mmio_available_attrs(mmio_obj: MMIO) -> list[tuple[pl.DataFrame, str]]:
     result = []
     for modality in mmio_obj.modalities:
         bundle = modality.oca_bundle
-        if bundle is not None:
-            df = pl.DataFrame({attr: [True] for attr in bundle.attribute_names})
-            result.append(df)
+        if bundle is not None and bundle.digest:
+            attrs = {attr: [True] for attr in bundle.attribute_names}
+            df = pl.DataFrame(attrs)
+            result.append((df, bundle.digest))
     return result
 
 
 def mmio_data_to_entities(
-    schema_uri: str, mmio_id: str, data: list[pl.DataFrame]
+    schema_uri: str, mmio_id: str, data: list[tuple[pl.DataFrame, str]]
 ) -> list[Metadata]:
     result = []
-    for i, record in enumerate(data):
-        id = f"{mmio_id}/{i}"
-        result += Metadata.create_bunch_from_df(schema_uri, id, record)
+    for i, (record_df, digest) in enumerate(data):
+        metadata_id = f"{mmio_id}/{i}"
+        # Create metadata for all attributes from the DataFrame
+        metadata_list = Metadata.create_bunch_from_df_with_digest(
+            schema_uri, metadata_id, record_df, digest
+        )
+        result.extend(metadata_list)
+
     return result
