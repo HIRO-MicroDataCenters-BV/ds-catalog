@@ -105,6 +105,10 @@ class Graph:
             compacted["dcat:distribution"], list
         ):
             compacted["dcat:distribution"] = [compacted["dcat:distribution"]]
+        for dist in compacted.get("dcat:distribution", []):
+            bs = dist.get("dcat:byteSize")
+            if isinstance(bs, dict) and "@value" in bs:
+                bs["@type"] = "xsd:nonNegativeInteger"
 
         return json.dumps(compacted, indent=4)
 
