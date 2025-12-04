@@ -5,7 +5,7 @@ from pathlib import PurePosixPath
 from urllib.parse import quote, unquote, urlparse
 
 import httpx
-from rdflib import XSD, Graph, Literal, URIRef
+from rdflib import RDF, XSD, Graph, Literal, URIRef
 from rdflib.namespace import DCAT, DCTERMS
 
 from ..settings import get_settings
@@ -267,43 +267,33 @@ class ConnectorIntegration:
 
             predicate, dtype, is_uri = mapping
             conn_val = connector_data.get(field)
-            existing_val = next(iter(graph.objects(dist_node, predicate)), None)
+            # existing_val = next(iter(graph.objects(dist_node, predicate)), None)
 
             if conn_val is not None and str(conn_val).lower() not in ("none", ""):
                 add_or_replace_literal(dist_node, predicate, conn_val, dtype, is_uri)
-            elif existing_val is None:
-                add_or_replace_literal(dist_node, predicate, None, dtype, is_uri)
+            # elif existing_val is None:
+            #     add_or_replace_literal(dist_node, predicate, None, dtype, is_uri)
+        checksum_val = connector_data.get("checksum")
+        if checksum_val:
+            # Remove existing checksum node and its properties first
+            for s, p, o in list(graph.triples((dist_node, SPDX.checksum, None))):
+                graph.remove((o, None, None))  # Remove all triples from checksum node
+                graph.remove((s, p, o))  # Remove the link to the checksum node
 
-        if "checksum" in field_map:
-            checksum_cfg = field_map["checksum"]
-            checksum_val = connector_data.get("checksum")
-            checksum_nodes = list(graph.objects(dist_node, checksum_cfg["predicate"]))
-
-            if checksum_val is None or str(checksum_val).lower() in ("none", ""):
-                # No checksum provided by connector
-                if not checksum_nodes:
-                    checksum_uri = URIRef(f"{dist_node}/checksum")
-                    graph.add(
-                        (
-                            checksum_uri,
-                            checksum_cfg["nested_predicate"],
-                            Literal("null", datatype=checksum_cfg["datatype"]),
-                        )
-                    )
-                    graph.add((dist_node, checksum_cfg["predicate"], checksum_uri))
-            else:
-                checksum_uri = next(
-                    iter(checksum_nodes), URIRef(f"{dist_node}/checksum")
+            checksum_node = URIRef(f"{dist_node}/checksum")
+            graph.add((dist_node, SPDX.checksum, checksum_node))
+            graph.add((checksum_node, RDF.type, SPDX.Checksum))
+            graph.add(
+                (
+                    checksum_node,
+                    SPDX.checksumValue,
+                    Literal(checksum_val, datatype=XSD.hexBinary),
                 )
-                graph.remove((checksum_uri, checksum_cfg["nested_predicate"], None))
-                graph.add((dist_node, checksum_cfg["predicate"], checksum_uri))
-                graph.add(
-                    (
-                        checksum_uri,
-                        checksum_cfg["nested_predicate"],
-                        Literal(checksum_val, datatype=checksum_cfg["datatype"]),
-                    )
-                )
+            )
+            # The algorithm must be a resource of type spdx:ChecksumAlgorithm
+            algo_node = SPDX.SHA256
+            graph.add((checksum_node, SPDX.algorithm, algo_node))
+            graph.add((algo_node, RDF.type, SPDX.ChecksumAlgorithm))
 
     def _expand_iri(self, key: str, context: dict[str, Any]) -> str:
         """Enhanced IRI expansion with safe string handling."""
