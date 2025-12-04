@@ -1,10 +1,9 @@
 {
   "access_url": ["http://www.w3.org/ns/dcat#accessURL", "anyURI", true],
   "download_url": ["http://www.w3.org/ns/dcat#downloadURL", "anyURI", true],
-  "media_type": ["http://www.w3.org/ns/dcat#mediaType", "string", false],
   "package_format": ["http://www.w3.org/ns/dcat#packageFormat", "anyURI", false],
   "format": ["http://www.w3.org/ns/dcat#format", "string", false],
-  "byte_size": ["http://www.w3.org/ns/dcat#byteSize", "long", false],
+  "byte_size": ["http://www.w3.org/ns/dcat#byteSize", "nonNegativeInteger", false],
   "issued": ["http://purl.org/dc/terms/issued", "dateTime", false],
   "modified": ["http://purl.org/dc/terms/modified", "dateTime", false],
   "title": ["http://purl.org/dc/terms/title", "string", false],
