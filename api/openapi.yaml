@@ -934,14 +934,14 @@ paths:
         description: The name of the uploaded MMIO file.
       - name: related_data_product
         in: query
-        required: true
+        required: false
         schema:
           type: string
-          description: Path to the related data product directory (folder).
+          description: Path to the related data product directory.
           examples:
           - file:///data/disease_xyz/
           title: Related Data Product
-        description: Path to the related data product directory (folder).
+        description: Path to the related data product directory.
       requestBody:
         required: true
         content:

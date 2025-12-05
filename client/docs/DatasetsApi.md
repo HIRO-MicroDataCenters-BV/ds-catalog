@@ -146,7 +146,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **save_dataset**
-> str save_dataset(filename, related_data_product, request_body)
+> str save_dataset(filename, request_body, related_data_product=related_data_product)
 
 Save Dataset
 
@@ -172,12 +172,12 @@ with ds_catalog.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = ds_catalog.DatasetsApi(api_client)
     filename = 'filename_example' # str | The name of the uploaded MMIO file.
-    related_data_product = 'related_data_product_example' # str | Path to the related data product directory (folder).
     request_body = None # Dict[str, object] | 
+    related_data_product = 'related_data_product_example' # str | Path to the related data product directory. (optional)
 
     try:
         # Save Dataset
-        api_response = api_instance.save_dataset(filename, related_data_product, request_body)
+        api_response = api_instance.save_dataset(filename, request_body, related_data_product=related_data_product)
         print("The response of DatasetsApi->save_dataset:\n")
         pprint(api_response)
     except Exception as e:
@@ -192,8 +192,8 @@ with ds_catalog.ApiClient(configuration) as api_client:
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **filename** | **str**| The name of the uploaded MMIO file. | 
- **related_data_product** | **str**| Path to the related data product directory (folder). | 
  **request_body** | [**Dict[str, object]**](object.md)|  | 
+ **related_data_product** | **str**| Path to the related data product directory. | [optional] 
 
 ### Return type
 

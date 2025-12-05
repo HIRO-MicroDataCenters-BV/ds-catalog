@@ -60,8 +60,8 @@ class DatasetsRoutes(Routable):
             examples=["mmio-sample.tar"],
         ),
         related_data_product: str = Query(
-            ...,
-            description="Path to the related data product directory (folder).",
+            None,
+            description="Path to the related data product directory.",
             examples=["file:///data/disease_xyz/"],
         ),
     ) -> JSONLDResponse:
@@ -157,7 +157,7 @@ class DatasetsRoutes(Routable):
             output_entity, errors = await usecases.save(
                 input_entity,
                 filename,
-                related_data_product=related_data_product,
+                related_data_product,
                 context={
                     "user": user,
                     "oca_uri": settings.oca_uri,

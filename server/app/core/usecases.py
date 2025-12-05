@@ -1,7 +1,9 @@
-from typing import BinaryIO
+from typing import BinaryIO, Optional
 
+import json
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
+from pathlib import Path
 
 from rdflib import DCAT
 from rdflib.namespace import DCTERMS
@@ -144,7 +146,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         self,
         dataset: Dataset,
         filename: str,
-        related_data_product: str,
+        related_data_product: Optional[str],
         context: SaveDatasetContext,
         validator_class: type[IDatasetValidatorService] = DatasetValidatorService,
     ) -> tuple[Dataset, list[str]]:
@@ -180,16 +182,23 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             # catalog += metadata
 
         dataset.set_attribute(DSPACE.metadataFilename, filename)
+        item_type = dataset.get_attribute(DCTERMS.type)
 
-        # 4 Connector enrichment (extracted to separate method)
-        region = catalog.get_attribute(DCTERMS.title)
+        config_path = Path(__file__).parent / "field_map_config.json"
 
-        settings = get_settings()
-        connector_base_url = settings.connector_base_url.format(region=region)
-        connector_obj = ConnectorIntegration()
-        await connector_obj.enrich_distributions_with_connector(
-            dataset, related_data_product, connector_base_url
-        )
+        with open(config_path, encoding="utf-8") as f:
+            raw = json.load(f)
+        dataset_type = raw.get("dataset_type")
+        # 4️ Enrich distributions via connector integration
+        if related_data_product and item_type == dataset_type:
+            region = catalog.get_attribute(DCTERMS.title)
+
+            settings = get_settings()
+            connector_base_url = settings.connector_base_url.format(region=region)
+            connector_obj = ConnectorIntegration()
+            await connector_obj.enrich_distributions_with_connector(
+                dataset, related_data_product, connector_base_url
+            )
 
         # 5 Add dataset-level info
         if dataset.get_attribute(DSPACE.isShared) is None:
