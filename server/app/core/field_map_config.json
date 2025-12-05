@@ -21,5 +21,7 @@
     "datatype": "hexBinary",
     "is_uri": true,
     "nested_is_uri": false
-  }
+  },
+  "dataset_type": "http://purl.org/dc/dcmitype/Dataset",
+  "application_type": "http://purl.org/dc/dcmitype/Software"
 }

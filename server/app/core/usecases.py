@@ -1,4 +1,4 @@
-from typing import BinaryIO
+from typing import BinaryIO, Optional
 
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
@@ -144,7 +144,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         self,
         dataset: Dataset,
         filename: str,
-        related_data_product: str,
+        related_data_product: Optional[str],
         context: SaveDatasetContext,
         validator_class: type[IDatasetValidatorService] = DatasetValidatorService,
     ) -> tuple[Dataset, list[str]]:
@@ -181,15 +181,16 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
 
         dataset.set_attribute(DSPACE.metadataFilename, filename)
 
-        # 4 Connector enrichment (extracted to separate method)
-        region = catalog.get_attribute(DCTERMS.title)
+        # 4️ Enrich distributions via connector integration
+        if related_data_product:
+            region = catalog.get_attribute(DCTERMS.title)
 
-        settings = get_settings()
-        connector_base_url = settings.connector_base_url.format(region=region)
-        connector_obj = ConnectorIntegration()
-        await connector_obj.enrich_distributions_with_connector(
-            dataset, related_data_product, connector_base_url
-        )
+            settings = get_settings()
+            connector_base_url = settings.connector_base_url.format(region=region)
+            connector_obj = ConnectorIntegration()
+            await connector_obj.enrich_distributions_with_connector(
+                dataset, related_data_product, connector_base_url
+            )
 
         # 5 Add dataset-level info
         if dataset.get_attribute(DSPACE.isShared) is None:

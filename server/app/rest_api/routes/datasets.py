@@ -60,8 +60,8 @@ class DatasetsRoutes(Routable):
             examples=["mmio-sample.tar"],
         ),
         related_data_product: str = Query(
-            ...,
-            description="Path to the related data product directory (folder).",
+            None,
+            description="Path to the related data product directory.",
             examples=["file:///data/disease_xyz/"],
         ),
     ) -> JSONLDResponse:

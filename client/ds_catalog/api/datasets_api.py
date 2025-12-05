@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from typing_extensions import Annotated
 
 from pydantic import Field, StrictStr
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from typing_extensions import Annotated
 
 from ds_catalog.api_client import ApiClient, RequestSerialized
@@ -572,8 +572,8 @@ class DatasetsApi:
     def save_dataset(
         self,
         filename: Annotated[StrictStr, Field(description="The name of the uploaded MMIO file.")],
-        related_data_product: Annotated[StrictStr, Field(description="Path to the related data product directory (folder).")],
         request_body: Dict[str, Any],
+        related_data_product: Annotated[Optional[StrictStr], Field(description="Path to the related data product directory.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -593,10 +593,10 @@ class DatasetsApi:
 
         :param filename: The name of the uploaded MMIO file. (required)
         :type filename: str
-        :param related_data_product: Path to the related data product directory (folder). (required)
-        :type related_data_product: str
         :param request_body: (required)
         :type request_body: Dict[str, object]
+        :param related_data_product: Path to the related data product directory.
+        :type related_data_product: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -621,8 +621,8 @@ class DatasetsApi:
 
         _param = self._save_dataset_serialize(
             filename=filename,
-            related_data_product=related_data_product,
             request_body=request_body,
+            related_data_product=related_data_product,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -648,8 +648,8 @@ class DatasetsApi:
     def save_dataset_with_http_info(
         self,
         filename: Annotated[StrictStr, Field(description="The name of the uploaded MMIO file.")],
-        related_data_product: Annotated[StrictStr, Field(description="Path to the related data product directory (folder).")],
         request_body: Dict[str, Any],
+        related_data_product: Annotated[Optional[StrictStr], Field(description="Path to the related data product directory.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -669,10 +669,10 @@ class DatasetsApi:
 
         :param filename: The name of the uploaded MMIO file. (required)
         :type filename: str
-        :param related_data_product: Path to the related data product directory (folder). (required)
-        :type related_data_product: str
         :param request_body: (required)
         :type request_body: Dict[str, object]
+        :param related_data_product: Path to the related data product directory.
+        :type related_data_product: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -697,8 +697,8 @@ class DatasetsApi:
 
         _param = self._save_dataset_serialize(
             filename=filename,
-            related_data_product=related_data_product,
             request_body=request_body,
+            related_data_product=related_data_product,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -724,8 +724,8 @@ class DatasetsApi:
     def save_dataset_without_preload_content(
         self,
         filename: Annotated[StrictStr, Field(description="The name of the uploaded MMIO file.")],
-        related_data_product: Annotated[StrictStr, Field(description="Path to the related data product directory (folder).")],
         request_body: Dict[str, Any],
+        related_data_product: Annotated[Optional[StrictStr], Field(description="Path to the related data product directory.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -745,10 +745,10 @@ class DatasetsApi:
 
         :param filename: The name of the uploaded MMIO file. (required)
         :type filename: str
-        :param related_data_product: Path to the related data product directory (folder). (required)
-        :type related_data_product: str
         :param request_body: (required)
         :type request_body: Dict[str, object]
+        :param related_data_product: Path to the related data product directory.
+        :type related_data_product: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -773,8 +773,8 @@ class DatasetsApi:
 
         _param = self._save_dataset_serialize(
             filename=filename,
-            related_data_product=related_data_product,
             request_body=request_body,
+            related_data_product=related_data_product,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -795,8 +795,8 @@ class DatasetsApi:
     def _save_dataset_serialize(
         self,
         filename,
-        related_data_product,
         request_body,
+        related_data_product,
         _request_auth,
         _content_type,
         _headers,
