@@ -189,8 +189,9 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         with open(config_path, encoding="utf-8") as f:
             raw = json.load(f)
         dataset_type = raw.get("dataset_type")
+
         # 4️ Enrich distributions via connector integration
-        if related_data_product and item_type == dataset_type:
+        if related_data_product and str(item_type) == str(dataset_type):
             region = catalog.get_attribute(DCTERMS.title)
 
             settings = get_settings()
