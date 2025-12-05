@@ -1,9 +1,7 @@
 from typing import BinaryIO, Optional
 
-import json
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
-from pathlib import Path
 
 from rdflib import DCAT
 from rdflib.namespace import DCTERMS
@@ -182,16 +180,9 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
             # catalog += metadata
 
         dataset.set_attribute(DSPACE.metadataFilename, filename)
-        item_type = dataset.get_attribute(DCTERMS.type)
-
-        config_path = Path(__file__).parent / "field_map_config.json"
-
-        with open(config_path, encoding="utf-8") as f:
-            raw = json.load(f)
-        dataset_type = raw.get("dataset_type")
 
         # 4️ Enrich distributions via connector integration
-        if related_data_product and str(item_type) == str(dataset_type):
+        if related_data_product:
             region = catalog.get_attribute(DCTERMS.title)
 
             settings = get_settings()
