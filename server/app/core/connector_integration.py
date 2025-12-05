@@ -222,7 +222,7 @@ class ConnectorIntegration:
             graph.remove((subject, predicate, None))
 
             if value is None or str(value).lower() in ("none", ""):
-                graph.add((subject, predicate, Literal("null", datatype=dtype)))
+                # graph.add((subject, predicate, Literal("null", datatype=dtype)))
                 return
 
             if is_uri:
