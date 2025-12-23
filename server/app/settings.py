@@ -37,7 +37,7 @@ class Settings(BaseSettings):
         "https://semiceu.github.io/DCAT-AP/releases/3.0.0/shacl/dcat-ap-SHACL.ttl"
     )
     global_oca_bundles_base_url: str = (
-        "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"
+        "https://oca-repository.marketplace.nextgen.hiro-develop.nl/api/v2/oca-bundles"
     )
     connector_base_url: str = "https://ds-connector.{region}.nextgen.hiro-develop.nl"
 

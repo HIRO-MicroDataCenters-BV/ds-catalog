@@ -211,7 +211,7 @@ class ConnectorIntegration:
         - If connector and dataset provides non-null value =>
             override dataset value with connector.
         - If connector provides null and dataset has value => keep dataset value.
-        - If both connector and dataset have null => explicitly set 'null'.
+        - If both connector and dataset have null => omitting those values.
         - Keep RDF types (URIRefs for URLs, typed literals otherwise).
         """
 
@@ -222,7 +222,6 @@ class ConnectorIntegration:
             graph.remove((subject, predicate, None))
 
             if value is None or str(value).lower() in ("none", ""):
-                # graph.add((subject, predicate, Literal("null", datatype=dtype)))
                 return
 
             if is_uri:
@@ -267,12 +266,9 @@ class ConnectorIntegration:
 
             predicate, dtype, is_uri = mapping
             conn_val = connector_data.get(field)
-            # existing_val = next(iter(graph.objects(dist_node, predicate)), None)
 
             if conn_val is not None and str(conn_val).lower() not in ("none", ""):
                 add_or_replace_literal(dist_node, predicate, conn_val, dtype, is_uri)
-            # elif existing_val is None:
-            #     add_or_replace_literal(dist_node, predicate, None, dtype, is_uri)
         checksum_val = connector_data.get("checksum")
         if checksum_val:
             # Remove existing checksum node and its properties first
