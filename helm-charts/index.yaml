@@ -132,6 +132,16 @@ entries:
     - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.2.2-dev.101.update-oca-url.af93598c.tgz
     version: 0.2.2-dev.101.update-oca-url.af93598c
   - apiVersion: v2
+    appVersion: 0.2.2-dev.101.feature-retry.0fc88814
+    created: "2026-01-06T19:12:55.497028151Z"
+    description: Data Space Catalog
+    digest: 32672783bbc3e9b1df6887960acd053545fb25561e146159dfafc0dbe7e5ea6d
+    name: ds-catalog
+    type: application
+    urls:
+    - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.2.2-dev.101.feature-retry.0fc88814.tgz
+    version: 0.2.2-dev.101.feature-retry.0fc88814
+  - apiVersion: v2
     appVersion: 0.2.2-dev.100.update-oca-url.9a85bce2
     created: "2025-12-23T11:32:51.254009063Z"
     description: Data Space Catalog
@@ -2401,4 +2411,4 @@ entries:
     urls:
     - https://hiro-microdatacenters-bv.github.io/ds-catalog/helm-charts/ds-catalog-0.0.0.tgz
     version: 0.0.0
-generated: "2026-01-06T19:12:50.951760361Z"
+generated: "2026-01-06T19:12:55.496307332Z"
