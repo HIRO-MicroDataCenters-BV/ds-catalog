@@ -1,17 +1,27 @@
 from typing import Any
 
 import json
+import logging
 from pathlib import PurePosixPath
 from urllib.parse import quote, unquote, urlparse
 
 import httpx
 from rdflib import RDF, XSD, Graph, Literal, URIRef
 from rdflib.namespace import DCAT, DCTERMS
+from tenacity import (
+    before_sleep_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from ..settings import get_settings
 from .entities import Dataset
 from .exceptions import ConnectorError, DistributionNotFound, InvalidDatasetError
 from .namespace import DCATAP, SPDX
+
+logger = logging.getLogger(__name__)
 
 
 class ConnectorIntegration:
@@ -19,6 +29,44 @@ class ConnectorIntegration:
     A mixin class providing methods for enriching DCAT Distributions
     with connector metadata.
     """
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        retry=retry_if_exception_type(
+            (httpx.ConnectError, httpx.TimeoutException, httpx.HTTPStatusError)
+        ),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+        reraise=True,
+    )
+    async def _call_connector_with_retry(
+        self, connector_url: str, timeout: float = 10.0
+    ) -> httpx.Response:
+        """Make HTTP request to connector with retry mechanism."""
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            try:
+                response = await client.get(connector_url)
+
+                if response.status_code == 404:
+                    raise DistributionNotFound(
+                        f"Distribution metadata not found at {connector_url}"
+                    )
+
+                response.raise_for_status()
+                return response
+
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 404:
+                    raise DistributionNotFound(
+                        f"Distribution metadata not found at {connector_url}"
+                    )
+                raise ConnectorError(
+                    f"Connector failed with status {e.response.status_code}"
+                    f" for {connector_url}"
+                )
+            except (httpx.ConnectError, httpx.TimeoutException) as e:
+                logger.warning(f"Connection issue with {connector_url}: {e}")
+                raise
 
     async def enrich_distributions_with_connector(
         self, dataset: Dataset, related_data_product: str, connector_base_url: str
@@ -109,19 +157,13 @@ class ConnectorIntegration:
         # Call connector API
         connector_url = f"{base_url}/distribution-metadata/{interface}/{resource_path}"
 
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(connector_url)
-
-        # Handle connector response
-        if response.status_code == 404:
-            raise DistributionNotFound(
-                f"Distribution metadata not found for access URL {access_url_str}"
+        try:
+            response = await self._call_connector_with_retry(
+                connector_url=connector_url
             )
-        elif not response.is_success:
-            raise ConnectorError(
-                f"Connector failed with status {response.status_code} "
-                f"for {access_url_str}"
-            )
+        except Exception as e:
+            logger.error(f"Failed to get metadata from connector after retries: {e}")
+            raise
 
         # Extract and merge connector data
         connector_data = response.json().get("distribution", {})
