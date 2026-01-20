@@ -153,13 +153,9 @@ class ConnectorIntegration:
         # Call connector API
         connector_url = f"{base_url}/distribution-metadata/{interface}/{resource_path}"
 
-        try:
-            response = await self._call_connector_with_retry(
-                connector_url=connector_url
-            )
-        except Exception as e:
-            logger.error(f"Failed to get metadata from connector after retries: {e}")
-            raise
+        response = await self._call_connector_with_retry(
+            connector_url=connector_url
+        )
 
         # Extract and merge connector data
         connector_data = response.json().get("distribution", {})
