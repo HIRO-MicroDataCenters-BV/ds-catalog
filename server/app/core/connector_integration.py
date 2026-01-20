@@ -18,7 +18,7 @@ from tenacity import (
 
 from ..settings import get_settings
 from .entities import Dataset
-from .exceptions import ConnectorError, DistributionNotFound, InvalidDatasetError
+from .exceptions import DistributionNotFound, InvalidDatasetError
 from .namespace import DCATAP, SPDX
 
 logger = logging.getLogger(__name__)
@@ -42,27 +42,16 @@ class ConnectorIntegration:
     async def _call_connector_with_retry(
         self, connector_url: str, timeout: float = 10.0
     ) -> httpx.Response:
-        """Make HTTP request to connector with retry mechanism."""
         async with httpx.AsyncClient(timeout=timeout) as client:
-            try:
-                response = await client.get(connector_url)
+            response = await client.get(connector_url)
 
-                if response.status_code == 404:
-                    raise DistributionNotFound(
-                        f"Distribution metadata not found at {connector_url}"
-                    )
-
-                response.raise_for_status()
-                return response
-
-            except httpx.HTTPStatusError as e:
-                raise ConnectorError(
-                    f"Connector failed with status {e.response.status_code}"
-                    f" for {connector_url}"
+            if response.status_code == 404:
+                raise DistributionNotFound(
+                    f"Distribution metadata not found at {connector_url}"
                 )
-            except (httpx.ConnectError, httpx.TimeoutException) as e:
-                logger.warning(f"Connection issue with {connector_url}: {e}")
-                raise
+
+            response.raise_for_status()
+            return response
 
     async def enrich_distributions_with_connector(
         self, dataset: Dataset, related_data_product: str, connector_base_url: str
