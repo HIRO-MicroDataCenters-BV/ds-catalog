@@ -33,6 +33,7 @@ polars = "^1.28.1"
 pyarrow = "^20.0.0"
 pyshacl = "^0.30.1"
 m2io-nextgen = "^0.2.1"
+tenacity = "^8.2.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.12"
