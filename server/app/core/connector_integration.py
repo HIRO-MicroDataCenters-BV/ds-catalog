@@ -56,10 +56,6 @@ class ConnectorIntegration:
                 return response
 
             except httpx.HTTPStatusError as e:
-                if e.response.status_code == 404:
-                    raise DistributionNotFound(
-                        f"Distribution metadata not found at {connector_url}"
-                    )
                 raise ConnectorError(
                     f"Connector failed with status {e.response.status_code}"
                     f" for {connector_url}"
