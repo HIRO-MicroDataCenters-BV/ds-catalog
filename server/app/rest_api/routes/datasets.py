@@ -3,6 +3,7 @@ from typing import Annotated
 from classy_fastapi import Routable, delete, get, post
 from fastapi import Depends, HTTPException, Path, Query, status
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from app.core import entities, usecases
 from app.core.exceptions import (
@@ -30,7 +31,65 @@ def get_usecases(
     return usecases.DatasetsUsecases(repositories)
 
 
+def get_filters_usecases(
+    repositories: Repositories = Depends(get_repositories),
+) -> usecases.FiltersUsecases:
+    return usecases.FiltersUsecases(repositories)
+
+
 class DatasetsRoutes(Routable):
+    @get(
+        "/catalog/filters/",
+        operation_id="get_filters",
+        name="Get Filters",
+        tags=[Tags.Catalog],
+        response_class=JSONLDResponse,
+        responses={
+            200: {
+                "description": "Successful Response",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "groups": [
+                                {
+                                    "id": "sociodemographics",
+                                    "label": "Sociodemographics",
+                                    "items": [
+                                        {"id": "sociodemographics.age", "label": "Age"}
+                                    ],
+                                }
+                            ]
+                        }
+                    }
+                },
+            },
+            status.HTTP_404_NOT_FOUND: {"description": "Filters file not found"},
+            status.HTTP_500_INTERNAL_SERVER_ERROR: {
+                "description": "Invalid filters.json"
+            },
+        },
+    )
+    async def get_filters(
+        self,
+        user: Annotated[entities.User, Depends(get_user)],
+        usecases: usecases.FiltersUsecases = Depends(get_filters_usecases),
+    ) -> JSONResponse:
+        """Get filters.json for dynamic filter rendering in frontend."""
+        try:
+            payload = await usecases.get_filters(context={"user": user})
+        except FileNotFoundError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Filters configuration file not found",
+            )
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Invalid filters.json",
+            )
+
+        return JSONResponse(content=payload)
+
     @post(
         "/datasets/{filename}/",
         operation_id="save_dataset",

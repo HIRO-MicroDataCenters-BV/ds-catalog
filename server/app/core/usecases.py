@@ -1,7 +1,9 @@
-from typing import BinaryIO, Optional
+from typing import Any, BinaryIO, Optional
 
+import json
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
+from pathlib import Path
 
 from rdflib import DCAT
 from rdflib.namespace import DCTERMS
@@ -43,6 +45,12 @@ class BaseUsecases(IUsecases):
 
 
 # --- Interfaces ---
+
+
+class IFiltersUsecases(IUsecases):
+    @abstractmethod
+    async def get_filters(self, context: Context) -> dict[str, Any]:
+        ...
 
 
 class ICatalogUsecases(IUsecases):
@@ -278,3 +286,21 @@ class MMIOsUsecases(BaseUsecases, IMMIOsUsecases):
     async def delete(self, filename: str, context: Context) -> None:
         """Delete a MMIO file"""
         await self.repositories.files.delete(filename)
+
+
+class FiltersUsecases(BaseUsecases, IFiltersUsecases):
+    async def get_filters(self, context: Context) -> dict[str, Any]:
+        # filters.json located next to this python file (same folder)
+
+        config_path = Path(__file__).resolve().parent / "filters.json"
+
+        if not config_path.exists():
+            raise FileNotFoundError(str(config_path))
+
+        try:
+            with config_path.open(encoding="utf-8") as f:
+                payload = json.load(f)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"Invalid filters.json: {exc}") from exc
+
+        return dict(payload)

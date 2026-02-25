@@ -1,0 +1,200 @@
+{
+  "groups": [
+    {
+      "id": "sociodemographics",
+      "label": "Sociodemographics",
+      "items": [
+        { "id": "sociodemographics.age", "label": "Age" },
+        { "id": "sociodemographics.gender", "label": "Gender" },
+        { "id": "sociodemographics.ethnicity", "label": "Ethnicity" },
+        { "id": "sociodemographics.sex", "label": "Sex" }
+      ]
+    },
+    {
+      "id": "comorbidities",
+      "label": "Comorbidities",
+      "items": [
+        { "id": "comorbidities.previous_myocardial_infarction", "label": "Previous Myocardial Infarction" },
+        { "id": "comorbidities.stroke", "label": "Stroke" },
+        { "id": "comorbidities.chronic_obstructive_pulmonary_disease", "label": "Chronic Obstructive Pulmonary Disease" },
+        { "id": "comorbidities.atrial_fibrillation", "label": "Atrial Fibrillation" },
+        { "id": "comorbidities.peripheral_artery_disease", "label": "Peripheral Artery Disease" },
+        { "id": "comorbidities.hypertension", "label": "Hypertension" },
+        { "id": "comorbidities.diabetes", "label": "Diabetes" },
+        { "id": "comorbidities.hypercholesterolemia", "label": "Hypercholesterolemia" },
+        { "id": "comorbidities.chronic_kidney_disease", "label": "Chronic Kidney Disease" },
+        { "id": "comorbidities.asthma", "label": "Asthma" }
+      ]
+    },
+    {
+      "id": "physical_measurements",
+      "label": "Physical Measurements",
+      "items": [
+        { "id": "physical_measurements.bmi", "label": "BMI" },
+        { "id": "physical_measurements.sbp", "label": "SBP" },
+        { "id": "physical_measurements.dbp", "label": "DBP" },
+        { "id": "physical_measurements.pulse_rate", "label": "Pulse rate" },
+        { "id": "physical_measurements.height", "label": "Height" },
+        { "id": "physical_measurements.weight", "label": "Weight" },
+        { "id": "physical_measurements.cholesterol", "label": "Cholesterol" },
+        { "id": "physical_measurements.hdl_cholesterol", "label": "HDL cholesterol" },
+        { "id": "physical_measurements.ldl_cholesterol", "label": "LDL cholesterol" },
+        { "id": "physical_measurements.triglycerides", "label": "Triglycerides" }
+      ]
+    },
+    {
+      "id": "lifestyle_habits",
+      "label": "Lifestyle Habits",
+      "items": [
+        { "id": "lifestyle_habits.smoking_history", "label": "Smoking History" },
+        { "id": "lifestyle_habits.alcohol_intake", "label": "Alcohol intake" },
+        { "id": "lifestyle_habits.physical_activity_IPAQ_score", "label": "Physical activity IPAQ score" },
+        { "id": "lifestyle_habits.sleep_duration", "label": "Sleep duration" },
+        { "id": "lifestyle_habits.time_watching_TV", "label": "Time watching TV" },
+        { "id": "lifestyle_habits.time_using_computer", "label": "Time using computer" },
+        { "id": "lifestyle_habits.dietary_habits", "label": "Dietary habits" },
+        { "id": "lifestyle_habits.diet_pattern", "label": "Diet pattern" }
+      ]
+    },
+    {
+      "id": "laboratory",
+      "label": "Laboratory",
+      "items": [
+        { "id": "laboratory.c_reactive_protein", "label": "C-reactive protein" },
+        { "id": "laboratory.calcium", "label": "Calcium" },
+        { "id": "laboratory.creatinine", "label": "Creatinine" },
+        { "id": "laboratory.eGFR", "label": "eGFR" },
+        { "id": "laboratory.glucose", "label": "Glucose" },
+        { "id": "laboratory.glycated_haemoglobin", "label": "Glycated haemoglobin" },
+        { "id": "laboratory.hba1c", "label": "HbA1c" },
+        { "id": "laboratory.insulin", "label": "Insulin" },
+        { "id": "laboratory.albumin", "label": "Albumin" },
+        { "id": "laboratory.alkaline_phosphatase", "label": "Alkaline phosphatase" },
+        { "id": "laboratory.alanine_aminotransferase", "label": "Alanine aminotransferase" },
+        { "id": "laboratory.aspartate_aminotransferase", "label": "Aspartate aminotransferase" },
+        { "id": "laboratory.gamma_glutamyl_transferase", "label": "Gamma glutamyl transferase" },
+        { "id": "laboratory.total_bilirubin", "label": "Total bilirubin" },
+        { "id": "laboratory.urea", "label": "Urea" },
+        { "id": "laboratory.urate", "label": "Urate" },
+        { "id": "laboratory.vitamin_d", "label": "Vitamin D" }
+      ]
+    },
+    {
+      "id": "blood_counts",
+      "label": "Blood counts",
+      "items": [
+        { "id": "blood_counts.haemoglobin", "label": "Haemoglobin" },
+        { "id": "blood_counts.mean_corpuscular_haemoglobin", "label": "Mean corpuscular haemoglobin" },
+        { "id": "blood_counts.mean_corpuscular_haemoglobin_concentration", "label": "Mean corpuscular haemoglobin concentration" },
+        { "id": "blood_counts.platelet_count", "label": "Platelet count" },
+        { "id": "blood_counts.white_blood_cell_count", "label": "White blood cell count" },
+        { "id": "blood_counts.red_blood_cell_distribution_width", "label": "Red blood cell distribution width" }
+      ]
+    },
+    {
+      "id": "urine",
+      "label": "Urine",
+      "items": [
+        { "id": "urine.creatinine_in_urine", "label": "Creatinine in urine" },
+        { "id": "urine.potassium_in_urine", "label": "Potassium in urine" },
+        { "id": "urine.sodium_in_urine", "label": "Sodium in urine" }
+      ]
+    },
+    {
+      "id": "anthropometrics",
+      "label": "Anthropometrics",
+      "items": [
+        { "id": "anthropometrics.waist_height_ratio", "label": "Waist-height ratio" },
+        { "id": "anthropometrics.waist_hip_ratio", "label": "Waist-hip ratio" },
+        { "id": "anthropometrics.waist_circumference", "label": "Waist circumference" },
+        { "id": "anthropometrics.hip_circumference", "label": "Hip circumference" },
+        { "id": "anthropometrics.body_fat_percentage", "label": "Body fat percentage" },
+        { "id": "anthropometrics.ffmi", "label": "FFMI" },
+        { "id": "anthropometrics.fmi", "label": "FMI" }
+      ]
+    },
+    {
+      "id": "socioeconomic",
+      "label": "Socioeconomic",
+      "items": [
+        { "id": "socioeconomic.education", "label": "Education" },
+        { "id": "socioeconomic.townsend_deprivation_index", "label": "Townsend deprivation index" }
+      ]
+    },
+    {
+      "id": "ecg",
+      "label": "ECG",
+      "items": [
+        { "id": "ecg.p_duration", "label": "P duration" },
+        { "id": "ecg.qrs_duration", "label": "QRS duration" },
+        { "id": "ecg.qt_interval", "label": "QT interval" },
+        { "id": "ecg.qtc_interval", "label": "QTc interval" },
+        { "id": "ecg.pp_interval", "label": "PP interval" },
+        { "id": "ecg.r_axis", "label": "R axis" },
+        { "id": "ecg.t_axis", "label": "T axis" },
+        { "id": "ecg.ventricular_rate", "label": "Ventricular rate" }
+      ]
+    },
+    {
+      "id": "genetics",
+      "label": "Genetics",
+      "items": [
+        { "id": "genetics.analysis", "label": "Analysis" },
+        { "id": "genetics.sequence", "label": "Sequence" }
+      ]
+    },
+    {
+      "id": "identifiers",
+      "label": "Identifiers",
+      "items": [
+        { "id": "identifiers.patient_id", "label": "Patient ID" }
+      ]
+    },
+    {
+      "id": "distribution",
+      "label": "Distribution",
+      "items": [
+        { "id": "distribution.csv", "label": "CSV" },
+        { "id": "distribution.dicom", "label": "DICOM" },
+        { "id": "distribution.mmio", "label": "MMIO" },
+        { "id": "distribution.nifti", "label": "NIfTI" },
+        { "id": "distribution.jpg_png", "label": "JPG/PNG" },
+        { "id": "distribution.xml", "label": "XML" },
+        { "id": "distribution.vcf", "label": "VCF" },
+        { "id": "distribution.plink", "label": "PLINK" }
+      ]
+    },
+    {
+      "id": "vcf_fields",
+      "label": "VCF Fields",
+      "items": [
+        { "id": "vcf_fields.fileformat", "label": "VCF Version" },
+        { "id": "vcf_fields.fileDate", "label": "File Date" },
+        { "id": "vcf_fields.source", "label": "Source Software" },
+        { "id": "vcf_fields.contig", "label": "Contig (Chromosome)" },
+        { "id": "vcf_fields.filter", "label": "Filter Definition" },
+
+        { "id": "vcf_fields.info_id", "label": "INFO Field ID" },
+        { "id": "vcf_fields.info_number", "label": "INFO Field Cardinality" },
+        { "id": "vcf_fields.info_type", "label": "INFO Field Type" },
+        { "id": "vcf_fields.info_description", "label": "INFO Field Description" },
+
+        { "id": "vcf_fields.format_id", "label": "FORMAT Field ID" },
+        { "id": "vcf_fields.format_number", "label": "FORMAT Field Cardinality" },
+        { "id": "vcf_fields.format_type", "label": "FORMAT Field Type" },
+        { "id": "vcf_fields.format_description", "label": "FORMAT Field Description" },
+
+        { "id": "vcf_fields.chrom", "label": "Chromosome" },
+        { "id": "vcf_fields.pos", "label": "Position" },
+        { "id": "vcf_fields.id", "label": "Variant ID" },
+        { "id": "vcf_fields.ref", "label": "Reference Allele" },
+        { "id": "vcf_fields.alt", "label": "Alternative Allele(s)" },
+        { "id": "vcf_fields.qual", "label": "Quality Score" },
+
+        { "id": "vcf_fields.record_filter", "label": "Record Filter" },
+        { "id": "vcf_fields.record_info", "label": "Record INFO" },
+        { "id": "vcf_fields.record_format", "label": "Record FORMAT" }
+      ]
+    }
+  ]
+}
