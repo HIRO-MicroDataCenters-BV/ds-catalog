@@ -138,43 +138,58 @@ class ConnectorIntegration:
     def _parse_access_url(self, file_path: str) -> tuple[str, str]:
         """
         Parses accessURL into (interface, encoded_resource_path).
+
+        encoded_resource_path MUST be the *logical* path used for:
+          1) validation vs related_data_product (e.g. disease_xyz)
+          2) call connector endpoint /distribution-metadata/{interface}/{encoded_path}
+
         Examples:
-            file://disease_xyz/images/patient1.dcm →
-             ("file", "disease_xyz/images/Fpatient1.dcm")
-            file:///data/disease_xyz/images/patient1.dcm →
-             ("file", "disease_xyz/Fimages/patient1.dcm")
-            s3://bucket/key/file.csv → ("s3", "bucket/Fkey/Ffile.csv")
-            https://example.com/data/file.csv  →
-            ("http", "https://example.com/data/file.csv")
+          file://disease_xyz/ecgs/pt1.xml
+            -> ("file", "disease_xyz%2Fecgs%2Fpt1.xml")
+
+          file:///data/disease_xyz/ecgs/pt1.xml  (data_root_path="/data")
+            -> ("file", "disease_xyz%2Fecgs%2Fpt1.xml")
+
+          s3://bucket/data/disease_xyz/ecgs/pt1.xml
+            -> ("s3", "disease_xyz%2Fecgs%2Fpt1.xml")
+
+          s3://bucket/disease_xyz/ecgs/pt1.xml
+            -> ("s3", "disease_xyz%2Fecgs%2Fpt1.xml")
         """
         settings = get_settings()
-        base_path = settings.data_root_path.rstrip("/") + "/"
+        base_path = settings.data_root_path.rstrip("/") + "/"  # e.g. "/data/"
         parsed = urlparse(file_path)
 
+        # ---- FILE ----
         if parsed.scheme == "file":
             path_part = file_path.split("://", 1)[-1]
 
-            # If it starts with /data/, trim only that prefix
+            # Trim configured data root (fixes your current bug)
             if path_part.startswith(base_path):
-                path_part = path_part[len("/data/") :]
+                path_part = path_part[len(base_path) :]
             elif path_part.startswith("/"):
                 path_part = path_part[1:]
 
-            normalized = path_part.strip("/")
-            encoded = quote(normalized, safe="")
-            return "file", encoded
+            logical = path_part.strip("/")
+            return "file", quote(logical, safe="")
 
+        # ---- S3 ----
         elif parsed.scheme == "s3":
-            bucket = parsed.netloc
-            key = parsed.path.lstrip("/")
-            normalized = f"{bucket}/{key}"
-            encoded = quote(normalized, safe="")
-            return "s3", encoded
+            # Ignore bucket for logical path validation/calls
+            key = parsed.path.lstrip("/")  # e.g. "data/disease_xyz/ecgs/pt1.xml"
 
-        elif parsed.scheme in ["http", "https"]:
+            # Strip common storage prefix if present
+            if key.startswith("data/"):
+                key = key[len("data/") :]
+
+            logical = key.strip("/")  # e.g. "disease_xyz/ecgs/pt1.xml"
+            return "s3", quote(logical, safe="")
+
+        # ---- HTTP(S) ----
+        elif parsed.scheme in ("http", "https"):
             return "http", file_path
-        else:
-            raise ValueError(f"Unsupported URI scheme: {parsed.scheme or 'unknown'}")
+
+        raise ValueError(f"Unsupported URI scheme: {parsed.scheme or 'unknown'}")
 
     def _is_child_path(self, resource_path: str, related_folder: str) -> bool:
         """
