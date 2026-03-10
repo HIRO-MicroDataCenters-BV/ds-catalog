@@ -13,6 +13,8 @@ class FiltersRoutes(Routable):
         operation_id="get_filters",
         name="Get Filters",
         tags=[Tags.Catalog],
+        summary="Get filters",
+        description=("Fetching the filter menu dynamically. "),
         response_class=JSONResponse,
         responses={
             200: {
