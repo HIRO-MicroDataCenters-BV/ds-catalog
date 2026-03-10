@@ -118,7 +118,6 @@ All URIs are relative to *http://localhost*
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *CatalogApi* | [**get_catalog**](docs/CatalogApi.md#get_catalog) | **POST** /catalog/ | Get Local Catalog
-*CatalogApi* | [**get_filters**](docs/CatalogApi.md#get_filters) | **GET** /catalog/filters/ | Get Filters
 *CatalogApi* | [**get_public_catalog**](docs/CatalogApi.md#get_public_catalog) | **POST** /public-catalog/ | Get Public Catalog
 *DatasetsApi* | [**delete_dataset**](docs/DatasetsApi.md#delete_dataset) | **DELETE** /datasets/{id}/ | Delete Dataset
 *DatasetsApi* | [**get_dataset**](docs/DatasetsApi.md#get_dataset) | **GET** /datasets/{id}/ | Get Dataset

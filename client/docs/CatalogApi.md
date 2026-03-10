@@ -5,7 +5,6 @@ All URIs are relative to *http://localhost*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**get_catalog**](CatalogApi.md#get_catalog) | **POST** /catalog/ | Get Local Catalog
-[**get_filters**](CatalogApi.md#get_filters) | **GET** /catalog/filters/ | Get Filters
 [**get_public_catalog**](CatalogApi.md#get_public_catalog) | **POST** /public-catalog/ | Get Public Catalog
 
 
@@ -75,71 +74,6 @@ No authorization required
 **200** | Successful Response |  -  |
 **400** | Bad Request |  -  |
 **422** | Validation Error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **get_filters**
-> str get_filters()
-
-Get Filters
-
-Get filters.json for dynamic filter rendering in frontend.
-
-### Example
-
-
-```python
-import ds_catalog
-from ds_catalog.rest import ApiException
-from pprint import pprint
-
-# Defining the host is optional and defaults to http://localhost
-# See configuration.py for a list of all supported configuration parameters.
-configuration = ds_catalog.Configuration(
-    host = "http://localhost"
-)
-
-
-# Enter a context with an instance of the API client
-with ds_catalog.ApiClient(configuration) as api_client:
-    # Create an instance of the API class
-    api_instance = ds_catalog.CatalogApi(api_client)
-
-    try:
-        # Get Filters
-        api_response = api_instance.get_filters()
-        print("The response of CatalogApi->get_filters:\n")
-        pprint(api_response)
-    except Exception as e:
-        print("Exception when calling CatalogApi->get_filters: %s\n" % e)
-```
-
-
-
-### Parameters
-
-This endpoint does not need any parameter.
-
-### Return type
-
-**str**
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/ld+json, application/json
-
-### HTTP response details
-
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-**200** | Successful Response |  -  |
-**404** | Filters file not found |  -  |
-**500** | Invalid filters.json |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
