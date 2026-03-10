@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -40,6 +42,7 @@ class Settings(BaseSettings):
         "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"
     )
     connector_base_url: str = "https://ds-connector.{region}.nextgen.hiro-develop.nl"
+    filters_file: str = str(Path(__file__).resolve().parent / "core" / "filters.json")
 
 
 def get_settings() -> Settings:
