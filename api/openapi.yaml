@@ -1664,6 +1664,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /catalog/filters/:
+    get:
+      tags:
+      - Catalog
+      summary: Get filters
+      description: Fetching the filter menu dynamically.
+      operationId: get_filters
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+              example:
+                groups:
+                - id: sociodemographics
+                  label: Sociodemographics
+                  items:
+                  - id: sociodemographics.age
+                    label: Age
+        '404':
+          description: Filters file not found
+        '500':
+          description: Invalid filters.json
 components:
   schemas:
     Body_save_mmio_file:
