@@ -62,6 +62,16 @@ entries:
     - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.2.2-dev.114.dynamic-filters.8c17ed26.tgz
     version: 0.2.2-dev.114.dynamic-filters.8c17ed26
   - apiVersion: v2
+    appVersion: 0.2.2-dev.114.develop.60fa42a7
+    created: "2026-03-11T09:43:57.89654799Z"
+    description: Data Space Catalog
+    digest: 40d4c71e6c2a71589752a83247c2e7c9854822de55d72743b437743d70642b93
+    name: ds-catalog
+    type: application
+    urls:
+    - https://HIRO-MicroDataCenters-BV.github.io/ds-catalog/helm-charts/ds-catalog-0.2.2-dev.114.develop.60fa42a7.tgz
+    version: 0.2.2-dev.114.develop.60fa42a7
+  - apiVersion: v2
     appVersion: 0.2.2-dev.109.dynamic-filters.16449a67
     created: "2026-02-25T16:10:26.450211192Z"
     description: Data Space Catalog
@@ -2561,4 +2571,4 @@ entries:
     urls:
     - https://hiro-microdatacenters-bv.github.io/ds-catalog/helm-charts/ds-catalog-0.0.0.tgz
     version: 0.0.0
-generated: "2026-03-10T20:41:32.143534616Z"
+generated: "2026-03-11T09:43:57.895581284Z"
