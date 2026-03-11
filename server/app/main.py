@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from app.rest_api.routes import catalog, datasets, health_check, mmio, sharing
+from app.rest_api.routes import catalog, datasets, filters, health_check, mmio, sharing
 
 from .database import Neo4jDatabase
 from .settings import get_settings
@@ -72,3 +72,4 @@ app.include_router(catalog.routes.router)
 app.include_router(mmio.routes.router)
 app.include_router(datasets.routes.router)
 app.include_router(sharing.routes.router)
+app.include_router(filters.routes.router)
