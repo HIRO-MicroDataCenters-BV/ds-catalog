@@ -41,20 +41,22 @@ echo "Neo4j is ready. Initializing n10s..."
 echo "Creating initial catalog..."
 CATALOG_EXISTS=$("${CYPHER[@]}" --format plain "MATCH (c:dcat__Catalog) RETURN count(c) AS cnt;" 2>/dev/null | tail -1)
 if [ "$CATALOG_EXISTS" = "0" ]; then
-  "${CYPHER[@]}" 'CALL n10s.rdf.import.inline('\''
-    {
-      "@context": {
-        "dcat": "http://www.w3.org/ns/dcat#",
-        "dcterms": "http://purl.org/dc/terms/",
-        "xsd": "http://www.w3.org/2001/XMLSchema#"
-      },
-      "@id": "urn:catalog:local",
-      "@type": "dcat:Catalog",
-      "dcterms:identifier": "local",
-      "dcterms:title": "Local Catalog",
-      "dcterms:description": "Local development catalog"
-    }
-  '\'', '\''JSON-LD'\'');'
+  "${CYPHER[@]}" <<'EOF'
+CALL n10s.rdf.import.inline('
+{
+  "@context": {
+    "dcat": "http://www.w3.org/ns/dcat#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:catalog:local",
+  "@type": "dcat:Catalog",
+  "dcterms:identifier": "local",
+  "dcterms:title": "Local Catalog",
+  "dcterms:description": "Local development catalog"
+}
+', 'JSON-LD');
+EOF
   echo "Catalog created."
 else
   echo "Catalog already exists, skipping."

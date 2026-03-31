@@ -40,7 +40,7 @@ class IDatasetValidatorService(IValidatorService):
         self,
         shacl_url: str | None = None,
         ontology_url: str | None = None,
-        allowed_catalog_item_types: Sequence[str] | None = None,
+        allowed_catalog_item_types: Sequence[str] = (),
     ) -> None:
         ...
 
@@ -158,11 +158,11 @@ class DatasetValidatorService(BaseValidatorService, IDatasetValidatorService):
         self,
         shacl_url: str | None = None,
         ontology_url: str | None = None,
-        allowed_catalog_item_types: Sequence[str] | None = None,
+        allowed_catalog_item_types: Sequence[str] = (),
     ) -> None:
-        if allowed_catalog_item_types is None:
+        if not allowed_catalog_item_types:
             raise ValueError(
-                "allowed_catalog_item_types is required and must not be None."
+                "allowed_catalog_item_types is required and must not be empty."
             )
         self.validators = [
             HasNodeValidator(rdf_type=DCAT.Dataset, single=True),
