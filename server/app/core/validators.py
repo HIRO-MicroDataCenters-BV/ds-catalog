@@ -161,7 +161,7 @@ class DatasetValidatorService(BaseValidatorService, IDatasetValidatorService):
         allowed_catalog_item_types: Sequence[str] = (),
     ) -> None:
         if not allowed_catalog_item_types:
-            raise ValueError(
+            raise RuntimeError(
                 "allowed_catalog_item_types is required and must not be empty."
             )
         self.validators = [
