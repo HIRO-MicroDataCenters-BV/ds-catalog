@@ -39,7 +39,7 @@ class IDatasetValidatorService(IValidatorService):
         self,
         shacl_url: str | None = None,
         ontology_url: str | None = None,
-        allowed_catalog_item_types: list[str] = [],
+        allowed_catalog_item_types: list[str] | None = None,
     ) -> None:
         ...
 
