@@ -156,9 +156,13 @@ class DatasetValidatorService(BaseValidatorService, IDatasetValidatorService):
         ontology_url: str | None = None,
         allowed_catalog_item_types: list[str] | None = None,
     ) -> None:
+        if allowed_catalog_item_types is None:
+            raise ValueError(
+                "allowed_catalog_item_types is required and must not be None."
+            )
         self.validators = [
             HasNodeValidator(rdf_type=DCAT.Dataset, single=True),
-            CatalogItemTypeValidator(allowed_catalog_item_types or []),
+            CatalogItemTypeValidator(allowed_catalog_item_types),
             SHACLValidator(shacl_url, ontology_url),
         ]
 
