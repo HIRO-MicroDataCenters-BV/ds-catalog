@@ -1,9 +1,9 @@
 from unittest.mock import Mock
 
 import pytest
-from rdflib import RDF, SH, URIRef
+from rdflib import RDF, SH
 from rdflib import Graph as RDFGraph
-from rdflib import Literal, Namespace
+from rdflib import Literal, Namespace, URIRef
 from rdflib.namespace import DCAT, DCTERMS
 
 from ..entities import Graph
