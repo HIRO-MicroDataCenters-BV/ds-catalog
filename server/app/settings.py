@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     )
     connector_base_url: str = "https://ds-connector.{region}.nextgen.hiro-develop.nl"
     filters_file: str = str(Path(__file__).resolve().parent / "core" / "filters.json")
+    allowed_catalog_item_types: list[str] = [
+        "http://purl.org/dc/dcmitype/Dataset",
+        "http://purl.org/dc/dcmitype/Software",
+    ]
 
 
 def get_settings() -> Settings:

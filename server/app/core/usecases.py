@@ -160,6 +160,7 @@ class DatasetsUsecases(BaseUsecases, IDatasetsUsecases):
         validator = validator_class(
             shacl_url=context["shacl_url"],
             ontology_url=context["ontology_url"],
+            allowed_catalog_item_types=context["allowed_catalog_item_types"],
         )
         validator.validate(dataset)
 

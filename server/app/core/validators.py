@@ -6,7 +6,7 @@ from pyshacl import validate as pyshacl_validate
 from rdflib import DCAT
 from rdflib import Graph as RDFGraph
 from rdflib import URIRef
-from rdflib.namespace import RDF, SH
+from rdflib.namespace import DCTERMS, RDF, SH
 
 from .entities import Graph
 from .exceptions import GraphValidationError
@@ -39,6 +39,7 @@ class IDatasetValidatorService(IValidatorService):
         self,
         shacl_url: str | None = None,
         ontology_url: str | None = None,
+        allowed_catalog_item_types: list[str] | None = None,
     ) -> None:
         ...
 
@@ -67,6 +68,28 @@ class HasNodeValidator(IValidator):
                 f"Expected exactly one node with type {self.rdf_type}, "
                 f"found {len(subjects)}.",
             )
+
+
+class CatalogItemTypeValidator(IValidator):
+    def __init__(self, allowed_types: list[str]) -> None:
+        self.allowed_types = [URIRef(t) for t in allowed_types]
+
+    def validate(self, entity: Graph) -> None:
+        dataset_nodes = list(entity.graph.subjects(RDF.type, DCAT.Dataset))
+        for node in dataset_nodes:
+            type_values = list(entity.graph.objects(node, DCTERMS.type))
+            if not type_values:
+                raise GraphValidationError(
+                    "catalog_item_type_error",
+                    "Catalog item must have a dcterms:type property.",
+                )
+            for type_val in type_values:
+                if type_val not in self.allowed_types:
+                    raise GraphValidationError(
+                        "catalog_item_type_error",
+                        f"Invalid catalog item type: {type_val}. "
+                        f"Allowed types: {[str(t) for t in self.allowed_types]}",
+                    )
 
 
 class SHACLValidator(IValidator):
@@ -131,9 +154,11 @@ class DatasetValidatorService(BaseValidatorService, IDatasetValidatorService):
         self,
         shacl_url: str | None = None,
         ontology_url: str | None = None,
+        allowed_catalog_item_types: list[str] | None = None,
     ) -> None:
         self.validators = [
             HasNodeValidator(rdf_type=DCAT.Dataset, single=True),
+            CatalogItemTypeValidator(allowed_catalog_item_types or []),
             SHACLValidator(shacl_url, ontology_url),
         ]
 

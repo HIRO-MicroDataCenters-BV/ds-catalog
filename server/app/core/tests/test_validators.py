@@ -7,10 +7,20 @@ from rdflib import Literal, Namespace
 
 from ..entities import Graph
 from ..exceptions import GraphValidationError
-from ..validators import BaseValidatorService, HasNodeValidator, SHACLValidator
+from ..validators import (
+    BaseValidatorService,
+    CatalogItemTypeValidator,
+    HasNodeValidator,
+    SHACLValidator,
+)
+
+from rdflib.namespace import DCAT, DCTERMS
 
 EX = Namespace("http://example.org/")
 RDFType = EX.TestType
+
+DATASET_TYPE = "http://purl.org/dc/dcmitype/Dataset"
+SOFTWARE_TYPE = "http://purl.org/dc/dcmitype/Software"
 
 
 class DummyEntity(Graph):
@@ -131,3 +141,61 @@ class TestBaseValidatorService:
 
         validator1.validate.assert_called_once_with(entity)
         validator2.validate.assert_called_once_with(entity)
+
+
+class DatasetEntity(Graph):
+    label = "d"
+    rdf_type = DCAT.Dataset
+
+
+class TestCatalogItemTypeValidator:
+    def _make_dataset_with_type(self, type_uri: str) -> DatasetEntity:
+        graph = RDFGraph()
+        node = EX.dataset1
+        graph.add((node, RDF.type, DCAT.Dataset))
+        from rdflib import URIRef
+
+        graph.add((node, DCTERMS.type, URIRef(type_uri)))
+        return DatasetEntity(graph)
+
+    def _make_dataset_without_type(self) -> DatasetEntity:
+        graph = RDFGraph()
+        node = EX.dataset1
+        graph.add((node, RDF.type, DCAT.Dataset))
+        return DatasetEntity(graph)
+
+    def test_valid_dataset_type(self):
+        entity = self._make_dataset_with_type(DATASET_TYPE)
+        validator = CatalogItemTypeValidator([DATASET_TYPE, SOFTWARE_TYPE])
+        validator.validate(entity)
+
+    def test_valid_software_type(self):
+        entity = self._make_dataset_with_type(SOFTWARE_TYPE)
+        validator = CatalogItemTypeValidator([DATASET_TYPE, SOFTWARE_TYPE])
+        validator.validate(entity)
+
+    def test_missing_type_raises_error(self):
+        entity = self._make_dataset_without_type()
+        validator = CatalogItemTypeValidator([DATASET_TYPE, SOFTWARE_TYPE])
+        with pytest.raises(GraphValidationError, match="must have a dcterms:type"):
+            validator.validate(entity)
+
+    def test_invalid_type_raises_error(self):
+        entity = self._make_dataset_with_type("http://example.org/InvalidType")
+        validator = CatalogItemTypeValidator([DATASET_TYPE, SOFTWARE_TYPE])
+        with pytest.raises(GraphValidationError, match="Invalid catalog item type"):
+            validator.validate(entity)
+
+    def test_empty_allowed_types_rejects_all(self):
+        entity = self._make_dataset_with_type(DATASET_TYPE)
+        validator = CatalogItemTypeValidator([])
+        with pytest.raises(GraphValidationError, match="Invalid catalog item type"):
+            validator.validate(entity)
+
+    def test_no_dataset_nodes_passes(self):
+        """If there are no dcat:Dataset nodes, validation passes (nothing to check)."""
+        graph = RDFGraph()
+        graph.add((EX.something, RDF.type, EX.OtherType))
+        entity = DatasetEntity(graph)
+        validator = CatalogItemTypeValidator([DATASET_TYPE])
+        validator.validate(entity)
