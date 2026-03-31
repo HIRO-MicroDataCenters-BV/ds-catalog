@@ -4,6 +4,7 @@ import pytest
 from rdflib import RDF, SH
 from rdflib import Graph as RDFGraph
 from rdflib import Literal, Namespace
+from rdflib.namespace import DCAT, DCTERMS
 
 from ..entities import Graph
 from ..exceptions import GraphValidationError
@@ -13,8 +14,6 @@ from ..validators import (
     HasNodeValidator,
     SHACLValidator,
 )
-
-from rdflib.namespace import DCAT, DCTERMS
 
 EX = Namespace("http://example.org/")
 RDFType = EX.TestType
