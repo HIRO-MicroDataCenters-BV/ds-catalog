@@ -1,5 +1,7 @@
 from typing import TypedDict
 
+from collections.abc import Sequence
+
 from .entities import User
 
 
@@ -11,4 +13,4 @@ class SaveDatasetContext(Context):
     oca_uri: str
     shacl_url: str | None
     ontology_url: str | None
-    allowed_catalog_item_types: tuple[str, ...] | list[str]
+    allowed_catalog_item_types: Sequence[str]

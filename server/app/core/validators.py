@@ -1,6 +1,7 @@
 from typing import Callable
 
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 
 from pyshacl import validate as pyshacl_validate
 from rdflib import DCAT
@@ -39,7 +40,7 @@ class IDatasetValidatorService(IValidatorService):
         self,
         shacl_url: str | None = None,
         ontology_url: str | None = None,
-        allowed_catalog_item_types: list[str] | None = None,
+        allowed_catalog_item_types: Sequence[str] | None = None,
     ) -> None:
         ...
 
@@ -71,7 +72,7 @@ class HasNodeValidator(IValidator):
 
 
 class CatalogItemTypeValidator(IValidator):
-    def __init__(self, allowed_types: list[str]) -> None:
+    def __init__(self, allowed_types: Sequence[str]) -> None:
         self.allowed_types: set[URIRef] = {URIRef(t) for t in allowed_types}
 
     def validate(self, entity: Graph) -> None:
@@ -157,7 +158,7 @@ class DatasetValidatorService(BaseValidatorService, IDatasetValidatorService):
         self,
         shacl_url: str | None = None,
         ontology_url: str | None = None,
-        allowed_catalog_item_types: list[str] | None = None,
+        allowed_catalog_item_types: Sequence[str] | None = None,
     ) -> None:
         if allowed_catalog_item_types is None:
             raise ValueError(
