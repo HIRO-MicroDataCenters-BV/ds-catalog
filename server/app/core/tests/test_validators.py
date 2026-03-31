@@ -1,7 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
-from rdflib import RDF, SH
+from rdflib import RDF, SH, URIRef
 from rdflib import Graph as RDFGraph
 from rdflib import Literal, Namespace
 from rdflib.namespace import DCAT, DCTERMS
@@ -152,8 +152,6 @@ class TestCatalogItemTypeValidator:
         graph = RDFGraph()
         node = EX.dataset1
         graph.add((node, RDF.type, DCAT.Dataset))
-        from rdflib import URIRef
-
         graph.add((node, DCTERMS.type, URIRef(type_uri)))
         return DatasetEntity(graph)
 

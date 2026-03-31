@@ -72,7 +72,7 @@ class HasNodeValidator(IValidator):
 
 class CatalogItemTypeValidator(IValidator):
     def __init__(self, allowed_types: list[str]) -> None:
-        self.allowed_types = [URIRef(t) for t in allowed_types]
+        self.allowed_types: set[URIRef] = {URIRef(t) for t in allowed_types}
 
     def validate(self, entity: Graph) -> None:
         dataset_nodes = list(entity.graph.subjects(RDF.type, DCAT.Dataset))
@@ -85,10 +85,11 @@ class CatalogItemTypeValidator(IValidator):
                 )
             for type_val in type_values:
                 if type_val not in self.allowed_types:
+                    allowed_types_str = ", ".join(str(t) for t in self.allowed_types)
                     raise GraphValidationError(
                         "catalog_item_type_error",
                         f"Invalid catalog item type: {type_val}. "
-                        f"Allowed types: {[str(t) for t in self.allowed_types]}",
+                        f"Allowed types: {allowed_types_str}",
                     )
 
 

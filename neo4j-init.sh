@@ -38,7 +38,7 @@ eval "$CYPHER 'CALL n10s.nsprefixes.add(\"dcatap\", \"http://data.europa.eu/r5r/
 
 # Create the initial catalog node (skip if already exists)
 echo "Creating initial catalog..."
-CATALOG_EXISTS=$(eval "$CYPHER 'MATCH (c:dcat__Catalog) RETURN count(c) AS cnt;'" 2>/dev/null | tail -1)
+CATALOG_EXISTS=$(eval "$CYPHER --format plain 'MATCH (c:dcat__Catalog) RETURN count(c) AS cnt;'" 2>/dev/null | tail -1)
 if [ "$CATALOG_EXISTS" = "0" ]; then
   eval "$CYPHER 'CALL n10s.rdf.import.inline('"'"'
     {

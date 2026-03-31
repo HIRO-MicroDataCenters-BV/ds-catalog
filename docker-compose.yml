@@ -4,7 +4,7 @@ services:
     image: neo4j:5.18.0
     container_name: neo4j
     environment:
-      - NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASSWORD}
+      - NEO4J_AUTH=${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-neo4j}
       - NEO4JLABS_PLUGINS=["n10s"]
       - NEO4J_dbms_security_procedures_unrestricted=n10s.*
       - NEO4J_dbms_security_procedures_allowlist=n10s.*
@@ -17,7 +17,7 @@ services:
       - neo4j_logs:/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "cypher-shell -u ${NEO4J_USER} -p ${NEO4J_PASSWORD} 'RETURN 1' || exit 1"]
+      test: ["CMD-SHELL", "cypher-shell -u ${NEO4J_USER:-neo4j} -p ${NEO4J_PASSWORD:-neo4j} 'RETURN 1' || exit 1"]
       interval: 10s
       timeout: 10s
       retries: 10
@@ -33,7 +33,7 @@ services:
       - ./neo4j-init.sh:/neo4j-init.sh
     entrypoint: ["bash", "/neo4j-init.sh"]
     environment:
-      - NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASSWORD}
+      - NEO4J_AUTH=${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-neo4j}
     restart: "no"
 
   ds-catalog:
@@ -47,8 +47,8 @@ services:
       - DS__DATABASE__HOST=neo4j
       - DS__DATABASE__PORT=7687
       - DS__DATABASE__NAME=neo4j
-      - DS__DATABASE__USERNAME=${NEO4J_USER}
-      - DS__DATABASE__PASSWORD=${NEO4J_PASSWORD}
+      - DS__DATABASE__USERNAME=${NEO4J_USER:-neo4j}
+      - DS__DATABASE__PASSWORD=${NEO4J_PASSWORD:-neo4j}
       - DS__ALLOWED_CATALOG_ITEM_TYPES=["http://purl.org/dc/dcmitype/Dataset","http://purl.org/dc/dcmitype/Software"]
     ports:
       - "8000:8000"
