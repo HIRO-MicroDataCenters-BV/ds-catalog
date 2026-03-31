@@ -85,7 +85,9 @@ class CatalogItemTypeValidator(IValidator):
                 )
             for type_val in type_values:
                 if type_val not in self.allowed_types:
-                    allowed_types_str = ", ".join(sorted(str(t) for t in self.allowed_types))
+                    allowed_types_str = ", ".join(
+                        sorted(str(t) for t in self.allowed_types)
+                    )
                     raise GraphValidationError(
                         "catalog_item_type_error",
                         f"Invalid catalog item type: {type_val}. "
