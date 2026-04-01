@@ -82,6 +82,8 @@ Create the name of the service account to use
   value: "{{ .Values.baseUrls.ocaRepositoryBundlesUrl }}"
 - name: DS__CONNECTOR_BASE_URL
   value: "{{ .Values.baseUrls.connectorBaseUrl }}"
+- name: DS__ALLOWED_VALUES_CONFIG_PATH
+  value: "{{ .Values.allowedValuesConfigPath }}"
 {{- end }}
 
 

@@ -163,7 +163,7 @@ class DatasetsRoutes(Routable):
                     "oca_uri": settings.oca_uri,
                     "shacl_url": settings.shacl_url,
                     "ontology_url": settings.ontology_url,
-                    "allowed_catalog_item_types": settings.allowed_catalog_item_types,
+                    "allowed_values_config_path": settings.allowed_values_config_path,
                 },
             )
         except ValueError as err:

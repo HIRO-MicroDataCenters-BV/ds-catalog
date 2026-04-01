@@ -88,10 +88,7 @@ class TestDatasetsRoutes:
             "oca_uri": oca_uri,
             "shacl_url": shacl_url,
             "ontology_url": ontology_url,
-            "allowed_catalog_item_types": (
-                "http://purl.org/dc/dcmitype/Dataset",
-                "http://purl.org/dc/dcmitype/Software",
-            ),
+            "allowed_values_config_path": Settings().allowed_values_config_path,
         }
 
     def test_save_dataset_if_file_not_found(self):

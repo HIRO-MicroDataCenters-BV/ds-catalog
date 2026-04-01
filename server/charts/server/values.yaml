@@ -95,3 +95,7 @@ grafana:
 baseUrls:
   connectorBaseUrl: "https://ds-connector.{region}.nextgen.hiro-develop.nl"
   ocaRepositoryBundlesUrl: "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"
+
+# Path to the YAML file defining allowed predicate values for RDF validation.
+# Defaults to the file bundled in the image. Override to mount a custom ConfigMap.
+allowedValuesConfigPath: "/code/app/core/allowed_values.yaml"

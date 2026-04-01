@@ -1,13 +1,13 @@
 from typing import Callable
 
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
 
+import yaml
 from pyshacl import validate as pyshacl_validate
 from rdflib import DCAT
 from rdflib import Graph as RDFGraph
 from rdflib import URIRef
-from rdflib.namespace import DCTERMS, RDF, SH
+from rdflib.namespace import RDF, SH
 
 from .entities import Graph
 from .exceptions import GraphValidationError
@@ -40,7 +40,7 @@ class IDatasetValidatorService(IValidatorService):
         self,
         shacl_url: str | None = None,
         ontology_url: str | None = None,
-        allowed_catalog_item_types: Sequence[str] = (),
+        allowed_values_config_path: str | None = None,
     ) -> None:
         ...
 
@@ -71,29 +71,39 @@ class HasNodeValidator(IValidator):
             )
 
 
-class CatalogItemTypeValidator(IValidator):
-    def __init__(self, allowed_types: Sequence[str]) -> None:
-        self.allowed_types: set[URIRef] = {URIRef(t) for t in allowed_types}
+class AllowedValuesValidator(IValidator):
+    def __init__(self, config_path: str) -> None:
+        with open(config_path) as f:
+            config = yaml.safe_load(f)
+
+        # Parse into: {scope: {predicate: {allowed_values}}}
+        self.rules: dict[URIRef, dict[URIRef, set[URIRef]]] = {}
+        for entry in config["validators"]:
+            scope = URIRef(entry["scope"])
+            self.rules[scope] = {
+                URIRef(rule["predicate"]): {URIRef(v) for v in rule["allowed_values"]}
+                for rule in entry["rules"]
+            }
 
     def validate(self, entity: Graph) -> None:
-        dataset_nodes = list(entity.graph.subjects(RDF.type, DCAT.Dataset))
-        for node in dataset_nodes:
-            type_values = list(entity.graph.objects(node, DCTERMS.type))
-            if not type_values:
-                raise GraphValidationError(
-                    "catalog_item_type_error",
-                    "Catalog item must have a dcterms:type property.",
-                )
-            for type_val in type_values:
-                if type_val not in self.allowed_types:
-                    allowed_types_str = ", ".join(
-                        sorted(str(t) for t in self.allowed_types)
-                    )
-                    raise GraphValidationError(
-                        "catalog_item_type_error",
-                        f"Invalid catalog item type: {type_val}. "
-                        f"Allowed types: {allowed_types_str}",
-                    )
+        for scope, predicates in self.rules.items():
+            nodes = list(entity.graph.subjects(RDF.type, scope))
+            for node in nodes:
+                for predicate, allowed in predicates.items():
+                    values = list(entity.graph.objects(node, predicate))
+                    if not values:
+                        raise GraphValidationError(
+                            "allowed_values_error",
+                            f"Node of type {scope} must have predicate {predicate}.",
+                        )
+                    allowed_str = ", ".join(sorted(str(v) for v in allowed))
+                    for val in values:
+                        if val not in allowed:
+                            raise GraphValidationError(
+                                "allowed_values_error",
+                                f"Invalid value {val} for {predicate}. "
+                                f"Allowed: {allowed_str}",
+                            )
 
 
 class SHACLValidator(IValidator):
@@ -158,15 +168,15 @@ class DatasetValidatorService(BaseValidatorService, IDatasetValidatorService):
         self,
         shacl_url: str | None = None,
         ontology_url: str | None = None,
-        allowed_catalog_item_types: Sequence[str] = (),
+        allowed_values_config_path: str | None = None,
     ) -> None:
-        if not allowed_catalog_item_types:
+        if not allowed_values_config_path:
             raise RuntimeError(
-                "allowed_catalog_item_types is required and must not be empty."
+                "allowed_values_config_path is required and must not be empty."
             )
         self.validators = [
             HasNodeValidator(rdf_type=DCAT.Dataset, single=True),
-            CatalogItemTypeValidator(allowed_catalog_item_types),
+            AllowedValuesValidator(allowed_values_config_path),
             SHACLValidator(shacl_url, ontology_url),
         ]
 

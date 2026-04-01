@@ -194,10 +194,7 @@ class TestDatasetsUsecases:
             oca_uri="http://oca.example.org/123/",
             shacl_url="http://example.org/shacl.ttl",
             ontology_url="http://example.org/dcat.ttl",
-            allowed_catalog_item_types=[
-                "http://purl.org/dc/dcmitype/Dataset",
-                "http://purl.org/dc/dcmitype/Software",
-            ],
+            allowed_values_config_path="/app/core/allowed_values.yaml",
         )
 
     @freeze_time("2017-05-21T09:23:00+00:00")
@@ -272,7 +269,7 @@ class TestDatasetsUsecases:
         validator_class.assert_called_once_with(
             shacl_url=context["shacl_url"],
             ontology_url=context["ontology_url"],
-            allowed_catalog_item_types=context["allowed_catalog_item_types"],
+            allowed_values_config_path=context["allowed_values_config_path"],
         )
         validator_instance.validate.assert_called_once_with(dataset)
 

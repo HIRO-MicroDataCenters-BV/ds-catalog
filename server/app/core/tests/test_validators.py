@@ -9,8 +9,8 @@ from rdflib.namespace import DCAT, DCTERMS
 from ..entities import Graph
 from ..exceptions import GraphValidationError
 from ..validators import (
+    AllowedValuesValidator,
     BaseValidatorService,
-    CatalogItemTypeValidator,
     HasNodeValidator,
     SHACLValidator,
 )
@@ -147,7 +147,31 @@ class DatasetEntity(Graph):
     rdf_type = DCAT.Dataset
 
 
-class TestCatalogItemTypeValidator:
+DCAT_DATASET = "http://www.w3.org/ns/dcat#Dataset"
+DCTERMS_TYPE = "http://purl.org/dc/terms/type"
+
+
+class TestAllowedValuesValidator:
+    def _make_config(self, tmp_path, allowed_values):
+        config = {
+            "validators": [
+                {
+                    "scope": DCAT_DATASET,
+                    "rules": [
+                        {
+                            "predicate": DCTERMS_TYPE,
+                            "allowed_values": allowed_values,
+                        }
+                    ],
+                }
+            ]
+        }
+        import yaml
+
+        config_path = tmp_path / "allowed_values.yaml"
+        config_path.write_text(yaml.dump(config))
+        return str(config_path)
+
     def _make_dataset_with_type(self, type_uri: str) -> DatasetEntity:
         graph = RDFGraph()
         node = EX.dataset1
@@ -161,38 +185,46 @@ class TestCatalogItemTypeValidator:
         graph.add((node, RDF.type, DCAT.Dataset))
         return DatasetEntity(graph)
 
-    def test_valid_dataset_type(self):
+    def test_valid_dataset_type(self, tmp_path):
         entity = self._make_dataset_with_type(DATASET_TYPE)
-        validator = CatalogItemTypeValidator([DATASET_TYPE, SOFTWARE_TYPE])
+        validator = AllowedValuesValidator(
+            self._make_config(tmp_path, [DATASET_TYPE, SOFTWARE_TYPE])
+        )
         validator.validate(entity)
 
-    def test_valid_software_type(self):
+    def test_valid_software_type(self, tmp_path):
         entity = self._make_dataset_with_type(SOFTWARE_TYPE)
-        validator = CatalogItemTypeValidator([DATASET_TYPE, SOFTWARE_TYPE])
+        validator = AllowedValuesValidator(
+            self._make_config(tmp_path, [DATASET_TYPE, SOFTWARE_TYPE])
+        )
         validator.validate(entity)
 
-    def test_missing_type_raises_error(self):
+    def test_missing_type_raises_error(self, tmp_path):
         entity = self._make_dataset_without_type()
-        validator = CatalogItemTypeValidator([DATASET_TYPE, SOFTWARE_TYPE])
-        with pytest.raises(GraphValidationError, match="must have a dcterms:type"):
+        validator = AllowedValuesValidator(
+            self._make_config(tmp_path, [DATASET_TYPE, SOFTWARE_TYPE])
+        )
+        with pytest.raises(GraphValidationError, match="must have predicate"):
             validator.validate(entity)
 
-    def test_invalid_type_raises_error(self):
+    def test_invalid_type_raises_error(self, tmp_path):
         entity = self._make_dataset_with_type("http://example.org/InvalidType")
-        validator = CatalogItemTypeValidator([DATASET_TYPE, SOFTWARE_TYPE])
-        with pytest.raises(GraphValidationError, match="Invalid catalog item type"):
+        validator = AllowedValuesValidator(
+            self._make_config(tmp_path, [DATASET_TYPE, SOFTWARE_TYPE])
+        )
+        with pytest.raises(GraphValidationError, match="Invalid value"):
             validator.validate(entity)
 
-    def test_empty_allowed_types_rejects_all(self):
+    def test_empty_allowed_values_rejects_all(self, tmp_path):
         entity = self._make_dataset_with_type(DATASET_TYPE)
-        validator = CatalogItemTypeValidator([])
-        with pytest.raises(GraphValidationError, match="Invalid catalog item type"):
+        validator = AllowedValuesValidator(self._make_config(tmp_path, []))
+        with pytest.raises(GraphValidationError, match="Invalid value"):
             validator.validate(entity)
 
-    def test_no_dataset_nodes_passes(self):
+    def test_no_dataset_nodes_passes(self, tmp_path):
         """If there are no dcat:Dataset nodes, validation passes (nothing to check)."""
         graph = RDFGraph()
         graph.add((EX.something, RDF.type, EX.OtherType))
         entity = DatasetEntity(graph)
-        validator = CatalogItemTypeValidator([DATASET_TYPE])
+        validator = AllowedValuesValidator(self._make_config(tmp_path, [DATASET_TYPE]))
         validator.validate(entity)

@@ -49,7 +49,7 @@ services:
       - DS__DATABASE__NAME=neo4j
       - DS__DATABASE__USERNAME=${NEO4J_USER:-neo4j}
       - DS__DATABASE__PASSWORD=${NEO4J_PASSWORD:-neo4j}
-      - DS__ALLOWED_CATALOG_ITEM_TYPES=["http://purl.org/dc/dcmitype/Dataset","http://purl.org/dc/dcmitype/Software"]
+      - DS__ALLOWED_VALUES_CONFIG_PATH=/code/app/core/allowed_values.yaml
     ports:
       - "8000:8000"
     volumes:
