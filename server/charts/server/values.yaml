@@ -97,5 +97,8 @@ baseUrls:
   ocaRepositoryBundlesUrl: "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"
 
 # Path to the YAML file defining allowed predicate values for RDF validation.
-# Defaults to the file bundled in the image. Override to mount a custom ConfigMap.
+# Defaults to the file bundled in the image. Change this only if you provide
+# the file yourself (e.g. via a custom image or an externally managed volume
+# mount). Note: this chart does not configure such a mount by default, and
+# updates to the file take effect only after a pod restart.
 allowedValuesConfigPath: "/code/app/core/allowed_values.yaml"

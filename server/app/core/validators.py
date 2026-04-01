@@ -72,7 +72,9 @@ class HasNodeValidator(IValidator):
 
 
 class AllowedValuesValidator(IValidator):
-    # Cache parsed rules per config path to avoid repeated disk I/O per request
+    # Cache parsed rules per config path to avoid repeated disk I/O per request.
+    # Note: cache is process-scoped. Updates to the YAML file take effect only
+    # after a process restart (e.g. pod restart in Kubernetes).
     _rules_cache: dict[str, dict[URIRef, dict[URIRef, set[URIRef]]]] = {}
 
     def __init__(self, config_path: str) -> None:
@@ -130,6 +132,12 @@ class AllowedValuesValidator(IValidator):
                     f"missing key {exc!s}."
                 ) from exc
 
+            if not isinstance(scope_str, str):
+                raise ConfigurationError(
+                    f"Invalid validator entry at index {idx} in '{config_path}': "
+                    f"'scope' must be a string, got {type(scope_str).__name__}."
+                )
+
             if not isinstance(entry_rules, list):
                 raise ConfigurationError(
                     f"Invalid 'rules' for scope '{scope_str}' in '{config_path}': "
@@ -153,12 +161,29 @@ class AllowedValuesValidator(IValidator):
                         f"in '{config_path}': missing key {exc!s}."
                     ) from exc
 
+                if not isinstance(predicate_str, str):
+                    raise ConfigurationError(
+                        f"Invalid rule at index {rule_idx} for scope '{scope_str}' "
+                        f"in '{config_path}': 'predicate' must be a string, "
+                        f"got {type(predicate_str).__name__}."
+                    )
+
                 if not isinstance(allowed_values, (list, set, tuple)):
                     raise ConfigurationError(
                         f"Invalid 'allowed_values' for predicate '{predicate_str}' "
                         f"in scope '{scope_str}' in '{config_path}': "
                         "expected a list of values."
                     )
+
+                for val_idx, val in enumerate(allowed_values):
+                    if not isinstance(val, str):
+                        raise ConfigurationError(
+                            f"Invalid value at index {val_idx} in 'allowed_values' "
+                            f"for predicate '{predicate_str}' in scope '{scope_str}' "
+                            f"in '{config_path}': expected a string, "
+                            f"got {type(val).__name__}."
+                        )
+
                 predicate_rules[URIRef(predicate_str)] = {
                     URIRef(v) for v in allowed_values
                 }
@@ -254,7 +279,7 @@ class DatasetValidatorService(BaseValidatorService, IDatasetValidatorService):
         allowed_values_config_path: str = "",
     ) -> None:
         if not allowed_values_config_path:
-            raise RuntimeError(
+            raise ConfigurationError(
                 "allowed_values_config_path is required and must not be empty."
             )
         self.validators = [
