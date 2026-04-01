@@ -10,7 +10,7 @@ from rdflib import URIRef
 from rdflib.namespace import RDF, SH
 
 from .entities import Graph
-from .exceptions import GraphValidationError
+from .exceptions import ConfigurationError, GraphValidationError
 from .namespace import DSPACE
 
 # --- Interfaces ---
@@ -40,7 +40,7 @@ class IDatasetValidatorService(IValidatorService):
         self,
         shacl_url: str | None = None,
         ontology_url: str | None = None,
-        allowed_values_config_path: str | None = None,
+        allowed_values_config_path: str = "",
     ) -> None:
         ...
 
@@ -72,18 +72,101 @@ class HasNodeValidator(IValidator):
 
 
 class AllowedValuesValidator(IValidator):
-    def __init__(self, config_path: str) -> None:
-        with open(config_path) as f:
-            config = yaml.safe_load(f)
+    # Cache parsed rules per config path to avoid repeated disk I/O per request
+    _rules_cache: dict[str, dict[URIRef, dict[URIRef, set[URIRef]]]] = {}
 
-        # Parse into: {scope: {predicate: {allowed_values}}}
-        self.rules: dict[URIRef, dict[URIRef, set[URIRef]]] = {}
-        for entry in config["validators"]:
-            scope = URIRef(entry["scope"])
-            self.rules[scope] = {
-                URIRef(rule["predicate"]): {URIRef(v) for v in rule["allowed_values"]}
-                for rule in entry["rules"]
-            }
+    def __init__(self, config_path: str) -> None:
+        self.rules = self._get_or_load_rules(config_path)
+
+    @classmethod
+    def _get_or_load_rules(
+        cls, config_path: str
+    ) -> dict[URIRef, dict[URIRef, set[URIRef]]]:
+        cached = cls._rules_cache.get(config_path)
+        if cached is not None:
+            return cached
+
+        try:
+            with open(config_path) as f:
+                raw_config = f.read()
+        except OSError as exc:
+            raise ConfigurationError(
+                f"Failed to load allowed values config from '{config_path}': {exc}"
+            ) from exc
+
+        try:
+            config = yaml.safe_load(raw_config)
+        except yaml.YAMLError as exc:
+            raise ConfigurationError(
+                f"Malformed YAML in allowed values config '{config_path}': {exc}"
+            ) from exc
+
+        if not isinstance(config, dict):
+            raise ConfigurationError(
+                f"Invalid allowed values config in '{config_path}': "
+                "expected a mapping at the top level."
+            )
+
+        validators = config.get("validators")
+        if not isinstance(validators, list):
+            raise ConfigurationError(
+                f"Invalid allowed values config in '{config_path}': "
+                "missing or non-list 'validators' key."
+            )
+
+        rules: dict[URIRef, dict[URIRef, set[URIRef]]] = {}
+        for idx, entry in enumerate(validators):
+            if not isinstance(entry, dict):
+                raise ConfigurationError(
+                    f"Invalid validator entry at index {idx} in '{config_path}': "
+                    "expected a mapping."
+                )
+            try:
+                scope_str = entry["scope"]
+                entry_rules = entry["rules"]
+            except KeyError as exc:
+                raise ConfigurationError(
+                    f"Invalid validator entry at index {idx} in '{config_path}': "
+                    f"missing key {exc!s}."
+                ) from exc
+
+            if not isinstance(entry_rules, list):
+                raise ConfigurationError(
+                    f"Invalid 'rules' for scope '{scope_str}' in '{config_path}': "
+                    "expected a list."
+                )
+
+            scope = URIRef(scope_str)
+            predicate_rules: dict[URIRef, set[URIRef]] = {}
+            for rule_idx, rule in enumerate(entry_rules):
+                if not isinstance(rule, dict):
+                    raise ConfigurationError(
+                        f"Invalid rule at index {rule_idx} for scope '{scope_str}' "
+                        f"in '{config_path}': expected a mapping."
+                    )
+                try:
+                    predicate_str = rule["predicate"]
+                    allowed_values = rule["allowed_values"]
+                except KeyError as exc:
+                    raise ConfigurationError(
+                        f"Invalid rule at index {rule_idx} for scope '{scope_str}' "
+                        f"in '{config_path}': missing key {exc!s}."
+                    ) from exc
+
+                if not isinstance(allowed_values, (list, set, tuple)):
+                    raise ConfigurationError(
+                        f"Invalid 'allowed_values' for predicate '{predicate_str}' "
+                        f"in scope '{scope_str}' in '{config_path}': "
+                        "expected a list of values."
+                    )
+                predicate_rules[URIRef(predicate_str)] = {
+                    URIRef(v) for v in allowed_values
+                }
+
+            rules[scope] = predicate_rules
+
+        cls._rules_cache[config_path] = rules
+        return rules
 
     def validate(self, entity: Graph) -> None:
         for scope, predicates in self.rules.items():
@@ -168,7 +251,7 @@ class DatasetValidatorService(BaseValidatorService, IDatasetValidatorService):
         self,
         shacl_url: str | None = None,
         ontology_url: str | None = None,
-        allowed_values_config_path: str | None = None,
+        allowed_values_config_path: str = "",
     ) -> None:
         if not allowed_values_config_path:
             raise RuntimeError(
