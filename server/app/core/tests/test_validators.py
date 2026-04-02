@@ -7,7 +7,7 @@ from rdflib import Literal, Namespace, URIRef
 from rdflib.namespace import DCAT, DCTERMS
 
 from ..entities import Graph
-from ..exceptions import GraphValidationError
+from ..exceptions import ConfigurationError, GraphValidationError
 from ..validators import (
     AllowedValuesValidator,
     BaseValidatorService,
@@ -228,3 +228,74 @@ class TestAllowedValuesValidator:
         entity = DatasetEntity(graph)
         validator = AllowedValuesValidator(self._make_config(tmp_path, [DATASET_TYPE]))
         validator.validate(entity)
+
+    def test_nonexistent_file_raises_configuration_error(self, tmp_path):
+        with pytest.raises(ConfigurationError, match="Failed to load"):
+            AllowedValuesValidator(str(tmp_path / "nonexistent.yaml"))
+
+    def test_malformed_yaml_raises_configuration_error(self, tmp_path):
+        config_path = tmp_path / "bad.yaml"
+        config_path.write_text(":\n  - invalid: [unterminated")
+        with pytest.raises(ConfigurationError, match="Malformed YAML"):
+            AllowedValuesValidator(str(config_path))
+
+    def test_missing_validators_key_raises_configuration_error(self, tmp_path):
+        config_path = tmp_path / "bad.yaml"
+        config_path.write_text("not_validators:\n  - scope: foo\n")
+        with pytest.raises(ConfigurationError, match="missing or non-list"):
+            AllowedValuesValidator(str(config_path))
+
+    def test_non_string_scope_raises_configuration_error(self, tmp_path):
+        import yaml
+
+        config = {
+            "validators": [
+                {
+                    "scope": 123,
+                    "rules": [
+                        {"predicate": DCTERMS_TYPE, "allowed_values": [DATASET_TYPE]}
+                    ],
+                }
+            ]
+        }
+        config_path = tmp_path / "bad.yaml"
+        config_path.write_text(yaml.dump(config))
+        with pytest.raises(ConfigurationError, match="scope.*must be a string"):
+            AllowedValuesValidator(str(config_path))
+
+    def test_non_string_predicate_raises_configuration_error(self, tmp_path):
+        import yaml
+
+        config = {
+            "validators": [
+                {
+                    "scope": DCAT_DATASET,
+                    "rules": [{"predicate": 456, "allowed_values": [DATASET_TYPE]}],
+                }
+            ]
+        }
+        config_path = tmp_path / "bad.yaml"
+        config_path.write_text(yaml.dump(config))
+        with pytest.raises(ConfigurationError, match="predicate.*must be a string"):
+            AllowedValuesValidator(str(config_path))
+
+    def test_non_string_allowed_value_raises_configuration_error(self, tmp_path):
+        import yaml
+
+        config = {
+            "validators": [
+                {
+                    "scope": DCAT_DATASET,
+                    "rules": [
+                        {
+                            "predicate": DCTERMS_TYPE,
+                            "allowed_values": [None, DATASET_TYPE],
+                        }
+                    ],
+                }
+            ]
+        }
+        config_path = tmp_path / "bad.yaml"
+        config_path.write_text(yaml.dump(config))
+        with pytest.raises(ConfigurationError, match="expected a string"):
+            AllowedValuesValidator(str(config_path))

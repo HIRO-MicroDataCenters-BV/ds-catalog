@@ -19,7 +19,7 @@ usecases = Mock()
 oca_uri = "http://oca.example.org/123/"
 shacl_url = "http://example.org/shacl.ttl"
 ontology_url = "http://example.org/dcat.ttl"
-allowed_values_config_path = "/app/core/allowed_values.yaml"
+allowed_values_config_path = "/code/app/core/allowed_values.yaml"
 
 
 user = user_factory()
