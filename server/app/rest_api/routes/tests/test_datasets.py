@@ -19,6 +19,7 @@ usecases = Mock()
 oca_uri = "http://oca.example.org/123/"
 shacl_url = "http://example.org/shacl.ttl"
 ontology_url = "http://example.org/dcat.ttl"
+allowed_values_config_path = "/app/core/allowed_values.yaml"
 
 
 user = user_factory()
@@ -33,6 +34,7 @@ def override_get_settings():
         oca_uri=oca_uri,
         shacl_url=shacl_url,
         ontology_url=ontology_url,
+        allowed_values_config_path=allowed_values_config_path,
     )
 
 
@@ -88,7 +90,7 @@ class TestDatasetsRoutes:
             "oca_uri": oca_uri,
             "shacl_url": shacl_url,
             "ontology_url": ontology_url,
-            "allowed_values_config_path": Settings().allowed_values_config_path,
+            "allowed_values_config_path": allowed_values_config_path,
         }
 
     def test_save_dataset_if_file_not_found(self):

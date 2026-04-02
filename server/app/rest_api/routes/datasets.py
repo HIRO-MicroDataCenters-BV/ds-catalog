@@ -1,5 +1,7 @@
 from typing import Annotated
 
+import logging
+
 from classy_fastapi import Routable, delete, get, post
 from fastapi import Depends, HTTPException, Path, Query, status
 from fastapi.exceptions import RequestValidationError
@@ -23,6 +25,8 @@ from ..response import JSONLDResponse
 from ..serializers import Dataset
 from ..strings import DATASET_NOT_FOUND, FILE_NOT_FOUND
 from ..tags import Tags
+
+logger = logging.getLogger(__name__)
 
 
 def get_usecases(
@@ -174,9 +178,10 @@ class DatasetsRoutes(Routable):
                 detail=str(err),
             )
         except ConfigurationError as err:
+            logger.error("Server configuration error: %s", err)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=str(err),
+                detail="Server configuration error.",
             )
         except FileNotFoundError:
             raise HTTPException(
