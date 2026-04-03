@@ -6,7 +6,12 @@ from fastapi.testclient import TestClient
 from rdflib import DCTERMS
 
 from app.core.entities import Dataset
-from app.core.exceptions import ErrorParsingMMIO, GraphValidationError, NodeDoesNotExist
+from app.core.exceptions import (
+    ConfigurationError,
+    ErrorParsingMMIO,
+    GraphValidationError,
+    NodeDoesNotExist,
+)
 from app.core.tests.factories import user_factory
 from app.rest_api.depends import get_user
 from app.rest_api.strings import FILE_NOT_FOUND
@@ -144,6 +149,21 @@ class TestDatasetsRoutes:
                 }
             ]
         }
+
+    def test_save_dataset_if_configuration_error(self):
+        usecases.save = AsyncMock(
+            side_effect=ConfigurationError("internal config details")
+        )
+
+        data = dataset.to_json_ld()
+        response = client.post(
+            "/datasets/test.csv/?related_data_product=disease_xyz",
+            json=json.loads(data),
+            headers={"Content-Type": "application/ld+json"},
+        )
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"detail": "Server configuration error."}
 
     def test_get_dataset(self):
         usecases.get = AsyncMock(return_value=dataset)
