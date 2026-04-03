@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
+import yaml
 from rdflib import RDF, SH
 from rdflib import Graph as RDFGraph
 from rdflib import Literal, Namespace, URIRef
@@ -166,8 +167,6 @@ class TestAllowedValuesValidator:
                 }
             ]
         }
-        import yaml
-
         config_path = tmp_path / "allowed_values.yaml"
         config_path.write_text(yaml.dump(config), encoding="utf-8")
         return str(config_path)
@@ -215,11 +214,9 @@ class TestAllowedValuesValidator:
         with pytest.raises(GraphValidationError, match="Invalid value"):
             validator.validate(entity)
 
-    def test_empty_allowed_values_rejects_all(self, tmp_path):
-        entity = self._make_dataset_with_type(DATASET_TYPE)
-        validator = AllowedValuesValidator(self._make_config(tmp_path, []))
-        with pytest.raises(GraphValidationError, match="Invalid value"):
-            validator.validate(entity)
+    def test_empty_allowed_values_raises_configuration_error(self, tmp_path):
+        with pytest.raises(ConfigurationError, match="list must not be empty"):
+            AllowedValuesValidator(self._make_config(tmp_path, []))
 
     def test_no_dataset_nodes_passes(self, tmp_path):
         """If there are no dcat:Dataset nodes, validation passes (nothing to check)."""
@@ -246,8 +243,6 @@ class TestAllowedValuesValidator:
             AllowedValuesValidator(str(config_path))
 
     def test_non_string_scope_raises_configuration_error(self, tmp_path):
-        import yaml
-
         config = {
             "validators": [
                 {
@@ -264,8 +259,6 @@ class TestAllowedValuesValidator:
             AllowedValuesValidator(str(config_path))
 
     def test_non_string_predicate_raises_configuration_error(self, tmp_path):
-        import yaml
-
         config = {
             "validators": [
                 {
@@ -280,8 +273,6 @@ class TestAllowedValuesValidator:
             AllowedValuesValidator(str(config_path))
 
     def test_duplicate_scope_raises_configuration_error(self, tmp_path):
-        import yaml
-
         config = {
             "validators": [
                 {
@@ -303,9 +294,30 @@ class TestAllowedValuesValidator:
         with pytest.raises(ConfigurationError, match="duplicate scope"):
             AllowedValuesValidator(str(config_path))
 
-    def test_non_string_allowed_value_raises_configuration_error(self, tmp_path):
-        import yaml
+    def test_duplicate_predicate_raises_configuration_error(self, tmp_path):
+        config = {
+            "validators": [
+                {
+                    "scope": DCAT_DATASET,
+                    "rules": [
+                        {
+                            "predicate": DCTERMS_TYPE,
+                            "allowed_values": [DATASET_TYPE],
+                        },
+                        {
+                            "predicate": DCTERMS_TYPE,
+                            "allowed_values": [SOFTWARE_TYPE],
+                        },
+                    ],
+                }
+            ]
+        }
+        config_path = tmp_path / "bad.yaml"
+        config_path.write_text(yaml.dump(config), encoding="utf-8")
+        with pytest.raises(ConfigurationError, match="duplicate predicate"):
+            AllowedValuesValidator(str(config_path))
 
+    def test_non_string_allowed_value_raises_configuration_error(self, tmp_path):
         config = {
             "validators": [
                 {

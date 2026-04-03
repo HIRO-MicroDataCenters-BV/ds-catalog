@@ -184,9 +184,21 @@ class AllowedValuesValidator(IValidator):
                             f"got {type(val).__name__}."
                         )
 
-                predicate_rules[URIRef(predicate_str)] = {
-                    URIRef(v) for v in allowed_values
-                }
+                if not allowed_values:
+                    raise ConfigurationError(
+                        f"Invalid 'allowed_values' for predicate '{predicate_str}' "
+                        f"in scope '{scope_str}' in '{config_path}': "
+                        "list must not be empty."
+                    )
+
+                predicate = URIRef(predicate_str)
+                if predicate in predicate_rules:
+                    raise ConfigurationError(
+                        f"Invalid allowed values config in '{config_path}': "
+                        f"duplicate predicate '{predicate}' in scope '{scope_str}'. "
+                        "Each predicate must be defined only once per scope."
+                    )
+                predicate_rules[predicate] = {URIRef(v) for v in allowed_values}
 
             if scope in rules:
                 raise ConfigurationError(
