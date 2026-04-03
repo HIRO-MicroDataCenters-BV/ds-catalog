@@ -178,7 +178,7 @@ class DatasetsRoutes(Routable):
                 detail=str(err),
             )
         except ConfigurationError as err:
-            logger.error("Server configuration error: %s", err)
+            logger.exception("Server configuration error: %s", err)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Server configuration error.",
