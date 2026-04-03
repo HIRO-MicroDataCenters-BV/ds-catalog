@@ -188,6 +188,11 @@ class AllowedValuesValidator(IValidator):
                     URIRef(v) for v in allowed_values
                 }
 
+            if scope in rules:
+                raise ConfigurationError(
+                    f"Invalid allowed values config in '{config_path}': "
+                    f"duplicate scope '{scope}'. Each scope must be defined only once."
+                )
             rules[scope] = predicate_rules
 
         cls._rules_cache[config_path] = rules

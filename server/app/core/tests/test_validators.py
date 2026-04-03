@@ -279,6 +279,30 @@ class TestAllowedValuesValidator:
         with pytest.raises(ConfigurationError, match="predicate.*must be a string"):
             AllowedValuesValidator(str(config_path))
 
+    def test_duplicate_scope_raises_configuration_error(self, tmp_path):
+        import yaml
+
+        config = {
+            "validators": [
+                {
+                    "scope": DCAT_DATASET,
+                    "rules": [
+                        {"predicate": DCTERMS_TYPE, "allowed_values": [DATASET_TYPE]}
+                    ],
+                },
+                {
+                    "scope": DCAT_DATASET,
+                    "rules": [
+                        {"predicate": DCTERMS_TYPE, "allowed_values": [SOFTWARE_TYPE]}
+                    ],
+                },
+            ]
+        }
+        config_path = tmp_path / "bad.yaml"
+        config_path.write_text(yaml.dump(config))
+        with pytest.raises(ConfigurationError, match="duplicate scope"):
+            AllowedValuesValidator(str(config_path))
+
     def test_non_string_allowed_value_raises_configuration_error(self, tmp_path):
         import yaml
 
