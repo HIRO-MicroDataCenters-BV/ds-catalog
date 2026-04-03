@@ -169,7 +169,7 @@ class TestAllowedValuesValidator:
         import yaml
 
         config_path = tmp_path / "allowed_values.yaml"
-        config_path.write_text(yaml.dump(config))
+        config_path.write_text(yaml.dump(config), encoding="utf-8")
         return str(config_path)
 
     def _make_dataset_with_type(self, type_uri: str) -> DatasetEntity:
@@ -235,13 +235,13 @@ class TestAllowedValuesValidator:
 
     def test_malformed_yaml_raises_configuration_error(self, tmp_path):
         config_path = tmp_path / "bad.yaml"
-        config_path.write_text(":\n  - invalid: [unterminated")
+        config_path.write_text(":\n  - invalid: [unterminated", encoding="utf-8")
         with pytest.raises(ConfigurationError, match="Malformed YAML"):
             AllowedValuesValidator(str(config_path))
 
     def test_missing_validators_key_raises_configuration_error(self, tmp_path):
         config_path = tmp_path / "bad.yaml"
-        config_path.write_text("not_validators:\n  - scope: foo\n")
+        config_path.write_text("not_validators:\n  - scope: foo\n", encoding="utf-8")
         with pytest.raises(ConfigurationError, match="missing or non-list"):
             AllowedValuesValidator(str(config_path))
 
@@ -259,7 +259,7 @@ class TestAllowedValuesValidator:
             ]
         }
         config_path = tmp_path / "bad.yaml"
-        config_path.write_text(yaml.dump(config))
+        config_path.write_text(yaml.dump(config), encoding="utf-8")
         with pytest.raises(ConfigurationError, match="scope.*must be a string"):
             AllowedValuesValidator(str(config_path))
 
@@ -275,7 +275,7 @@ class TestAllowedValuesValidator:
             ]
         }
         config_path = tmp_path / "bad.yaml"
-        config_path.write_text(yaml.dump(config))
+        config_path.write_text(yaml.dump(config), encoding="utf-8")
         with pytest.raises(ConfigurationError, match="predicate.*must be a string"):
             AllowedValuesValidator(str(config_path))
 
@@ -299,7 +299,7 @@ class TestAllowedValuesValidator:
             ]
         }
         config_path = tmp_path / "bad.yaml"
-        config_path.write_text(yaml.dump(config))
+        config_path.write_text(yaml.dump(config), encoding="utf-8")
         with pytest.raises(ConfigurationError, match="duplicate scope"):
             AllowedValuesValidator(str(config_path))
 
@@ -320,6 +320,6 @@ class TestAllowedValuesValidator:
             ]
         }
         config_path = tmp_path / "bad.yaml"
-        config_path.write_text(yaml.dump(config))
+        config_path.write_text(yaml.dump(config), encoding="utf-8")
         with pytest.raises(ConfigurationError, match="expected a string"):
             AllowedValuesValidator(str(config_path))

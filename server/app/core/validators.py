@@ -38,9 +38,9 @@ class IDatasetValidatorService(IValidatorService):
     @abstractmethod
     def __init__(
         self,
+        allowed_values_config_path: str,
         shacl_url: str | None = None,
         ontology_url: str | None = None,
-        allowed_values_config_path: str = "",
     ) -> None:
         ...
 
@@ -209,9 +209,9 @@ class AllowedValuesValidator(IValidator):
                             "allowed_values_error",
                             f"Node of type {scope} must have predicate {predicate}.",
                         )
-                    allowed_str = ", ".join(sorted(str(v) for v in allowed))
                     for val in values:
                         if val not in allowed:
+                            allowed_str = ", ".join(sorted(str(v) for v in allowed))
                             raise GraphValidationError(
                                 "allowed_values_error",
                                 f"Invalid value {val} for {predicate}. "
@@ -279,9 +279,9 @@ class BaseValidatorService(IValidatorService):
 class DatasetValidatorService(BaseValidatorService, IDatasetValidatorService):
     def __init__(
         self,
+        allowed_values_config_path: str,
         shacl_url: str | None = None,
         ontology_url: str | None = None,
-        allowed_values_config_path: str = "",
     ) -> None:
         if not allowed_values_config_path:
             raise ConfigurationError(
