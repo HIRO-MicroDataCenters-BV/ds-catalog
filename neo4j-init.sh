@@ -1,7 +1,16 @@
 #!/bin/bash
-# Derive credentials from NEO4J_AUTH (format: username/password)
-NEO4J_AUTH_VALUE="${NEO4J_AUTH:-neo4j/neo4j}"
-IFS='/' read -r NEO4J_USER NEO4J_PASS <<< "$NEO4J_AUTH_VALUE"
+# Require NEO4J_AUTH to be set explicitly (format: username/password).
+# Neo4j 5.x enforces a minimum password length, so defaulting to "neo4j/neo4j"
+# would silently fail; callers must provide a valid credential pair.
+if [ -z "${NEO4J_AUTH:-}" ]; then
+  echo "Error: NEO4J_AUTH must be set in the format username/password." >&2
+  exit 1
+fi
+IFS='/' read -r NEO4J_USER NEO4J_PASS <<< "$NEO4J_AUTH"
+if [ -z "$NEO4J_USER" ] || [ -z "$NEO4J_PASS" ]; then
+  echo "Error: NEO4J_AUTH must be set in the format username/password." >&2
+  exit 1
+fi
 
 # Use an array to avoid eval and safely handle credentials
 CYPHER=(cypher-shell -a bolt://neo4j:7687 -u "$NEO4J_USER" -p "$NEO4J_PASS")

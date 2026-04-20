@@ -42,7 +42,6 @@ flake8 = "^7.0"
 isort = {extras = ["colors"], version = "^5.13"}
 mypy = "^1.8"
 mypy-extensions = "^1.0"
-pyyaml = "^6.0.1"
 types-pyyaml = "^6.0.12.12"
 
 [tool.poetry.group.test.dependencies]
