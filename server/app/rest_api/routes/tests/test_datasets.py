@@ -6,7 +6,12 @@ from fastapi.testclient import TestClient
 from rdflib import DCTERMS
 
 from app.core.entities import Dataset
-from app.core.exceptions import ErrorParsingMMIO, GraphValidationError, NodeDoesNotExist
+from app.core.exceptions import (
+    ConfigurationError,
+    ErrorParsingMMIO,
+    GraphValidationError,
+    NodeDoesNotExist,
+)
 from app.core.tests.factories import user_factory
 from app.rest_api.depends import get_user
 from app.rest_api.strings import FILE_NOT_FOUND
@@ -19,6 +24,7 @@ usecases = Mock()
 oca_uri = "http://oca.example.org/123/"
 shacl_url = "http://example.org/shacl.ttl"
 ontology_url = "http://example.org/dcat.ttl"
+allowed_values_config_path = "/code/app/core/allowed_values.yaml"
 
 
 user = user_factory()
@@ -33,6 +39,7 @@ def override_get_settings():
         oca_uri=oca_uri,
         shacl_url=shacl_url,
         ontology_url=ontology_url,
+        allowed_values_config_path=allowed_values_config_path,
     )
 
 
@@ -88,6 +95,7 @@ class TestDatasetsRoutes:
             "oca_uri": oca_uri,
             "shacl_url": shacl_url,
             "ontology_url": ontology_url,
+            "allowed_values_config_path": allowed_values_config_path,
         }
 
     def test_save_dataset_if_file_not_found(self):
@@ -141,6 +149,21 @@ class TestDatasetsRoutes:
                 }
             ]
         }
+
+    def test_save_dataset_if_configuration_error(self):
+        usecases.save = AsyncMock(
+            side_effect=ConfigurationError("internal config details")
+        )
+
+        data = dataset.to_json_ld()
+        response = client.post(
+            "/datasets/test.csv/?related_data_product=disease_xyz",
+            json=json.loads(data),
+            headers={"Content-Type": "application/ld+json"},
+        )
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"detail": "Server configuration error."}
 
     def test_get_dataset(self):
         usecases.get = AsyncMock(return_value=dataset)

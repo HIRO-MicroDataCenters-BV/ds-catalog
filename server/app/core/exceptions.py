@@ -34,6 +34,10 @@ class InvalidDatasetError(Exception):
     ...
 
 
+class ConfigurationError(Exception):
+    ...
+
+
 class GraphValidationError(Exception):
     def __init__(
         self,

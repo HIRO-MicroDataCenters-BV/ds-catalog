@@ -1,0 +1,7 @@
+validators:
+  - scope: "http://www.w3.org/ns/dcat#Dataset"
+    rules:
+      - predicate: "http://purl.org/dc/terms/type"
+        allowed_values:
+          - "http://purl.org/dc/dcmitype/Dataset"
+          - "http://purl.org/dc/dcmitype/Software"

@@ -11,3 +11,4 @@ class SaveDatasetContext(Context):
     oca_uri: str
     shacl_url: str | None
     ontology_url: str | None
+    allowed_values_config_path: str

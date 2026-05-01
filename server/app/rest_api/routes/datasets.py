@@ -1,11 +1,14 @@
 from typing import Annotated
 
+import logging
+
 from classy_fastapi import Routable, delete, get, post
 from fastapi import Depends, HTTPException, Path, Query, status
 from fastapi.exceptions import RequestValidationError
 
 from app.core import entities, usecases
 from app.core.exceptions import (
+    ConfigurationError,
     ConnectorError,
     DistributionNotFound,
     ErrorParsingMMIO,
@@ -22,6 +25,8 @@ from ..response import JSONLDResponse
 from ..serializers import Dataset
 from ..strings import DATASET_NOT_FOUND, FILE_NOT_FOUND
 from ..tags import Tags
+
+logger = logging.getLogger(__name__)
 
 
 def get_usecases(
@@ -163,6 +168,7 @@ class DatasetsRoutes(Routable):
                     "oca_uri": settings.oca_uri,
                     "shacl_url": settings.shacl_url,
                     "ontology_url": settings.ontology_url,
+                    "allowed_values_config_path": settings.allowed_values_config_path,
                 },
             )
         except ValueError as err:
@@ -170,6 +176,12 @@ class DatasetsRoutes(Routable):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=str(err),
+            )
+        except ConfigurationError as err:
+            logger.exception("Server configuration error: %s", err)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Server configuration error.",
             )
         except FileNotFoundError:
             raise HTTPException(

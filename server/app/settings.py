@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     )
     connector_base_url: str = "https://ds-connector.{region}.nextgen.hiro-develop.nl"
     filters_file: str = str(Path(__file__).resolve().parent / "core" / "filters.json")
+    allowed_values_config_path: str = str(
+        Path(__file__).resolve().parent / "core" / "allowed_values.yaml"
+    )
 
 
 def get_settings() -> Settings:

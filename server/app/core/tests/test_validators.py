@@ -1,16 +1,26 @@
 from unittest.mock import Mock
 
 import pytest
+import yaml
 from rdflib import RDF, SH
 from rdflib import Graph as RDFGraph
-from rdflib import Literal, Namespace
+from rdflib import Literal, Namespace, URIRef
+from rdflib.namespace import DCAT, DCTERMS
 
 from ..entities import Graph
-from ..exceptions import GraphValidationError
-from ..validators import BaseValidatorService, HasNodeValidator, SHACLValidator
+from ..exceptions import ConfigurationError, GraphValidationError
+from ..validators import (
+    AllowedValuesValidator,
+    BaseValidatorService,
+    HasNodeValidator,
+    SHACLValidator,
+)
 
 EX = Namespace("http://example.org/")
 RDFType = EX.TestType
+
+DATASET_TYPE = "http://purl.org/dc/dcmitype/Dataset"
+SOFTWARE_TYPE = "http://purl.org/dc/dcmitype/Software"
 
 
 class DummyEntity(Graph):
@@ -131,3 +141,197 @@ class TestBaseValidatorService:
 
         validator1.validate.assert_called_once_with(entity)
         validator2.validate.assert_called_once_with(entity)
+
+
+class DatasetEntity(Graph):
+    label = "d"
+    rdf_type = DCAT.Dataset
+
+
+DCAT_DATASET = "http://www.w3.org/ns/dcat#Dataset"
+DCTERMS_TYPE = "http://purl.org/dc/terms/type"
+
+
+class TestAllowedValuesValidator:
+    def _make_config(self, tmp_path, allowed_values):
+        config = {
+            "validators": [
+                {
+                    "scope": DCAT_DATASET,
+                    "rules": [
+                        {
+                            "predicate": DCTERMS_TYPE,
+                            "allowed_values": allowed_values,
+                        }
+                    ],
+                }
+            ]
+        }
+        config_path = tmp_path / "allowed_values.yaml"
+        config_path.write_text(yaml.dump(config), encoding="utf-8")
+        return str(config_path)
+
+    def _make_dataset_with_type(self, type_uri: str) -> DatasetEntity:
+        graph = RDFGraph()
+        node = EX.dataset1
+        graph.add((node, RDF.type, DCAT.Dataset))
+        graph.add((node, DCTERMS.type, URIRef(type_uri)))
+        return DatasetEntity(graph)
+
+    def _make_dataset_without_type(self) -> DatasetEntity:
+        graph = RDFGraph()
+        node = EX.dataset1
+        graph.add((node, RDF.type, DCAT.Dataset))
+        return DatasetEntity(graph)
+
+    def test_valid_dataset_type(self, tmp_path):
+        entity = self._make_dataset_with_type(DATASET_TYPE)
+        validator = AllowedValuesValidator(
+            self._make_config(tmp_path, [DATASET_TYPE, SOFTWARE_TYPE])
+        )
+        validator.validate(entity)
+
+    def test_valid_software_type(self, tmp_path):
+        entity = self._make_dataset_with_type(SOFTWARE_TYPE)
+        validator = AllowedValuesValidator(
+            self._make_config(tmp_path, [DATASET_TYPE, SOFTWARE_TYPE])
+        )
+        validator.validate(entity)
+
+    def test_missing_type_raises_error(self, tmp_path):
+        entity = self._make_dataset_without_type()
+        validator = AllowedValuesValidator(
+            self._make_config(tmp_path, [DATASET_TYPE, SOFTWARE_TYPE])
+        )
+        with pytest.raises(GraphValidationError, match="must have predicate"):
+            validator.validate(entity)
+
+    def test_invalid_type_raises_error(self, tmp_path):
+        entity = self._make_dataset_with_type("http://example.org/InvalidType")
+        validator = AllowedValuesValidator(
+            self._make_config(tmp_path, [DATASET_TYPE, SOFTWARE_TYPE])
+        )
+        with pytest.raises(GraphValidationError, match="Invalid value"):
+            validator.validate(entity)
+
+    def test_empty_allowed_values_raises_configuration_error(self, tmp_path):
+        with pytest.raises(ConfigurationError, match="list must not be empty"):
+            AllowedValuesValidator(self._make_config(tmp_path, []))
+
+    def test_no_dataset_nodes_passes(self, tmp_path):
+        """If there are no dcat:Dataset nodes, validation passes (nothing to check)."""
+        graph = RDFGraph()
+        graph.add((EX.something, RDF.type, EX.OtherType))
+        entity = DatasetEntity(graph)
+        validator = AllowedValuesValidator(self._make_config(tmp_path, [DATASET_TYPE]))
+        validator.validate(entity)
+
+    def test_nonexistent_file_raises_configuration_error(self, tmp_path):
+        with pytest.raises(ConfigurationError, match="Failed to load"):
+            AllowedValuesValidator(str(tmp_path / "nonexistent.yaml"))
+
+    def test_malformed_yaml_raises_configuration_error(self, tmp_path):
+        config_path = tmp_path / "bad.yaml"
+        config_path.write_text(":\n  - invalid: [unterminated", encoding="utf-8")
+        with pytest.raises(ConfigurationError, match="Malformed YAML"):
+            AllowedValuesValidator(str(config_path))
+
+    def test_missing_validators_key_raises_configuration_error(self, tmp_path):
+        config_path = tmp_path / "bad.yaml"
+        config_path.write_text("not_validators:\n  - scope: foo\n", encoding="utf-8")
+        with pytest.raises(ConfigurationError, match="missing or non-list"):
+            AllowedValuesValidator(str(config_path))
+
+    def test_non_string_scope_raises_configuration_error(self, tmp_path):
+        config = {
+            "validators": [
+                {
+                    "scope": 123,
+                    "rules": [
+                        {"predicate": DCTERMS_TYPE, "allowed_values": [DATASET_TYPE]}
+                    ],
+                }
+            ]
+        }
+        config_path = tmp_path / "bad.yaml"
+        config_path.write_text(yaml.dump(config), encoding="utf-8")
+        with pytest.raises(ConfigurationError, match="scope.*must be a string"):
+            AllowedValuesValidator(str(config_path))
+
+    def test_non_string_predicate_raises_configuration_error(self, tmp_path):
+        config = {
+            "validators": [
+                {
+                    "scope": DCAT_DATASET,
+                    "rules": [{"predicate": 456, "allowed_values": [DATASET_TYPE]}],
+                }
+            ]
+        }
+        config_path = tmp_path / "bad.yaml"
+        config_path.write_text(yaml.dump(config), encoding="utf-8")
+        with pytest.raises(ConfigurationError, match="predicate.*must be a string"):
+            AllowedValuesValidator(str(config_path))
+
+    def test_duplicate_scope_raises_configuration_error(self, tmp_path):
+        config = {
+            "validators": [
+                {
+                    "scope": DCAT_DATASET,
+                    "rules": [
+                        {"predicate": DCTERMS_TYPE, "allowed_values": [DATASET_TYPE]}
+                    ],
+                },
+                {
+                    "scope": DCAT_DATASET,
+                    "rules": [
+                        {"predicate": DCTERMS_TYPE, "allowed_values": [SOFTWARE_TYPE]}
+                    ],
+                },
+            ]
+        }
+        config_path = tmp_path / "bad.yaml"
+        config_path.write_text(yaml.dump(config), encoding="utf-8")
+        with pytest.raises(ConfigurationError, match="duplicate scope"):
+            AllowedValuesValidator(str(config_path))
+
+    def test_duplicate_predicate_raises_configuration_error(self, tmp_path):
+        config = {
+            "validators": [
+                {
+                    "scope": DCAT_DATASET,
+                    "rules": [
+                        {
+                            "predicate": DCTERMS_TYPE,
+                            "allowed_values": [DATASET_TYPE],
+                        },
+                        {
+                            "predicate": DCTERMS_TYPE,
+                            "allowed_values": [SOFTWARE_TYPE],
+                        },
+                    ],
+                }
+            ]
+        }
+        config_path = tmp_path / "bad.yaml"
+        config_path.write_text(yaml.dump(config), encoding="utf-8")
+        with pytest.raises(ConfigurationError, match="duplicate predicate"):
+            AllowedValuesValidator(str(config_path))
+
+    def test_non_string_allowed_value_raises_configuration_error(self, tmp_path):
+        config = {
+            "validators": [
+                {
+                    "scope": DCAT_DATASET,
+                    "rules": [
+                        {
+                            "predicate": DCTERMS_TYPE,
+                            "allowed_values": [None, DATASET_TYPE],
+                        }
+                    ],
+                }
+            ]
+        }
+        config_path = tmp_path / "bad.yaml"
+        config_path.write_text(yaml.dump(config), encoding="utf-8")
+        with pytest.raises(ConfigurationError, match="expected a string"):
+            AllowedValuesValidator(str(config_path))
