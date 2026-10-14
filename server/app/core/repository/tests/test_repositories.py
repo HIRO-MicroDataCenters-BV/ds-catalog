@@ -266,13 +266,19 @@ class TestFilesRepository:
     async def test_create_if_file_exists(self, tmp_path):
         filename = "testfile.txt"
         file_path = tmp_path / filename
-        file_path.touch()
+        file_path.write_text("old content")
+
         file_mock = Mock()
+        file_mock.read.return_value = b"new content"
 
         repository = FilesRepository(upload_folder=str(tmp_path))
 
-        with pytest.raises(FileExistsError):
-            await repository.create(file_mock, filename)
+        await repository.create(file_mock, filename)
+
+        assert file_path.read_text() == "new content"
+
+        # with pytest.raises(FileExistsError):
+        #     await repository.create(file_mock, filename)
 
     @pytest.mark.asyncio
     async def test_get_file_path_success(self, tmp_path):

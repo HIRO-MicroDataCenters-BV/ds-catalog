@@ -95,10 +95,22 @@ class Graph:
             "@context": self.get_context(),
             "@type": self.graph.namespace_manager.qname(self.get_rdf_type()),
         }
+
         json_ld_str = self.graph.serialize(format="json-ld")
         json_ld = json.loads(json_ld_str)
-        framed_json_ld = jsonld.frame(json_ld, frame)
-        return json.dumps(framed_json_ld, indent=4)
+        framed = jsonld.frame(json_ld, frame)
+        compacted = jsonld.compact(framed, self.get_context())
+
+        if "dcat:distribution" in compacted and not isinstance(
+            compacted["dcat:distribution"], list
+        ):
+            compacted["dcat:distribution"] = [compacted["dcat:distribution"]]
+        for dist in compacted.get("dcat:distribution", []):
+            bs = dist.get("dcat:byteSize")
+            if isinstance(bs, dict) and "@value" in bs:
+                bs["@type"] = "xsd:nonNegativeInteger"
+
+        return json.dumps(compacted, indent=4)
 
     @property
     def uri(self) -> URIRef:
@@ -169,6 +181,14 @@ class Dataset(Graph):
     rdf_type = DCAT.Dataset
     label = "d"
 
+    @classmethod
+    def to_entity(cls, data: Any) -> "Dataset":
+        """Convert JSON-LD data or Graph into a Dataset entity."""
+        if isinstance(data, Graph):
+            return cast(Dataset, data)  # already a graph
+        json_ld_str = json.dumps(data, default=str)
+        return cls.from_json_ld(json_ld_str)
+
 
 class Metadata(Graph):
     """Domain-specific metadata (subgraph of a dataset)"""
@@ -211,3 +231,29 @@ class Metadata(Graph):
             instances.append(instance)
 
         return instances
+
+    @classmethod
+    def create_bunch_from_df_with_digest(
+        cls,
+        schema_uri: str,
+        metadata_id: str,
+        df: "pl.DataFrame",
+        digest: str | None,
+    ) -> list["Metadata"]:
+        """
+        Creates a list of Metadata objects from a Polars DataFrame and
+        optionally adds a bundle digest to the first created object.
+        """
+        from rdflib import URIRef
+        from rdflib.namespace import XSD
+
+        metadata_list = cls.create_bunch_from_df(schema_uri, metadata_id, df)
+
+        if metadata_list and digest:
+            base_uri = schema_uri.rstrip("/")
+            bundle_digest_uri = f"{base_uri}/SAID"
+            metadata_list[0].set_attribute(
+                URIRef(bundle_digest_uri), digest, XSD.string
+            )
+
+        return metadata_list
