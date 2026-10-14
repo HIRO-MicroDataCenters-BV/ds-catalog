@@ -18,6 +18,27 @@ class Catalog(BaseModel):
     description: str = ""
 
 
+class Auth(BaseModel):
+    """Optional ds-auth integration.
+
+    When ``enabled`` is False (default) every endpoint is open — matches the
+    service's current behaviour. When True, every endpoint except the public
+    set (health, docs, openapi) requires a JWT whose claims pass ds-auth's
+    permission check against the policy engine.
+
+    Env variables use the usual DS__ prefix with __ as nested delimiter:
+      DS__AUTH__ENABLED=true
+      DS__AUTH__JWKS_URL=http://ds-login:8080/.well-known/jwks.json
+      DS__AUTH__POLICY_ENGINE_URL=http://ds-policy-engine:8000
+    """
+
+    enabled: bool = False
+    jwks_url: str = ""
+    jwt_issuer: str = "ds-login"
+    jwt_audience: str = "hiro-services"
+    policy_engine_url: str = ""
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -32,6 +53,7 @@ class Settings(BaseSettings):
     test_database: Database = Database()
 
     catalog: Catalog = Catalog()
+    auth: Auth = Auth()
     data_root_path: str = "/data/"
     oca_uri: str = "http://oca.example.org/123/"
     ontology_url: str = "https://www.w3.org/ns/dcat.ttl"
