@@ -55,14 +55,14 @@ catalog:
 
 database:
   protocol: bolt
-  host: "127.0.0.1"
+  host: "ds-neo4j"
   port: 7687
   name: neo4j
   username: neo4j
   password: "123456789"  # Must match Neo4j's password
 
 migrate:
-  enabled: false
+  enabled: false  # Set to true to enable database migration
 
 resources:
   requests:
@@ -74,11 +74,44 @@ resources:
 
 namespace: nextgen
 
-deploymentMode: daemonset  # or "deployment"
+deploymentMode: deployment  # or "daemonset"
 
 ingress:
+  enabled: true
   host: nextgen.hiro-develop.nl
-  nodes:
-    - nodeId: hus
-    - nodeId: ki
-    - nodeId: uva
+
+## Update this according to the desired node
+nodeSelector:
+  role: node-label
+
+## To control the metics on development
+metrics:
+  enabled: true
+
+## To control the grafana on development
+grafana:
+  enabled: true
+
+baseUrls:
+  connectorBaseUrl: "https://ds-connector.{region}.nextgen.hiro-develop.nl"
+  ocaRepositoryBundlesUrl: "https://oca-repository.marketplace.nextgen.hiro-develop.nl/oca-bundles"
+
+# Path to the YAML file defining allowed predicate values for RDF validation.
+# Defaults to the file bundled in the image. Change this only if you provide
+# the file yourself (e.g. via a custom image or an externally managed volume
+# mount). Note: this chart does not configure such a mount by default, and
+# updates to the file take effect only after a pod restart.
+allowedValuesConfigPath: "/code/app/core/allowed_values.yaml"
+
+# Optional ds-auth integration (same shape as ds-policy-engine and
+# ds-credential-issuer). When enabled, DataspaceAuthMiddleware gates every
+# non-public path (see app/rest_api/auth_config.py: PUBLIC_PATHS and
+# PERMISSION_MAP). jwksUrl must point at the ds-login's JWKs endpoint;
+# policyEngineUrl points at ds-policy-engine. jwtIssuer and jwtAudience
+# are optional overrides for stricter claim validation.
+auth:
+  enabled: false
+  jwksUrl: ""
+  policyEngineUrl: ""
+  jwtIssuer: ""
+  jwtAudience: ""

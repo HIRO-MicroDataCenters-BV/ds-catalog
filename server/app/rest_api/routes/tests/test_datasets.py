@@ -1,3 +1,4 @@
+import json
 from unittest.mock import AsyncMock, Mock
 
 from fastapi import FastAPI, status
@@ -5,7 +6,12 @@ from fastapi.testclient import TestClient
 from rdflib import DCTERMS
 
 from app.core.entities import Dataset
-from app.core.exceptions import ErrorParsingMMIO, GraphValidationError, NodeDoesNotExist
+from app.core.exceptions import (
+    ConfigurationError,
+    ErrorParsingMMIO,
+    GraphValidationError,
+    NodeDoesNotExist,
+)
 from app.core.tests.factories import user_factory
 from app.rest_api.depends import get_user
 from app.rest_api.strings import FILE_NOT_FOUND
@@ -18,6 +24,8 @@ usecases = Mock()
 oca_uri = "http://oca.example.org/123/"
 shacl_url = "http://example.org/shacl.ttl"
 ontology_url = "http://example.org/dcat.ttl"
+allowed_values_config_path = "/code/app/core/allowed_values.yaml"
+
 
 user = user_factory()
 
@@ -31,6 +39,7 @@ def override_get_settings():
         oca_uri=oca_uri,
         shacl_url=shacl_url,
         ontology_url=ontology_url,
+        allowed_values_config_path=allowed_values_config_path,
     )
 
 
@@ -55,10 +64,15 @@ client = TestClient(app)
 class TestDatasetsRoutes:
     def test_save_dataset(self):
         filename = "test.csv"
-        usecases.save = AsyncMock(return_value=dataset)
+        related_data_product = "disease_xyz"
+        usecases.save = AsyncMock(return_value=(dataset, []))
 
         data = dataset.to_json_ld()
-        response = client.post(f"/datasets/{filename}/", content=data)
+        response = client.post(
+            f"/datasets/{filename}/?related_data_product={related_data_product}",
+            json=json.loads(data),
+            headers={"Content-Type": "application/ld+json"},
+        )
 
         assert response.status_code == status.HTTP_200_OK
         assert Dataset.from_json_ld(response.text) == dataset
@@ -69,23 +83,30 @@ class TestDatasetsRoutes:
         kwargs = usecases.save.call_args[1]
 
         assert len(args) == 2
-        assert len(kwargs) == 1
+        assert len(kwargs) == 2
 
         assert usecases.save.call_args[0][0] == dataset
         assert usecases.save.call_args[0][1] == filename
+        assert (
+            usecases.save.call_args[1]["related_data_product"] == related_data_product
+        )
         assert usecases.save.call_args[1]["context"] == {
             "user": user,
             "oca_uri": oca_uri,
             "shacl_url": shacl_url,
             "ontology_url": ontology_url,
+            "allowed_values_config_path": allowed_values_config_path,
         }
 
     def test_save_dataset_if_file_not_found(self):
         usecases.save = AsyncMock(side_effect=FileNotFoundError)
 
         data = dataset.to_json_ld()
-        response = client.post("/datasets/test.csv/", content=data)
-
+        response = client.post(
+            "/datasets/test.csv/?related_data_product=disease_xyz",
+            json=json.loads(data),
+            headers={"Content-Type": "application/ld+json"},
+        )
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"detail": FILE_NOT_FOUND}
 
@@ -94,7 +115,11 @@ class TestDatasetsRoutes:
         usecases.save = AsyncMock(side_effect=ErrorParsingMMIO(error_message))
 
         data = dataset.to_json_ld()
-        response = client.post("/datasets/test.csv/", content=data)
+        response = client.post(
+            "/datasets/test.csv/?related_data_product=disease_xyz",
+            json=json.loads(data),
+            headers={"Content-Type": "application/ld+json"},
+        )
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert response.json() == {"detail": error_message}
@@ -108,7 +133,11 @@ class TestDatasetsRoutes:
         usecases.save = AsyncMock(side_effect=error)
 
         data = dataset.to_json_ld()
-        response = client.post("/datasets/test.csv/", content=data)
+        response = client.post(
+            "/datasets/test.csv/?related_data_product=disease_xyz",
+            json=json.loads(data),
+            headers={"Content-Type": "application/ld+json"},
+        )
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert response.json() == {
@@ -120,6 +149,21 @@ class TestDatasetsRoutes:
                 }
             ]
         }
+
+    def test_save_dataset_if_configuration_error(self):
+        usecases.save = AsyncMock(
+            side_effect=ConfigurationError("internal config details")
+        )
+
+        data = dataset.to_json_ld()
+        response = client.post(
+            "/datasets/test.csv/?related_data_product=disease_xyz",
+            json=json.loads(data),
+            headers={"Content-Type": "application/ld+json"},
+        )
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"detail": "Server configuration error."}
 
     def test_get_dataset(self):
         usecases.get = AsyncMock(return_value=dataset)

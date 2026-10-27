@@ -32,7 +32,15 @@ python-multipart = "^0.0.20"
 polars = "^1.28.1"
 pyarrow = "^20.0.0"
 pyshacl = "^0.30.1"
+pyyaml = "^6.0.1"
 m2io-nextgen = "^0.2.1"
+tenacity = "^8.2.0"
+# Optional — only used when DS__AUTH__ENABLED=true. Default off keeps this
+# service backward compatible with the current unauthenticated flow.
+ds-auth = { git = "https://github.com/HIRO-MicroDataCenters-BV/ds-auth.git", rev = "develop", optional = true }
+
+[tool.poetry.extras]
+auth = ["ds-auth"]
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.12"
@@ -40,7 +48,6 @@ flake8 = "^7.0"
 isort = {extras = ["colors"], version = "^5.13"}
 mypy = "^1.8"
 mypy-extensions = "^1.0"
-pyyaml = "^6.0.1"
 types-pyyaml = "^6.0.12.12"
 
 [tool.poetry.group.test.dependencies]
