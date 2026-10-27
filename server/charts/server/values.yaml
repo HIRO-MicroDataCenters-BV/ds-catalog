@@ -102,3 +102,16 @@ baseUrls:
 # mount). Note: this chart does not configure such a mount by default, and
 # updates to the file take effect only after a pod restart.
 allowedValuesConfigPath: "/code/app/core/allowed_values.yaml"
+
+# Optional ds-auth integration (same shape as ds-policy-engine and
+# ds-credential-issuer). When enabled, DataspaceAuthMiddleware gates every
+# non-public path (see app/rest_api/auth_config.py: PUBLIC_PATHS and
+# PERMISSION_MAP). jwksUrl must point at the ds-login's JWKs endpoint;
+# policyEngineUrl points at ds-policy-engine. jwtIssuer and jwtAudience
+# are optional overrides for stricter claim validation.
+auth:
+  enabled: false
+  jwksUrl: ""
+  policyEngineUrl: ""
+  jwtIssuer: ""
+  jwtAudience: ""

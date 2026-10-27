@@ -84,6 +84,22 @@ Create the name of the service account to use
   value: "{{ .Values.baseUrls.connectorBaseUrl }}"
 - name: DS__ALLOWED_VALUES_CONFIG_PATH
   value: "{{ .Values.allowedValuesConfigPath }}"
+{{- if .Values.auth.enabled }}
+- name: DS__AUTH__ENABLED
+  value: "true"
+- name: DS__AUTH__JWKS_URL
+  value: "{{ .Values.auth.jwksUrl }}"
+- name: DS__AUTH__POLICY_ENGINE_URL
+  value: "{{ .Values.auth.policyEngineUrl }}"
+{{- if .Values.auth.jwtIssuer }}
+- name: DS__AUTH__JWT_ISSUER
+  value: "{{ .Values.auth.jwtIssuer }}"
+{{- end }}
+{{- if .Values.auth.jwtAudience }}
+- name: DS__AUTH__JWT_AUDIENCE
+  value: "{{ .Values.auth.jwtAudience }}"
+{{- end }}
+{{- end }}
 {{- end }}
 
 
